@@ -2,24 +2,24 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (provide 'eide-keys)
+
+(defvar eide-keys-is-editor-configuration-active-flag nil)
 
 
 ;;;; ==========================================================================
@@ -187,10 +187,10 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-l-keys-enable-keys-misc ()
   ;; Block hiding
-  (global-set-key [C-f1] 'hs-hide-block)
-  (global-set-key [C-f2] 'hs-show-block)
-  (global-set-key [C-f3] 'hs-hide-all)
-  (global-set-key [C-f4] 'hs-show-all)
+  ;;(global-set-key [C-f1] 'hs-hide-block)
+  ;;(global-set-key [C-f2] 'hs-show-block)
+  ;;(global-set-key [C-f3] 'hs-hide-all)
+  ;;(global-set-key [C-f4] 'hs-show-all)
 
   ;; Display
   (global-set-key [f5] 'eide-menu-revert-buffer)
@@ -206,12 +206,6 @@
 
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
 
-  ;; Control + Wheel up (resize windows layout)
-  (global-set-key [C-mouse-4] 'eide-windows-handle-control-mouse-4)
-
-  ;; Control + Wheel down (resize windows layout)
-  (global-set-key [C-mouse-5] 'eide-windows-handle-control-mouse-5)
-
   ;; Shift + Wheel up (horizontal scrolling)
   (global-set-key [S-mouse-4] 'eide-l-keys-scroll-right-one-step)
 
@@ -223,10 +217,10 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-l-keys-disable-keys-misc ()
   ;; Block hiding
-  (global-unset-key [C-f1])
-  (global-unset-key [C-f2])
-  (global-unset-key [C-f3])
-  (global-unset-key [C-f4])
+  ;;(global-unset-key [C-f1])
+  ;;(global-unset-key [C-f2])
+  ;;(global-unset-key [C-f3])
+  ;;(global-unset-key [C-f4])
 
   ;; Display
   (global-unset-key [f5])
@@ -288,9 +282,6 @@
 (global-set-key [mode-line mouse-2] nil)
 (global-set-key [mode-line mouse-3] nil)
 
-;; Override speedbar default key-binding
-(define-key speedbar-key-map [mouse-1] 'speedbar-click)
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -300,6 +291,7 @@
 ;; Configure keys for edition mode.
 ;; ----------------------------------------------------------------------------
 (defun eide-keys-configure-for-editor ()
+  (setq eide-keys-is-editor-configuration-active-flag t)
   (if eide-project-name
     (eide-l-keys-enable-keys-for-project)
     (eide-l-keys-disable-keys-for-project))
@@ -310,6 +302,7 @@
 ;; Configure keys for ediff session.
 ;; ----------------------------------------------------------------------------
 (defun eide-keys-configure-for-ediff ()
+  (setq eide-keys-is-editor-configuration-active-flag nil)
   (eide-l-keys-disable-keys-for-project)
   (eide-l-keys-disable-keys-for-grep)
   (eide-l-keys-disable-keys-misc)
@@ -319,6 +312,7 @@
 ;; Configure keys for configuration editing.
 ;; ----------------------------------------------------------------------------
 (defun eide-keys-configure-for-special-buffer ()
+  (setq eide-keys-is-editor-configuration-active-flag nil)
   (eide-l-keys-disable-keys-for-project)
   (eide-l-keys-disable-keys-for-grep)
   (eide-l-keys-disable-keys-misc)

@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -150,7 +148,6 @@
 ;; Create a project.
 ;;
 ;; input  : eide-root-directory : project root directory.
-;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
 ;; output : eide-project-name : project name.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-create ()
@@ -163,8 +160,6 @@
       ;; Update frame title and menu (project is active now)
       (eide-project-update-frame-title)
       (eide-menu-update t)
-      (if eide-config-use-toolbar-flag
-        (eide-toolbar-update))
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
 
@@ -172,7 +167,6 @@
 ;; Delete current project.
 ;;
 ;; input  : eide-root-directory : project root directory.
-;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
 ;; output : eide-project-name : project name (nil).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-delete ()
@@ -187,8 +181,6 @@
       ;; Update frame title and menu (project is inactive now)
       (eide-project-update-frame-title)
       (eide-menu-update t)
-      (if eide-config-use-toolbar-flag
-        (eide-toolbar-update))
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
 
@@ -230,7 +222,8 @@
           (eide-l-project-create-tags)
           (message "Creating tags... done")))
       ;; Load tags now, otherwise first tag search will take some time...
-      (find-file-noselect (concat eide-root-directory "TAGS"))))
+      ;;(find-file-noselect (concat eide-root-directory "TAGS"))
+))
 
   (if (not (file-exists-p (concat eide-root-directory eide-project-notes-file)))
     ;; Create empty project notes file
@@ -273,8 +266,8 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-project-update-frame-title ()
   (if eide-project-name
-    (setq frame-title-format (concat eide-project-name " - Emacs-IDE"))
-    (setq frame-title-format (concat eide-root-directory " - Emacs-IDE"))))
+    (setq frame-title-format (concat eide-project-name " - Emacs"))
+    (setq frame-title-format (concat eide-root-directory " - Emacs"))))
 
 ;; ----------------------------------------------------------------------------
 ;; Get full command (init command + compile/run command).

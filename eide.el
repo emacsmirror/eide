@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -48,31 +46,16 @@
 ;;;; SETTINGS
 ;;;; ==========================================================================
 
-(defvar eide-version "1.1")
-(defvar eide-release-date "04/2009")
+(defvar eide-version "1.2")
+(defvar eide-release-date "08/2009")
 
 (defvar eide-options-file       ".emacs-ide.options")
 (defvar eide-project-file       ".emacs-ide.project")
 (defvar eide-project-notes-file ".emacs-ide.project_notes")
 ;;(defvar eide-project-lock-file  ".emacs-ide.project_lock")
 
-;; Print debug information in eide-debug-string
-(defvar eide-debug-flag nil)
-(defvar eide-debug-string "")
-
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
-
-;; ----------------------------------------------------------------------------
-;; Add debug trace in debug string.
-;;
-;; input  : p-string : debug trace.
-;;          eide-debug-flag : debug activation flag.
-;; output : eide-debug-string : updated debug string.
-;; ----------------------------------------------------------------------------
-(defun eide-debug-print-trace (p-string)
-  (if eide-debug-flag
-    (setq eide-debug-string (concat eide-debug-string p-string " --- "))))
 
 
 ;;;; ==========================================================================
@@ -126,7 +109,6 @@
 (require 'eide-popup)
 (require 'eide-menu)
 (require 'eide-windows)
-(require 'eide-toolbar)
 (require 'eide-help)
 
 (require 'eide-keys)
@@ -157,6 +139,9 @@
 ;; Do not display startup message
 (setq inhibit-startup-message t)
 
+;; Disable warning for large files (especially for TAGS)
+(setq large-file-warning-threshold nil)
+
 ;; Do not save backup files (~)
 (setq make-backup-files nil)
 
@@ -179,6 +164,8 @@
   (setq mouse-wheel-scroll-amount '(4 . 1))
   ;; New API
   (setq mouse-wheel-scroll-amount '(4 ((shift) . 1) ((control)))))
+;; Disable mouse wheel progressive speed
+(setq mouse-wheel-progressive-speed nil)
 
 ;; Keep cursor position when moving page up/down
 (setq scroll-preserve-screen-position t)
@@ -310,7 +297,7 @@
 (setq mouse-buffer-menu-maxlen 40)
 
 ;; Highlight matching parentheses (when cursor on "(" or just after ")")
-(show-paren-mode)
+(show-paren-mode 1)
 
 ;; moved to major mode hooks ! no effect on emacs linux, if here
 ;; (but used again, because no effect in hook !!!)
@@ -458,6 +445,7 @@
 (setq-default indent-tabs-mode t)
 (setq-default tab-width 4)
 
+
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "C" and "C++"
 ;;;; ==========================================================================
@@ -483,9 +471,9 @@
     ;;(auto-fill-mode 1)
     ;;(set-fill-column 80)
 
-    ;; Highlight matching parentheses (when cursor on "(" or just after ")")
-    (if (not show-paren-mode)
-      (show-paren-mode))
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))
 
     ;; Turn hide/show mode on
     (if (not hs-minor-mode)
@@ -522,9 +510,9 @@
     ;;(auto-fill-mode 1)
     ;;(set-fill-column 80)
 
-    ;; Highlight matching parentheses (when cursor on "(" or just after ")")
-    (if (not show-paren-mode)
-      (show-paren-mode))
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))
 
     ;; Turn hide/show mode on
     (if (not hs-minor-mode)
@@ -585,9 +573,9 @@
     ;;(auto-fill-mode 1)
     ;;(set-fill-column 80)
 
-    ;; Highlight matching parentheses (when cursor on "(" or just after ")")
-    (if (not show-paren-mode)
-      (show-paren-mode))))
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))))
 
 
 ;;;; ==========================================================================
@@ -599,7 +587,12 @@
  '(lambda()
     ;; Indentation : insert spaces instead of tabs
     (setq indent-tabs-mode nil)
-    (setq tab-width 2)))
+    (setq tab-width 2)
+
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))))
+
 
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "SHELL SCRIPT"
@@ -610,7 +603,11 @@
  '(lambda()
     ;; Indentation : insert spaces instead of tabs
     (setq indent-tabs-mode nil)
-    (setq tab-width 2)))
+    (setq tab-width 2)
+
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))))
 
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "PERL"
@@ -621,7 +618,27 @@
  '(lambda()
     ;; Indentation : insert spaces instead of tabs
     (setq indent-tabs-mode nil)
-    (setq tab-width 2)))
+    (setq tab-width 2)
+
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))))
+
+
+;;;; ==========================================================================
+;;;; SETTINGS FOR MAJOR MODE "PYTHON"
+;;;; ==========================================================================
+
+(add-hook
+ 'python-mode-hook
+ '(lambda()
+    ;; Indentation : insert tabs
+    (setq indent-tabs-mode t)
+    (setq tab-width 4)
+
+    ;; Show trailing spaces if enabled in options
+    (if eide-config-show-trailing-spaces
+      (setq show-trailing-whitespace t))))
 
 
 ;;;; ==========================================================================
@@ -651,7 +668,6 @@
 
 (setq eide-current-buffer (buffer-name))
 (eide-menu-init)
-(eide-toolbar-init)
 (eide-windows-init)
 
 ;;(add-hook 'kill-emacs-hook 'eide-kill-emacs-hook)

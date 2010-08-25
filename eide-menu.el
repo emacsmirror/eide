@@ -2,47 +2,22 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (provide 'eide-menu)
-
-(require 'speedbar)
-
-;; Pas de regroupement des tags
-(setq speedbar-tag-hierarchy-method nil)
-;; Donne le focus après sélection
-(setq speedbar-activity-change-focus-flag t)
-;; Show all files in directory browser
-(setq speedbar-show-unknown-files t)
-
-(setq speedbar-frame-parameters
-      '((minibuffer)
-        (left . 140)
-        (top . 64)
-        (width . 100)
-        (height . 40)
-        (border-width . 0)
-        (menu-bar-lines . 0)
-        (tool-bar-lines . 0)
-        (unsplittable . t)))
-
-(setq speedbar-visiting-file-hook 'eide-l-menu-speedbar-close-hook)
-(setq speedbar-visiting-tag-hook  'eide-l-menu-speedbar-close-hook)
 
 (setq eide-menu-functions-unfolded-flag nil)
 (setq eide-menu-highlighted-functions-list nil)
@@ -57,20 +32,15 @@
 (defvar eide-menu-highlighted-functions-list-backup nil)
 (defvar eide-menu-highlighted-functions-lists-list nil)
 
+(require 'dired)
+
+(defvar eide-menu-browsing-mode-flag nil)
+(defvar eide-l-menu-layout-should-be-built-after-browsing-mode-flag nil)
+
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
-
-;; ----------------------------------------------------------------------------
-;; Hook to be executed after a file or a function has been selected in the
-;; speedbar.
-;; ----------------------------------------------------------------------------
-(defun eide-l-menu-speedbar-close-hook ()
-  (if (fboundp 'speedbar-close-frame)
-    (speedbar-close-frame)
-    (dframe-close-frame))
-  (eide-windows-select-window-file nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Insert text in "menu" buffer (with specific background).
@@ -166,7 +136,9 @@
             (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-with-highlight-face)
             (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-face))
           (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-          (eide-l-menu-insert-text "\n"))
+          ;; Add a space after function name, because otherwise, property
+          ;; applies on whole line ("\n")
+          (eide-l-menu-insert-text " \n"))
         (progn
           (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-config-menu-empty-list-face)
           (eide-l-menu-insert-text "\n"))))))
@@ -311,9 +283,9 @@
 
     (if eide-project-name
       (progn
-        (put-text-property (point) (progn (insert "Project : ") (point)) 'face 'eide-config-menu-project-type-face)
+        (put-text-property (point) (progn (insert "Project : ") (point)) 'face 'eide-config-menu-project-header-face)
         (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-menu-project-name-face))
-      (put-text-property (point) (progn (insert "Root directory :") (point)) 'face 'eide-config-menu-project-type-face))
+      (put-text-property (point) (progn (insert "Root directory :") (point)) 'face 'eide-config-menu-project-header-face))
 
     (eide-l-menu-insert-text "\n")
     (eide-l-menu-insert-text eide-root-directory)
@@ -440,7 +412,10 @@
       ;; Save window to go back to, once menu has been updated
       ;;(setq l-window (selected-window))
       (eide-windows-select-window-file t)
-      (setq eide-current-buffer-temp (buffer-name))
+      ;; On Emacs 22 GTK : buffer-name does not return current but previous
+      ;; buffer !... The bug is fixed if window-buffer is used.
+      ;;(setq eide-current-buffer-temp (buffer-name))
+      (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
       (if p-force-update-flag
         (progn
           (eide-windows-select-window-menu)
@@ -486,16 +461,13 @@
   (dolist (l-buffer-name l-buffer-name-list)
     (if (not (or (string-match "^[ \*]" l-buffer-name) (string-equal "TAGS" l-buffer-name)))
       ;; This is a "useful" buffer
-      (progn
-        (save-excursion
-          (set-buffer l-buffer-name)
-          (if (or (equal major-mode 'dired-mode) (string-equal l-buffer-name eide-project-file))
-            (setq l-file-in-the-list-flag nil)
-            (setq l-file-in-the-list-flag t)))
-        (if l-file-in-the-list-flag
-          (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list))
-          (if (equal major-mode 'dired-mode) ;; TODO : en dehors du save-excursion, marche quand même ?
-            (kill-buffer l-buffer-name))))
+      (save-excursion
+        (set-buffer l-buffer-name)
+        (if (or (equal major-mode 'dired-mode)
+                (equal major-mode 'Buffer-menu-mode))
+          (kill-buffer l-buffer-name)
+          (if (not (string-equal l-buffer-name eide-project-file))
+            (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
       ;; This is a "*..." buffer
       (if (string-match "^\\*grep.*" l-buffer-name)
         (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
@@ -560,7 +532,7 @@
         (if (string-equal p-buffer-name eide-current-buffer)
           (progn
             ;; Current buffer has been closed : display another one
-            (eide-windows-skip-unwanted-buffers-in-window-file nil nil)
+            (eide-windows-skip-unwanted-buffers-in-window-file)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t))
           (progn
@@ -610,7 +582,7 @@
           (eide-l-menu-remove-directory)
           (progn
             ;; Current buffer has been closed : display another one
-            (eide-windows-skip-unwanted-buffers-in-window-file nil nil)
+            (eide-windows-skip-unwanted-buffers-in-window-file)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t)))))))
 
@@ -746,13 +718,6 @@
   (ad-activate 'switch-to-buffer))
 
 ;; ----------------------------------------------------------------------------
-;; Open speedbar.
-;; ----------------------------------------------------------------------------
-(defun eide-menu-speedbar-open ()
-  (eide-windows-select-window-file nil)
-  (speedbar-get-focus))
-
-;; ----------------------------------------------------------------------------
 ;; Revert current file from disk.
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-revert-buffer ()
@@ -772,7 +737,7 @@
     (make-local-variable 'eide-menu-highlighted-functions-list)
     (setq eide-menu-functions-unfolded-flag l-functions-unfolded-flag)
     (setq eide-menu-highlighted-functions-list l-functions-with-highlight))
-  ;; Update menu (complete refresh, in case file has changed (R/W status...)
+  ;; Update menu (complete refresh, in case file has changed (read/write status...)
   (eide-menu-update t))
 
 ;; ----------------------------------------------------------------------------
@@ -782,7 +747,45 @@
   (interactive)
   (eide-windows-select-window-file nil)
   (kill-this-buffer)
-  (eide-windows-skip-unwanted-buffers-in-window-file nil nil))
+  (eide-windows-skip-unwanted-buffers-in-window-file))
+
+;; ----------------------------------------------------------------------------
+;; Open directory (dired mode).
+;; ----------------------------------------------------------------------------
+(defun eide-menu-dired-open ()
+  (eide-windows-select-window-file nil)
+  (find-file default-directory))
+
+;; ----------------------------------------------------------------------------
+;; Start browsing mode (dired and buffer menu modes).
+;; ----------------------------------------------------------------------------
+(defun eide-menu-browsing-mode-start ()
+  (if eide-windows-is-layout-visible-flag
+    (progn
+      (setq eide-l-menu-layout-should-be-built-after-browsing-mode-flag t)
+      (eide-windows-layout-unbuild)))
+  (eide-keys-configure-for-special-buffer)
+  (setq eide-menu-browsing-mode-flag t))
+
+;; ----------------------------------------------------------------------------
+;; Stop browsing mode (dired and buffer menu modes).
+;; ----------------------------------------------------------------------------
+(defun eide-menu-browsing-mode-stop ()
+  (eide-keys-configure-for-editor) ;; must be done first, for eide-l-windows-get-window-for-buffer
+  (eide-windows-skip-unwanted-buffers-in-window-file)
+  (if eide-l-menu-layout-should-be-built-after-browsing-mode-flag
+    (progn
+      ;; Build windows layout
+      (eide-windows-layout-build)
+      (setq eide-l-menu-layout-should-be-built-after-browsing-mode-flag nil)))
+  ;; Kill all browsing buffers
+  (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
+    (save-excursion
+      (set-buffer l-buffer-name)
+      (if (or (equal major-mode 'dired-mode)
+              (equal major-mode 'Buffer-menu-mode))
+        (kill-buffer l-buffer-name))))
+  (setq eide-menu-browsing-mode-flag nil))
 
 
 ;;;; ==========================================================================

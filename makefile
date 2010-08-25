@@ -43,25 +43,41 @@ install:
 	@do_install="1" ; \
 	 if [ -e ~/.emacs -o -h ~/.emacs ]; then \
 	   if [ -h ~/.emacs -a `ls -l ~/.emacs | grep -c $${PWD}` = "1" ]; then \
-	     echo "Error : ~/.emacs is already linked to Emacs-IDE." ; \
+	     echo "ERROR : ~/.emacs is already linked to Emacs-IDE." ; \
 	     do_install="0" ; \
 	   else \
-	     echo "Warning : ~/.emacs already exists." ; \
+	     echo "WARNING : ~/.emacs already exists." ; \
 	     mv -v ~/.emacs ~/.emacs_`date +%F_%T` ; \
 	   fi ; \
 	 fi ; \
 	 if [ $${do_install} = "1" ]; then \
 	   file=$${PWD}/.emacs ; ln -vs $${file} ~ ; \
 	 fi
+	@if which ctags > /dev/null ; then \
+	   if ctags --version | grep -q Exuberant ; then \
+	     echo "Checking ctags..... OK." ; \
+	   else \
+	     echo "Checking ctags..... FAILED : your version of ctags is not \"Exuberant Ctags\"." ; \
+	   fi ; \
+	 else \
+	   echo "Checking ctags..... FAILED : ctags is not installed." ; \
+	 fi
+	@if which cscope > /dev/null ; then \
+	   echo "Checking cscope.... OK." ; \
+	 else \
+	   echo "Checking cscope.... FAILED : cscope is not installed." ; \
+	 fi
 
 uninstall:
+	@echo "-------------------------------------------------------------------------------"
 	@echo "Uninstalling Emacs-IDE..."
+	@echo "-------------------------------------------------------------------------------"
 	@if [ -e ~/.emacs ]; then \
 	   if [ -h ~/.emacs -a `ls -l ~/.emacs | grep -c $${PWD}` = "1" ]; then \
 	     rm -vf ~/.emacs ; \
 	   else \
-	     echo "Error : ~/.emacs is not linked to Emacs-IDE." ; \
+	     echo "ERROR : ~/.emacs is not linked to Emacs-IDE." ; \
 	   fi ; \
 	 else \
-	   echo "Error : ~/.emacs does not exist." ; \
+	   echo "ERROR : ~/.emacs does not exist." ; \
 	 fi

@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -206,8 +204,6 @@
   (interactive)
   (eide-windows-select-window-menu)
   (move-to-window-line (cdr (last (mouse-position))))
-  (if (string-equal eide-config-toolbar-position "top")
-    (forward-line -2))
 
   (let ((l-directory-name-in-title (eide-menu-get-directory-name-on-current-line)) (l-directory-name nil))
     (setq l-directory-name (if (string-equal l-directory-name-in-title "./")
@@ -245,9 +241,14 @@
       (eide-l-popup-menu-add-action "Restore REF files" (concat "(eide-edit-action-on-directory 'eide-edit-restore-ref-file \"" l-directory-name "\" \"restore all REF files\")") l-buffer-status-new-flag)
       (eide-l-popup-menu-add-action "Switch to NEW files" (concat "(eide-edit-action-on-directory 'eide-edit-use-new-file \"" l-directory-name "\")") l-buffer-status-ref-flag)
       (eide-l-popup-menu-add-action "Discard NEW files" (concat "(eide-edit-action-on-directory 'eide-edit-discard-new-file \"" l-directory-name "\" \"discard all NEW files\")") l-buffer-status-ref-flag)
-      (eide-l-popup-menu-add-action "Clean (untabify and indent) all files" (concat "(eide-edit-action-on-directory 'eide-edit-clean \"" l-directory-name "\" \"clean all files\")") l-buffer-read-write-flag))
+      (eide-l-popup-menu-close-action-list "Edit")
 
-    (eide-l-popup-menu-close-action-list "Edit")
+      (eide-l-popup-menu-add-action "Untabify and indent all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-untabify-and-indent \"" l-directory-name "\" \"untabify and indent all read/write files\")") l-buffer-read-write-flag)
+      (eide-l-popup-menu-add-action "Delete trailing spaces in all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-delete-trailing-spaces \"" l-directory-name "\" \"delete trailing spaces in all read/write files\")") l-buffer-read-write-flag)
+      (eide-l-popup-menu-add-action "Convert end of line in all read/write files : DOS to UNIX" (concat "(eide-edit-action-on-directory 'eide-edit-dos-to-unix \"" l-directory-name "\" \"convert end of line (DOS to UNIX) in all read/write files\")") l-buffer-read-write-flag)
+      (eide-l-popup-menu-add-action "Convert end of line in all read/write files : UNIX to DOS" (concat "(eide-edit-action-on-directory 'eide-edit-unix-to-dos \"" l-directory-name "\" \"convert end of line (UNIX to DOS) in all read/write files\")") l-buffer-read-write-flag)
+      (eide-l-popup-menu-close-action-list "Clean"))
+
     (eide-l-popup-menu-open l-directory-name-in-title)))
 
 ;; ----------------------------------------------------------------------------
@@ -260,8 +261,6 @@
   (interactive)
   (eide-windows-select-window-menu)
   (move-to-window-line (cdr (last (mouse-position))))
-  (if (string-equal eide-config-toolbar-position "top")
-    (forward-line -2))
 
   (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
   (eide-l-popup-menu-init)
@@ -277,7 +276,7 @@
 
   (eide-l-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
 
-  ;; Option "Set R/W"
+  ;; Option "Set read/write"
   (if l-buffer-rw-flag
     (eide-l-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
     (eide-l-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
@@ -298,9 +297,15 @@
         (eide-l-popup-menu-add-action "Discard REF file" (concat "(eide-edit-action-on-file 'eide-edit-discard-ref-file \"" l-buffer "\" \"discard REF file\")") t)
         (eide-l-popup-menu-add-action "Restore REF file" (concat "(eide-edit-action-on-file 'eide-edit-restore-ref-file \"" l-buffer "\" \"restore REF file\")") t))))
 
-  (eide-l-popup-menu-add-action "Clean (untabify and indent)" (concat "(eide-edit-action-on-file 'eide-edit-clean \"" l-buffer "\" \"clean this file\")") l-buffer-rw-flag)
-
   (eide-l-popup-menu-close-action-list "Edit")
+
+  (eide-l-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
+  (eide-l-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
+
+  (eide-l-popup-menu-add-action "Convert end of line : DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
+  (eide-l-popup-menu-add-action "Convert end of line : UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
+
+  (eide-l-popup-menu-close-action-list "Clean")
 
   ;; Option for "compare"
   (if (string-equal l-buffer-status "ref")
@@ -363,8 +368,8 @@
 ;;
 ;; input  : eide-menu-grep-results-list : list of grep results.
 ;;          eide-menu-cscope-results-list : list of cscope results.
-;;          eide-compile-buffer : compile buffer name.
-;;          eide-run-buffer : run buffer name.
+;;          eide-compilation-buffer : compilation buffer name.
+;;          eide-execution-buffer : execution buffer name.
 ;;          eide-debug-buffer : debug buffer name.
 ;;          eide-shell-buffer : shell buffer name.
 ;; ----------------------------------------------------------------------------
@@ -382,16 +387,12 @@
       (dolist (l-grep-result eide-menu-cscope-results-list)
         (eide-l-popup-menu-add-action l-grep-result (concat "(eide-search-view-result-buffer \"" l-grep-result "\")") t))
       (eide-l-popup-menu-close-action-list "Cscope results")))
-  (if eide-compile-buffer
-    (eide-l-popup-menu-add-action "Compile buffer" (concat "(eide-search-view-result-buffer \"" eide-compile-buffer "\")") t))
-  (if eide-run-buffer
-    (eide-l-popup-menu-add-action "Run buffer" (concat "(eide-search-view-result-buffer \"" eide-run-buffer "\")") t))
-  (if eide-debug-buffer
-    (eide-l-popup-menu-add-action "Debug buffer" (concat "(eide-search-view-result-buffer \"" eide-debug-buffer "\")") t))
-  (if eide-shell-buffer
-    (eide-l-popup-menu-add-action "Shell buffer" (concat "(eide-search-view-result-buffer \"" eide-shell-buffer "\")") t))
-  (eide-l-popup-menu-close-action-list "Compile / run / debug")
-  (eide-l-popup-menu-open "Search results"))
+  (eide-l-popup-menu-add-action "Compilation" (concat "(eide-search-view-result-buffer \"" eide-compilation-buffer "\")") eide-compilation-buffer)
+  (eide-l-popup-menu-add-action "Execution" (concat "(eide-search-view-result-buffer \"" eide-execution-buffer "\")") eide-execution-buffer)
+  (eide-l-popup-menu-add-action "Debug" (concat "(eide-search-view-result-buffer \"" eide-debug-buffer "\")") eide-debug-buffer)
+  (eide-l-popup-menu-add-action "Shell" (concat "(eide-search-view-result-buffer \"" eide-shell-buffer "\")") eide-shell-buffer)
+  (eide-l-popup-menu-close-action-list "Compilation / Execution / Debug / Shell")
+  (eide-l-popup-menu-open "Switch to :"))
 
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu to select a search result to delete.

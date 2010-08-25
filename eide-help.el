@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -90,24 +88,14 @@ With default options, windows layout should look like this :
   |                                         |               |
   |                                         |               |
   -----------------------------------------------------------
-  |               Window 'toolbar'                          |
-  -----------------------------------------------------------
   |                                                         |
   |               Window 'results'                          |
   |                                                         |
   -----------------------------------------------------------
 
+You can resize all windows.
 You can modify the layout in options.
-")
 
-  (eide-l-help-insert-header-2 "Resizing")
-
-  (insert "
-You can resize all windows, except window 'toolbar'.
-
-Since Emacs behaviour seems to be quite unpredictable (depending on the
-version) about window resizing using mouse drag, some new key bindings have
-been defined (see mouse wheel below).
 ")
 
   (eide-l-help-insert-header-1 "Mouse actions")
@@ -152,13 +140,23 @@ If text is selected over several lines :
     Open cleaning popup menu (to untabify or indent selection).
 ")
 
+  (eide-l-help-insert-header-2 "Left / right click on mode-line file name")
+
+  (insert "
+On window 'file' mode-line :
+    Switch to previous / next file.
+
+On window 'results' mode-line :
+    Switch to previous / next result buffer.
+")
+
   (eide-l-help-insert-header-2 "Middle click")
 
   (insert "
 Middle click behaviour depends on mouse position :
 
 In window 'menu' :
-    Open speedbar (to open a file).
+    Display file browser (to open a file).
 
 In other windows :
     Paste (standard behaviour).
@@ -168,15 +166,8 @@ In other windows :
 
   (insert "
 Shift + mouse wheel up/down scrolls right/left.
-
-Control + mouse wheel up/down behaviour depends on mouse position :
-
-In window 'menu' :
-    Enlarges/shrinks window 'menu'.
-
-In other windows :
-    Enlarges/shrinks window 'results'.
 ")
+
   (eide-l-help-insert-header-1 "Options")
 
   (insert "
@@ -278,7 +269,10 @@ File name colour :
 File popup menu actions :
 - Set read/write : Set read/write permission on file.
 - Set read only  : Set read only permission on file.
-- Clean          : Clean file (turn tabs into spaces, indent).
+- Untabify and indent : Clean file (turn tabs into spaces and indent).
+- Delete trailing spaces
+- Convert end of line : DOS to UNIX
+- Convert end of line : UNIX to DOS
 
 File name colour :
 - black when file is read/write.
@@ -297,7 +291,8 @@ file, and will be applied to all files for which it is allowed.
   (eide-l-help-insert-header-1 "Standard key bindings")
 
   (insert "
-Control-x Control-f ........... load a file
+Control-x Control-b ........... list all buffers
+Control-x Control-f ........... load a file or open a directory (file browsing)
 Control-x Control-s ........... save current file
 Control-s ..................... search
 Alt-% ......................... replace
@@ -339,14 +334,14 @@ Control - mouse 3 ..... Paste
   Shift - F6 .......... Search string in current directory (prompt for string)
 ")
 
-  (eide-l-help-insert-header-2 "{...} block hiding")
+  ;;(eide-l-help-insert-header-2 "{...} block hiding")
 
-  (insert "
-Control - F1 .......... Hide block
-Control - F2 .......... Show block
-Control - F3 .......... Hide all blocks in current buffer
-Control - F4 .......... Show all blocks in current buffer
-")
+  ;;(insert "
+;;Control - F1 .......... Hide block
+;;Control - F2 .......... Show block
+;;Control - F3 .......... Hide all blocks in current buffer
+;;Control - F4 .......... Show all blocks in current buffer
+;;")
 
   (eide-l-help-insert-header-2 "Display")
 

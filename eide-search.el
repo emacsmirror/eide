@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -222,17 +220,10 @@
 ;; input  : p-string : string.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep (p-string)
-  ;;(progn
-  ;; set current buffer in window "results" so that grep can apply to its directory
   (eide-windows-select-window-file t)
-  ;;(setq l-buffer (buffer-name))
-  ;;(eide-windows-select-window-results)
-  ;;(set-buffer l-buffer))
   ;; Get current file directory, because shell init file may change current
   ;; directory before grep is executed
   (setq l-buffer-directory (file-name-directory (buffer-file-name)))
-  ;;(eide-windows-select-window-results)
-
   (let ((l-result-buffer-name (concat "*grep* : " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
@@ -242,7 +233,6 @@
         (setq l-do-it-flag nil)))
     (if l-do-it-flag
       (progn
-        ;;(grep (concat "grep -d skip -n -e \"" p-string "\" " grep-file-filter))
         (if (eq system-type 'windows-nt)
           (grep-find (concat "echo ; cd " l-buffer-directory " ; find . -maxdepth 1 -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;"))
           (grep-find (concat "echo ; cd " l-buffer-directory " ; find . -maxdepth 1 -type f " eide-search-grep-find-file-filter " -exec grep -IHne \"" p-string "\" {} \\;")))
@@ -250,7 +240,6 @@
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
-      ;;(eide-menu-update nil)))
       (eide-search-view-result-buffer l-result-buffer-name))
     (eide-windows-select-window-file t)))
 
@@ -302,7 +291,9 @@
 ;;          eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-find (p-string)
-  (eide-windows-select-window-results)
+  ;; On Emacs 22 GTK : it is necessary to select window "file", otherwise
+  ;; current result buffer will be reused if window "results" is selected.
+  (eide-windows-select-window-file t)
   (let ((l-result-buffer-name (concat "*grep-find* : " p-string)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
@@ -313,7 +304,6 @@
     (if l-do-it-flag
       (progn
         (if eide-option-search-grep-find-on-2-lines-flag
-          ;;(grep-find (concat "find " eide-root-directory " -type f -name \"" grep-file-filter "\" -exec grep -ne \"" p-string "\" {} NUL \\;; sed 's/[0-9]:/\&\\\n/'"))
           (grep-find (concat "find " eide-root-directory " -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;; grep -v \"^Binary\" | sed 's/[0-9]:/\&\\\n/'"))
           (if (eq system-type 'windows-nt)
             (grep-find (concat "echo ; find " eide-root-directory " -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;"))
@@ -383,7 +373,6 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-view-result-buffer (p-result-buffer-name)
   (eide-windows-select-window-results)
-  ;;(eide-debug-print-trace (concat "view grep : " p-result-buffer-name))
   (switch-to-buffer p-result-buffer-name))
 
 ;; ----------------------------------------------------------------------------

@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -97,34 +95,29 @@
   (set-buffer eide-compare-buffer-name)
   (setq eide-compare-current-line (count-lines (point-min) (point)))
   (if (= (current-column) 0)
-    (setq eide-compare-current-line  (1+ eide-compare-current-line)))
+    (setq eide-compare-current-line (1+ eide-compare-current-line)))
 
   (if p-force-major-mode-flag
-    (setq default-major-mode major-mode))
-  (eide-menu-find-file-without-advice p-other-buffer-filename)
-  ;;(setq eide-compare-other-buffer-name (buffer-name))
-  (setq eide-compare-other-buffer-name (concat p-other-buffer-name-prefix eide-compare-buffer-name))
-  (rename-buffer eide-compare-other-buffer-name)
-  ;; fichier non enregistré dans .emacs.desktop
-  ;; mais : du coup, on ne peut pas le modifier (c'est un buffer sans fichier associé !)
-  ;;(set-buffer (generate-new-buffer eide-compare-other-buffer-name))
-  ;;(insert-file-contents p-other-buffer-filename)
-  (if p-force-major-mode-flag
-    (progn
-      ;; Set major mode, in case file name ends in .ref or .new
-      (set-buffer-major-mode (current-buffer))
+    (let ((l-auto-mode-alist auto-mode-alist))
+      ;; Add .ref and .new files in auto-mode-alist (with current buffer major
+      ;; mode)
+      (push (cons "\\.ref\\'" major-mode) auto-mode-alist)
+      (push (cons "\\.new\\'" major-mode) auto-mode-alist)
+      (eide-menu-find-file-without-advice p-other-buffer-filename)
+      ;; Restore auto-mode-alist
+      (setq auto-mode-alist l-auto-mode-alist)
       ;; Turn hide/show mode off, because if emacs is closed before this
       ;; temporary buffer is closed, it will be loaded next time, with an error
       ;; because default major mode is Fundamental
       (if hs-minor-mode
-        (hs-minor-mode))))
+        (hs-minor-mode)))
+    (eide-menu-find-file-without-advice p-other-buffer-filename))
 
+  (setq eide-compare-other-buffer-name (concat p-other-buffer-name-prefix eide-compare-buffer-name))
+  (rename-buffer eide-compare-other-buffer-name)
   (if p-buffer-in-left-window-flag
     (ediff-buffers eide-compare-buffer-name eide-compare-other-buffer-name)
-    (ediff-buffers eide-compare-other-buffer-name eide-compare-buffer-name))
-
-  (if p-force-major-mode-flag
-    (setq default-major-mode 'fundamental-mode)))
+    (ediff-buffers eide-compare-other-buffer-name eide-compare-buffer-name)))
 
 ;; ----------------------------------------------------------------------------
 ;; Select ediff control window (before calling ediff command).

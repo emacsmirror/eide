@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -136,15 +134,46 @@
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
-;; Clean the content of current file (replace tabs with spaces, and indent the
-;; whole buffer).
+;; Untabify and indent the content of current file.
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-edit-clean ()
+(defun eide-edit-untabify-and-indent ()
   (if (not buffer-read-only)
     (progn
       (untabify (point-min) (point-max))
       (indent-region (point-min) (point-max) nil)
+      (ad-deactivate 'save-buffer)
+      (save-buffer)
+      (ad-activate 'save-buffer))))
+
+;; ----------------------------------------------------------------------------
+;; Convert current file end of line from DOS to UNIX.
+;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
+;; ----------------------------------------------------------------------------
+(defun eide-edit-dos-to-unix ()
+  (if (not buffer-read-only)
+    (progn
+      (shell-command (concat "dos2unix " buffer-file-name))
+      (revert-buffer))))
+
+;; ----------------------------------------------------------------------------
+;; Convert current file end of line from UNIX to DOS.
+;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
+;; ----------------------------------------------------------------------------
+(defun eide-edit-unix-to-dos ()
+  (if (not buffer-read-only)
+    (progn
+      (shell-command (concat "unix2dos " buffer-file-name))
+      (revert-buffer))))
+
+;; ----------------------------------------------------------------------------
+;; Delete all trailing spaces in current file.
+;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
+;; ----------------------------------------------------------------------------
+(defun eide-edit-delete-trailing-spaces ()
+  (if (not buffer-read-only)
+    (progn
+      (delete-trailing-whitespace)
       (ad-deactivate 'save-buffer)
       (save-buffer)
       (ad-activate 'save-buffer))))

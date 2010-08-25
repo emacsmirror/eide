@@ -2,13 +2,15 @@
 | Emacs-IDE |
 \-----------/
 
-Version 1.1 - 04/2009
+Version 1.2 - 08/2009
 
 -------------------------------------------------------------------------------
 About Emacs-IDE
 -------------------------------------------------------------------------------
 
-Emacs-IDE is an IDE (Integrated Development Environment) interface for Emacs.
+Emacs-IDE is an IDE (Integrated Development Environment) interface for Emacs
+(code browsing, compilation, debug...).
+
 It is suitable for almost all languages (as long as they are supported by
 ctags). Cscope provides additional browsing facility for C/C++ files.
 
@@ -24,10 +26,10 @@ shortcuts.
 
 Homepage : http://emacs-ide.sourceforge.net/
 
-License  : GPL (http://www.fsf.org/licensing/licenses/gpl.html)
+License  : GPL (http://www.gnu.org/licenses/gpl.html)
 
-Requires : - Emacs (http://www.gnu.org/software/emacs/)
-           - Etags (comes as a part of Emacs distribution)
+Requires : - Emacs  (http://www.gnu.org/software/emacs/)
+           - Ctags  (http://ctags.sourceforge.net/)
            - Cscope (http://cscope.sourceforge.net/)
 
 
@@ -65,8 +67,6 @@ When you launch Emacs, it should look like this :
         |                                         |               |
         |                                         |               |
         |                                         |               |
-        -----------------------------------------------------------
-        |               Window "toolbar"                          |
         -----------------------------------------------------------
         |                                                         |
         |               Window "results"                          |

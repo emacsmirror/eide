@@ -2,20 +2,18 @@
 
 ;; Copyright (C) 2005-2009 Cédric Marie
 
-;; This program is free software ; you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation ; either version 2 of
+;; published by the Free Software Foundation, either version 3 of
 ;; the License, or (at your option) any later version.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY ; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE. See the GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program ; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -80,7 +78,7 @@
 
 ;; Menu
 (make-face 'eide-config-menu-default-face)
-(make-face 'eide-config-menu-project-type-face)
+(make-face 'eide-config-menu-project-header-face)
 (make-face 'eide-config-menu-project-name-face)
 (make-face 'eide-config-menu-directory-face)
 (make-face 'eide-config-menu-directory-out-of-project-face)
@@ -96,13 +94,6 @@
 (make-face 'eide-config-help-title-face)
 (make-face 'eide-config-help-chapter1-face)
 (make-face 'eide-config-help-chapter2-face)
-
-;; Toolbar
-(make-face 'eide-config-toolbar-action-face)
-(make-face 'eide-config-toolbar-separator-face)
-(make-face 'eide-config-toolbar-current-tab-face)
-(make-face 'eide-config-toolbar-enabled-tab-face)
-(make-face 'eide-config-toolbar-disabled-tab-face)
 
 ;; Config files
 (make-face 'eide-config-config-parameter-face)
@@ -127,7 +118,7 @@
 (set-face-foreground 'font-my-dos-face "wheat")
 
 ;; Menu
-(make-face-bold 'eide-config-menu-project-type-face)
+(make-face-bold 'eide-config-menu-project-header-face)
 (make-face-bold 'eide-config-menu-project-name-face)
 
 (make-face-bold 'eide-config-menu-file-face)
@@ -142,18 +133,17 @@
 ;; Help page
 (make-face-bold 'eide-config-help-title-face)
 
-;; Toolbar
-(make-face-bold 'eide-config-toolbar-current-tab-face)
-
 ;; Hidden text (for hide/show minor mode)
-(make-face 'font-selective-display-face)
-(set-face-foreground 'font-selective-display-face "blue")
-(set-face-background 'font-selective-display-face "lavender")
-(setq font-selective-display-face-id (face-id 'font-selective-display-face))
+;; Does not work with Emacs 22.3 : I comment it until I can test
+;; and maybe fix the bug.
+;;(make-face 'font-selective-display-face)
+;;(set-face-foreground 'font-selective-display-face "blue")
+;;(set-face-background 'font-selective-display-face "lavender")
+;;(setq font-selective-display-face-id (face-id 'font-selective-display-face))
 
-(setq selective-display-vector (vconcat "{ ... }\n"))
-(setq selective-display-vector (vconcat "\n" (mapcar '(lambda (x) (+ (* font-selective-display-face-id 524288) x)) selective-display-vector)))
-(set-display-table-slot standard-display-table 'selective-display selective-display-vector)
+;;(setq selective-display-vector (vconcat "{ ... }\n"))
+;;(setq selective-display-vector (vconcat "\n" (mapcar '(lambda (x) (+ (* font-selective-display-face-id 524288) x)) selective-display-vector)))
+;;(set-display-table-slot standard-display-table 'selective-display selective-display-vector)
 
 ;; Ediff
 (copy-face 'default 'ediff-even-diff-face-A)
@@ -386,6 +376,7 @@
         ;; "dark" theme
         (setq eide-config-background-color (eide-l-config-get-option-value "color_theme_dark_background"))
         (setq eide-config-foreground-color (eide-l-config-get-option-value "color_theme_dark_foreground"))
+
         ;; Code
         (set-face-foreground 'font-lock-keyword-face (eide-l-config-get-option-value "color_theme_dark_keyword_foreground"))
         (set-face-foreground 'font-lock-type-face (eide-l-config-get-option-value "color_theme_dark_type_foreground"))
@@ -404,7 +395,7 @@
         ;; Menu
         (setq eide-config-menu-background-color (eide-l-config-get-option-value "color_theme_dark_menu_background"))
         (setq eide-config-menu-foreground-color "white")
-        (set-face-foreground 'eide-config-menu-project-type-face "deep sky blue")
+        (set-face-foreground 'eide-config-menu-project-header-face "deep sky blue")
         (set-face-foreground 'eide-config-menu-project-name-face "orange")
 
         ;; Menu : directories
@@ -422,12 +413,6 @@
         (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
         (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
         (set-face-foreground 'eide-config-menu-function-with-highlight-face "deep sky blue")
-
-        ;; Toolbar
-        (set-face-foreground 'eide-config-toolbar-action-face "cyan")
-        (set-face-foreground 'eide-config-toolbar-current-tab-face "pale green")
-        (set-face-foreground 'eide-config-toolbar-enabled-tab-face "pale green")
-        (set-face-foreground 'eide-config-toolbar-disabled-tab-face "dark orange")
 
         ;; Help page
         (set-face-background 'eide-config-help-title-face "indian red")
@@ -453,6 +438,7 @@
         ;; "light" theme
         (setq eide-config-background-color (eide-l-config-get-option-value "color_theme_light_background"))
         (setq eide-config-foreground-color (eide-l-config-get-option-value "color_theme_light_foreground"))
+
         ;; Code
         (set-face-foreground 'font-lock-keyword-face (eide-l-config-get-option-value "color_theme_light_keyword_foreground"))
         (set-face-foreground 'font-lock-type-face (eide-l-config-get-option-value "color_theme_light_type_foreground"))
@@ -471,7 +457,7 @@
         ;; Menu
         (setq eide-config-menu-background-color (eide-l-config-get-option-value "color_theme_light_menu_background"))
         (setq eide-config-menu-foreground-color "black")
-        (set-face-foreground 'eide-config-menu-project-type-face "blue")
+        (set-face-foreground 'eide-config-menu-project-header-face "blue")
         (set-face-foreground 'eide-config-menu-project-name-face "red")
 
         ;; Menu : directories
@@ -489,12 +475,6 @@
         (set-face-foreground 'eide-config-menu-function-face "blue")
         (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
         (set-face-foreground 'eide-config-menu-function-with-highlight-face "blue")
-
-        ;; Toolbar
-        (set-face-foreground 'eide-config-toolbar-action-face "light slate blue")
-        (set-face-foreground 'eide-config-toolbar-current-tab-face "dark green")
-        (set-face-foreground 'eide-config-toolbar-enabled-tab-face "dark green")
-        (set-face-foreground 'eide-config-toolbar-disabled-tab-face "red")
 
         ;; Help page
         (set-face-background 'eide-config-help-title-face "gold")
@@ -524,7 +504,7 @@
 
     (set-face-background 'eide-config-menu-default-face eide-config-menu-background-color)
     (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
-    (set-face-background 'eide-config-menu-project-type-face eide-config-menu-background-color)
+    (set-face-background 'eide-config-menu-project-header-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-project-name-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-file-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-file-ref-face eide-config-menu-background-color)
@@ -542,12 +522,6 @@
     (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
 
     (set-face-background 'eide-config-menu-function-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-toolbar-action-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-toolbar-separator-face eide-config-menu-background-color)
-    (set-face-foreground 'eide-config-toolbar-separator-face eide-config-menu-foreground-color)
-    (set-face-background 'eide-config-toolbar-current-tab-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-toolbar-enabled-tab-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-toolbar-disabled-tab-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-empty-list-face eide-config-menu-background-color)
     (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color)
 
@@ -558,8 +532,6 @@
 ;;
 ;; output : eide-config-menu-position : menu position (windows layout).
 ;;          eide-config-menu-height : menu height (windows layout).
-;;          eide-config-use-toolbar-flag : toolbar enabled (t or nil).
-;;          eide-config-toolbar-position : toolbar position (windows layout).
 ;;          eide-c-indent-offset : indentation offset for C files.
 ;; ----------------------------------------------------------------------------
 (defun eide-l-config-apply-options ()
@@ -571,6 +543,10 @@
       (set-default-font l-string)))
 
   (eide-l-config-apply-color-theme)
+  (if (string-equal (eide-l-config-get-option-value "show_trailing_spaces") "yes")
+    (setq eide-config-show-trailing-spaces t)
+    (setq eide-config-show-trailing-spaces nil))
+
   ;; Windows layout : menu position
   (setq eide-config-menu-position (eide-l-config-get-option-value "menu_position"))
   ;; If menu position is not correct, set default value
@@ -584,19 +560,6 @@
   (if (not (or (string-equal eide-config-menu-height "half")
                (string-equal eide-config-menu-height "full")))
     (setq eide-config-menu-height "half"))
-
-  ;; Windows layout : use toolbar ?
-  (if (string-equal (eide-l-config-get-option-value "toolbar_enabled") "yes")
-    (setq eide-config-use-toolbar-flag t)
-    (setq eide-config-use-toolbar-flag nil))
-
-  ;; Windows layout : toolbar position
-  (setq eide-config-toolbar-position (eide-l-config-get-option-value "toolbar_position"))
-  ;; If toolbar position is not correct, set default value
-  (if (not (or (string-equal eide-config-toolbar-position "top")
-               (string-equal eide-config-toolbar-position "middle")
-               (string-equal eide-config-toolbar-position "bottom")))
-    (setq eide-config-toolbar-position "middle"))
 
   ;; Coding rules
   ;; TODO : appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
@@ -627,6 +590,7 @@
     (eide-l-config-rebuild-insert-section "Display")
     (eide-l-config-rebuild-update-value "font_size" "18")
     (eide-l-config-rebuild-update-value "color_theme" "light" "dark/light")
+    (eide-l-config-rebuild-update-value "show_trailing_spaces" "no" "yes/no")
 
     (eide-l-config-rebuild-insert-section "Customized colors for dark theme")
     (eide-l-config-rebuild-update-value "color_theme_dark_background" "gray15")
@@ -663,8 +627,6 @@
     (eide-l-config-rebuild-insert-section "Windows layout")
     (eide-l-config-rebuild-update-value "menu_position" "right" "left/right")
     (eide-l-config-rebuild-update-value "menu_height" "half" "half/full")
-    (eide-l-config-rebuild-update-value "toolbar_enabled" "yes" "yes/no")
-    (eide-l-config-rebuild-update-value "toolbar_position" "middle" "top/middle/bottom")
 
     (eide-l-config-rebuild-insert-section "Coding rules")
 
