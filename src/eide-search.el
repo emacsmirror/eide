@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE, search
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,7 +13,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -23,18 +23,18 @@
 
 (defvar eide-search-find-symbol-definition-flag nil)
 
-;; grep-find commands should exclude following files :
-;; */.svn/*           : Subversion files
-;; *.o, *.dbg         : Objects
-;; *.d                : Dependencies
-;; *.a                : Librairies
-;; *.ref, *.new, TAGS : Emacs files
-;; *.out              : Executable
-;; *.map              : Mapping
-(defvar eide-search-grep-find-file-filter "! -path \"*/.svn/*\" ! -name \"*.[oa]\" ! -name \"*.dbg\" ! -name \"*.d\" ! -name \"\.*\" ! -name \"*.ref\" ! -name \"*.new\" ! -name \"*.out\" ! -name \"*.map\" ! -name \"TAGS\" ! -name \".emacs.desktop\"")
+;; grep commands should exclude following files :
+;; .svn                        : Subversion directory
+;; *.d                         : Dependency files
+;; *.o.cmd                     : Kbuild files
+;; *.map                       : Mapping files
+;; *.ref, *.new                : Emacs-IDE files
+;; .emacs.desktop              : Emacs files
+;; TAGS                        : Ctags file
+;; cscope.files, cscope.output : Cscope files
+(defvar eide-search-grep-exclude-options "--exclude-dir=.svn --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out")
 
 (defvar eide-search-tag-string nil)
-
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -45,7 +45,7 @@
 ;;
 ;; return : string to search.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-search-get-string-to-search ()
+(defun eide-i-search-get-string-to-search ()
   (if (eq mark-active t)
     ;; Text is selected
     (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
@@ -61,7 +61,6 @@
         (progn
           (message "No text to search at cursor position...")
           nil)))))
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -94,7 +93,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag-without-prompt ()
   (interactive)
-  (setq eide-search-tag-string (eide-l-search-get-string-to-search))
+  (setq eide-search-tag-string (eide-i-search-get-string-to-search))
   (if eide-search-tag-string
     (eide-search-find-tag eide-search-tag-string)))
 
@@ -183,7 +182,6 @@
           (set-buffer "*cscope*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
-      ;;(eide-menu-update nil)))
       (eide-search-view-result-buffer l-result-buffer-name))
     (eide-windows-select-window-file t)))
 
@@ -196,7 +194,7 @@
   (interactive)
   (if eide-project-cscope-files-flag
     (progn
-      (setq eide-search-cscope-string (read-string "Find symbol (in whole project) : "))
+      (setq eide-search-cscope-string (read-string "Find symbol with cscope : "))
       (if (string-equal eide-search-cscope-string "")
         (message "Cannot find empty symbol...")
         (eide-search-find-symbol eide-search-cscope-string)))
@@ -209,7 +207,7 @@
   (interactive)
   (if eide-project-cscope-files-flag
     (progn
-      (setq eide-search-cscope-string (eide-l-search-get-string-to-search))
+      (setq eide-search-cscope-string (eide-i-search-get-string-to-search))
       (if eide-search-cscope-string
         (eide-search-find-symbol eide-search-cscope-string)))
     (message "Cannot use cscope : there is no C/C++ file in this project...")))
@@ -219,12 +217,10 @@
 ;;
 ;; input  : p-string : string.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep (p-string)
+(defun eide-search-grep-local (p-string)
   (eide-windows-select-window-file t)
-  ;; Get current file directory, because shell init file may change current
-  ;; directory before grep is executed
   (setq l-buffer-directory (file-name-directory (buffer-file-name)))
-  (let ((l-result-buffer-name (concat "*grep* : " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
+  (let ((l-result-buffer-name (concat "*grep (local)* : " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
@@ -233,9 +229,10 @@
         (setq l-do-it-flag nil)))
     (if l-do-it-flag
       (progn
-        (if (eq system-type 'windows-nt)
-          (grep-find (concat "echo ; cd " l-buffer-directory " ; find . -maxdepth 1 -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;"))
-          (grep-find (concat "echo ; cd " l-buffer-directory " ; find . -maxdepth 1 -type f " eide-search-grep-find-file-filter " -exec grep -IHne \"" p-string "\" {} \\;")))
+        ;; grep options : I (no binary), n (show line number), e (pattern may start with '-')
+        ;; 2> /dev/null is used to hide warnings about missing files
+        ;; 'cd' is used first, in case shell init changes current directory
+        (grep-find (concat "echo ; cd " l-buffer-directory " ; grep -In " eide-search-grep-exclude-options " -e \"" p-string "\" * .* 2> /dev/null"))
         (save-excursion
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
@@ -246,43 +243,21 @@
 ;; ----------------------------------------------------------------------------
 ;; Grep word at cursor position, in current directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep-without-prompt ()
+(defun eide-search-grep-local-without-prompt ()
   (interactive)
-  (let ((l-string (eide-l-search-get-string-to-search)))
+  (let ((l-string (eide-i-search-get-string-to-search)))
     (if l-string
-      (eide-search-grep l-string))))
+      (eide-search-grep-local l-string))))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep a string in current directory (prompt for it).
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep-with-prompt ()
+(defun eide-search-grep-local-with-prompt ()
   (interactive)
   (let ((l-string (read-string "Grep (in current directory) : ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
-      (eide-search-grep l-string))))
-
-;; Grep-find
-
-;; (find-tag-default) : renvoie le mot pointé par le curseur
-
-;; La commande "sed" permet d'insérer un retour à la ligne après le nom du
-;; fichier et le numéro de ligne
-
-;; Utiliser la commande "cd" avant "find" permettrait de raccourcir les noms des
-;; fichiers affichés (chemins relatifs par rapport à la base du projet) :
-;;
-;;              "cd " (substring tags-file-name 0 -4) " ; find . -type f [...]
-;; au lieu de "find " (substring tags-file-name 0 -4) " -type f          [...]
-;;
-;; Malheureusement il ne retrouve pas le chemin lorsqu'on tente d'y accéder, car
-;; sa référence (à partir de laquelle il va ajouter le chemin relatif), c'est
-;; toujours le répertoire courant (celui du buffer actif) : on est donc obligé
-;; d'utiliser le chemin absolu.
-;; (Autre solution, plus compliquée : comparer le répertoire courant au
-;; répertoire projet pour déterminer de combien de répertoires il faut remonter,
-;; et utiliser ainsi un chemin relatif par rapport au buffer courant. Ceci dit,
-;; des ../../.. ne sont pas forcément plus élégants qu'un chemin absolu !...)
+      (eide-search-grep-local l-string))))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep a string in the whole project.
@@ -290,11 +265,11 @@
 ;; input  : p-string : string.
 ;;          eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep-find (p-string)
+(defun eide-search-grep-global (p-string)
   ;; On Emacs 22 GTK : it is necessary to select window "file", otherwise
   ;; current result buffer will be reused if window "results" is selected.
   (eide-windows-select-window-file t)
-  (let ((l-result-buffer-name (concat "*grep-find* : " p-string)))
+  (let ((l-result-buffer-name (concat "*grep (global)* : " p-string)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
@@ -303,11 +278,12 @@
         (setq l-do-it-flag nil)))
     (if l-do-it-flag
       (progn
-        (if eide-option-search-grep-find-on-2-lines-flag
-          (grep-find (concat "find " eide-root-directory " -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;; grep -v \"^Binary\" | sed 's/[0-9]:/\&\\\n/'"))
-          (if (eq system-type 'windows-nt)
-            (grep-find (concat "echo ; find " eide-root-directory " -type f " eide-search-grep-find-file-filter " -exec grep -Ine \"" p-string "\" {} NUL \\;"))
-            (grep-find (concat "echo ; find " eide-root-directory " -type f " eide-search-grep-find-file-filter " -exec grep -IHne \"" p-string "\" {} \\;"))))
+        ;; Temporarily change current directory, so that grep results are relative to root directory
+        (let ((default-directory eide-root-directory))
+          ;; grep options : r (recursive), I (no binary), n (show line number), e (pattern may start with '-')
+          ;; 2> /dev/null is used to hide warnings about missing files
+          ;; 'cd' is used first, in case shell init changes current directory
+          (grep-find (concat "echo ; cd " eide-root-directory " ; grep -rIn " eide-search-grep-exclude-options " -e \"" p-string "\" . 2> /dev/null")))
         (save-excursion
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
@@ -318,21 +294,21 @@
 ;; ----------------------------------------------------------------------------
 ;; Grep word at cursor position, in the whole project.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep-find-without-prompt ()
+(defun eide-search-grep-global-without-prompt ()
   (interactive)
-  (let ((l-string (eide-l-search-get-string-to-search)))
+  (let ((l-string (eide-i-search-get-string-to-search)))
     (if l-string
-      (eide-search-grep-find l-string))))
+      (eide-search-grep-global l-string))))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep a string in the whole project (prompt for it).
 ;; ----------------------------------------------------------------------------
-(defun eide-search-grep-find-with-prompt ()
+(defun eide-search-grep-global-with-prompt ()
   (interactive)
   (let ((l-string (read-string "Grep (in whole project) : ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
-      (eide-search-grep-find l-string))))
+      (eide-search-grep-global l-string))))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to previous grep match (or compile error).

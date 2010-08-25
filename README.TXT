@@ -2,7 +2,7 @@
 | Emacs-IDE |
 \-----------/
 
-Version 1.2 - 08/2009
+Version 1.3 - 03/2010
 
 -------------------------------------------------------------------------------
 About Emacs-IDE
@@ -83,3 +83,15 @@ Instructions
 
 Instructions are available in "Help" page, in Emacs.
 Click on right button over window "menu", and select "Help" in popup menu.
+
+
+-------------------------------------------------------------------------------
+Quick start
+-------------------------------------------------------------------------------
+
+The directory from which emacs is launched is important: it stands as the root
+directory during emacs session.
+If you work on a project - which is the main purpose of Emacs-IDE - you should
+always run emacs from the root directory of your project.
+When you first run emacs for a project, click on right button over window
+"menu", and select "Create project".

@@ -1,6 +1,6 @@
 ;;; eide-compare.el --- Emacs-IDE, compare
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,7 +13,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -27,7 +27,6 @@
 (defvar eide-compare-current-line nil)
 (defvar eide-compare-other-buffer-name nil)
 
-
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
@@ -35,13 +34,13 @@
 ;; ----------------------------------------------------------------------------
 ;; Start ediff mode.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-compare-ediff-mode-start ()
+(defun eide-i-compare-ediff-mode-start ()
   (eide-keys-configure-for-ediff))
 
 ;; ----------------------------------------------------------------------------
 ;; Stop ediff mode.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-compare-ediff-mode-stop ()
+(defun eide-i-compare-ediff-mode-stop ()
   (eide-keys-configure-for-editor))
 
 ;; ----------------------------------------------------------------------------
@@ -53,7 +52,7 @@
 ;;          eide-compare-other-buffer-name : name of temporary buffer.
 ;;          eide-current-buffer : current buffer (before ediff session).
 ;; ----------------------------------------------------------------------------
-(defun eide-l-compare-ediff-quit-hook ()
+(defun eide-i-compare-ediff-quit-hook ()
   ;; Call default hook
   (ediff-cleanup-mess)
   ;; Delete other windows, otherwise current line is not restored in
@@ -69,7 +68,7 @@
   (eide-windows-layout-build)
   ;; Restore default hook
   (setq ediff-quit-hook 'ediff-cleanup-mess)
-  (eide-l-compare-ediff-mode-stop)
+  (eide-i-compare-ediff-mode-stop)
   (kill-buffer eide-compare-other-buffer-name))
 
 ;; ----------------------------------------------------------------------------
@@ -86,9 +85,9 @@
 ;;              ediff session).
 ;;          eide-compare-other-buffer-name : name of compared file buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
-  (eide-l-compare-ediff-mode-start)
-  (setq ediff-quit-hook 'eide-l-compare-ediff-quit-hook)
+(defun eide-i-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
+  (eide-i-compare-ediff-mode-start)
+  (setq ediff-quit-hook 'eide-i-compare-ediff-quit-hook)
   ;; Hide menu
   (eide-windows-layout-unbuild)
   ;; Save current line of buffer to compare
@@ -122,13 +121,12 @@
 ;; ----------------------------------------------------------------------------
 ;; Select ediff control window (before calling ediff command).
 ;; ----------------------------------------------------------------------------
-(defun eide-l-compare-select-control-window ()
+(defun eide-i-compare-select-control-window ()
   (let ((l-control-window nil))
     (save-excursion
       (set-buffer "*Ediff Control Panel*")
       (setq l-control-window ediff-control-window))
     (select-window l-control-window)))
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -182,7 +180,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-with-ref-file (p-buffer-name)
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-l-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".ref") "* (REF) " nil t))
+  (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".ref") "* (REF) " nil t))
 
 ;; ----------------------------------------------------------------------------
 ;; Compare selected file (".ref" version) with ".new" version.
@@ -192,7 +190,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-with-new-file (p-buffer-name)
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-l-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".new") "* (NEW) " t t))
+  (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".new") "* (NEW) " t t))
 
 ;; ----------------------------------------------------------------------------
 ;; Compare selected file with version in another project.
@@ -202,14 +200,14 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-with-other-project (p-buffer-name)
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-l-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil))
+  (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Quit ediff session.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-quit ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (call-interactively 'ediff-quit))
 
 ;; ----------------------------------------------------------------------------
@@ -217,7 +215,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-update ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (ediff-update-diffs))
 
 ;; ----------------------------------------------------------------------------
@@ -225,7 +223,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-go-to-previous-diff ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (ediff-previous-difference))
 
 ;; ----------------------------------------------------------------------------
@@ -233,7 +231,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-go-to-next-diff ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (ediff-next-difference))
 
 ;; ----------------------------------------------------------------------------
@@ -241,7 +239,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-copy-a-to-b ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (call-interactively 'ediff-copy-A-to-B))
 
 ;; ----------------------------------------------------------------------------
@@ -249,7 +247,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-copy-b-to-a ()
   (interactive)
-  (eide-l-compare-select-control-window)
+  (eide-i-compare-select-control-window)
   (call-interactively 'ediff-copy-B-to-A))
 
 ;;; eide-compare.el ends here

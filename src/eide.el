@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,41 +13,21 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
-
-;; *****************************************************************************
-;; * MEMO                                                                      *
-;; *****************************************************************************
-
-;; options : M-x customize
-;; M-x replace-string C-Q 0 0 1 5 : pour supprimer les ^M
-;; C-h C-f : fonction
-;; C-h   v : variable
-;; C-h   b : liste des raccourcis claviers
-
-;;     M-. tag
-;; C-u M-. prochain tag
-
-;; M-x list-faces-display : liste des styles utilisés
-;; M-x list-colors-display : liste des couleurs disponibles
-
-;; ^M
-;;(setq comint-output-filter-functions (remove 'comint-carriage-motion 'comint-output-filter-functions))
 
 (if (featurep 'xemacs)
   (progn
     (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
     (kill-emacs)))
 
-
 ;;;; ==========================================================================
 ;;;; SETTINGS
 ;;;; ==========================================================================
 
-(defvar eide-version "1.2")
-(defvar eide-release-date "08/2009")
+(defvar eide-version "1.3")
+(defvar eide-release-date "03/2010")
 
 (defvar eide-options-file       ".emacs-ide.options")
 (defvar eide-project-file       ".emacs-ide.project")
@@ -56,7 +36,6 @@
 
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
-
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -76,7 +55,6 @@
 ;;      (save-buffer)
 ;;      (eide-config-rebuild-project-file))))
 
-
 ;;;; ==========================================================================
 ;;;; LIBRARIES
 ;;;; ==========================================================================
@@ -88,21 +66,29 @@
 
 ;;(require 'gud)
 
-
 ;;;; ==========================================================================
 ;;;; ENVIRONMENT SPECIFIC SETTINGS
 ;;;; ==========================================================================
 
-;; Directory for including other modules
+;; Directory for including other Emacs-IDE modules (src/*.el)
 ;; file-truename follows symbolic link .emacs (if any)
 ;; file-name-directory retrieves directory path (removes file name)
+(defvar eide-emacs-src-path (file-name-directory (file-truename user-init-file)))
+(add-to-list 'load-path eide-emacs-src-path)
+
+;; Emacs-IDE root directory
 ;; directory-file-name removes final "/"
-(defvar eide-emacs-path (directory-file-name (file-name-directory (file-truename user-init-file))))
-(add-to-list 'load-path eide-emacs-path)
+;; file-name-directory retrieves directory path (removes file name)
+(defvar eide-emacs-root-path (file-name-directory (directory-file-name eide-emacs-src-path)))
+(defvar eide-under-svn-flag nil)
+
+(if (file-exists-p (concat eide-emacs-root-path ".svn"))
+  (setq eide-under-svn-flag t))
 
 (require 'eide-config)
 (require 'eide-project)
 (require 'eide-edit)
+(require 'eide-svn)
 (require 'eide-search)
 (require 'eide-compare)
 
@@ -120,17 +106,40 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-shell-open ()
   (interactive)
+  ;; Force to open a new shell (in current directory)
+  (if eide-shell-buffer
+    (kill-buffer eide-shell-buffer))
   (eide-windows-select-window-file t)
-  (let ((l-buffer-directory (file-name-directory (buffer-file-name))))
-    (eide-windows-select-window-results)
-    ;; Sometimes does not compile when a grep buffer is displayed
-    ;; "compilation finished" is displayed in grep buffer !
-    (switch-to-buffer "*results*")
-    ;; Shell buffer name will be updated in eide-l-windows-display-buffer-function
-    (setq eide-windows-update-result-buffer-id "s")
-    (shell)
-    (send-invisible (concat "cd " l-buffer-directory " ; echo"))))
+  ;; Shell buffer name will be updated in eide-i-windows-display-buffer-function
+  (setq eide-windows-update-result-buffer-id "s")
+  (shell))
 
+;; ----------------------------------------------------------------------------
+;; If Emacs-IDE is under svn, check if an update is available.
+;;
+;; input  : eide-under-svn-flag : t if Emacs-IDE is under svn.
+;;          eide-emacs-root-path : path of Emacs-IDE.
+;; ----------------------------------------------------------------------------
+(defun eide-check-update-from-svn ()
+  (if eide-under-svn-flag
+    (progn
+      (message "Checking update (svn)...")
+      (if (string-equal (shell-command-to-string (concat "cd " eide-emacs-root-path " && src/svn-check.sh")) "yes\n")
+        (if (eide-popup-question-yes-or-no-p "A new version of Emacs-IDE is available from svn.\nDo you want to update ?")
+          (progn
+            (shell-command (concat "cd " eide-emacs-root-path " && src/svn-update.sh"))
+            (eide-popup-message "Emacs-IDE has been updated.\nThis session will be closed and opened again.")
+            (if eide-project-name
+              ;; Save desktop and disable auto-saving, otherwise emacs will
+              ;; display a warning message about desktop being opened by several
+              ;; sessions
+              (progn
+                (desktop-save eide-root-directory)
+                (desktop-save-mode -1)))
+            (shell-command (concat "cd " eide-root-directory " && emacs &"))
+            (kill-emacs))
+          (eide-popup-message "Emacs-IDE will not be updated now."))
+        (message "Checking update (svn)... No update available.")))))
 
 ;;;; ==========================================================================
 ;;;; PREFERENCES
@@ -152,7 +161,7 @@
 (setq revert-without-query '(".*"))
 
 ;; Use 'y' and 'n' instead of 'yes' and 'no' for minibuffer questions
-(fset 'yes-or-no-p 'y-or-n-p) 
+(fset 'yes-or-no-p 'y-or-n-p)
 
 ;; Use mouse wheel (default for Windows but not for Linux)
 (mouse-wheel-mode 1)
@@ -182,9 +191,8 @@
     (menu-bar-mode -1)
     (tool-bar-mode -1)))
 
-;; "One line at a time" scrolling (default value is 0, which moves active line
-;; to center - High value is necessary, otherwise it sometimes doesn't work !)
-(setq-default scroll-conservatively 2000)
+;; "One line at a time" scrolling
+(setq-default scroll-conservatively 1)
 
 ;; Four line margin for scrolling
 (setq scroll-margin 4)
@@ -203,7 +211,6 @@
 
 ;; Ignore invisible lines when moving cursor in project configuration
 (setq line-move-ignore-invisible t)
-
 
 ;;;; ==========================================================================
 ;;;; CONFIGURATION
@@ -239,20 +246,6 @@
 ;; (which may read this file to create current project config file)
 (eide-config-rebuild-options-file)
 
-;; Test if a project is defined
-(if (file-exists-p eide-project-file)
-  (progn
-    ;; Check if this project is already open
-    ;;(if (file-exists-p (concat eide-root-directory eide-project-lock-file))
-    ;;  (if (eide-popup-question-yes-or-no-p "WARNING : This project is already open (or has not exited properly)\nDo you want to continue ?")
-    ;;    (setq eide-project-already-open-flag t)
-    ;;    (kill-emacs)))
-    (find-file-noselect eide-project-file)
-    (eide-project-start-with-project)))
-
-;; Update frame title and menu
-(eide-project-update-frame-title)
-
 ;; Frame size and position
 (if window-system
   (if (eq system-type 'windows-nt)
@@ -265,10 +258,6 @@
 ;;(modify-frame-parameters nil '((fullscreen . nil)))
 ;;(modify-frame-parameters nil '((fullscreen . fullboth)))
 ;;(set-frame-parameter nil 'fullscreen 'fullboth)
-
-;; Start with "editor" mode
-(eide-keys-configure-for-editor)
-
 
 ;;;; ==========================================================================
 ;;;; PREFERENCES FOR CODE
@@ -299,10 +288,6 @@
 ;; Highlight matching parentheses (when cursor on "(" or just after ")")
 (show-paren-mode 1)
 
-;; moved to major mode hooks ! no effect on emacs linux, if here
-;; (but used again, because no effect in hook !!!)
-
-
 ;;;; ==========================================================================
 ;;;; EDIFF
 ;;;; ==========================================================================
@@ -313,11 +298,11 @@
 ;;(setq ediff-highlight-all-diffs nil)
 
 ;; Control panel in the same frame
-(ediff-toggle-multiframe)
+(if window-system
+  (ediff-toggle-multiframe))
 
 ;; Split horizontally for buffer comparison
 (setq ediff-split-window-function 'split-window-horizontally)
-
 
 ;;;; ==========================================================================
 ;;;; IMENU (LIST OF FUNCTIONS)
@@ -388,17 +373,16 @@
            eide-regex-space-or-crlf-or-nothing "{" ))
     ))
 
-;;cc-imenu-c-generic-expression's value is 
+;;cc-imenu-c-generic-expression's value is
 ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
 ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
 ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
 ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
-;;cc-imenu-c++-generic-expression's value is 
+;;cc-imenu-c++-generic-expression's value is
 ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
 ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
 ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
 ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
-
 
 (setq eide-cc-imenu-c-interrupt
       (concat
@@ -437,14 +421,12 @@
         ;;("#define"    , eide-cc-imenu-c-define 1)
         ))
 
-
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR FUNDAMENTAL MAJOR MODE
 ;;;; ==========================================================================
 
 (setq-default indent-tabs-mode t)
 (setq-default tab-width 4)
-
 
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "C" and "C++"
@@ -547,7 +529,6 @@
    ("int32" . font-lock-type-face)
    ("TODO" . font-lock-warning-face)))
 
-
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "EMACS LISP"
 ;;;; ==========================================================================
@@ -577,7 +558,6 @@
     (if eide-config-show-trailing-spaces
       (setq show-trailing-whitespace t))))
 
-
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "SGML" (HTML, XML...)
 ;;;; ==========================================================================
@@ -592,7 +572,6 @@
     ;; Show trailing spaces if enabled in options
     (if eide-config-show-trailing-spaces
       (setq show-trailing-whitespace t))))
-
 
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "SHELL SCRIPT"
@@ -624,10 +603,15 @@
     (if eide-config-show-trailing-spaces
       (setq show-trailing-whitespace t))))
 
-
 ;;;; ==========================================================================
 ;;;; SETTINGS FOR MAJOR MODE "PYTHON"
 ;;;; ==========================================================================
+
+(require 'python)
+
+(if eide-option-select-whole-symbol-flag
+  ;; "_" should not be a word delimiter
+  (modify-syntax-entry ?_ "w" python-mode-syntax-table))
 
 (add-hook
  'python-mode-hook
@@ -640,17 +624,28 @@
     (if eide-config-show-trailing-spaces
       (setq show-trailing-whitespace t))))
 
-
 ;;;; ==========================================================================
-;;;; WINDOWS SETTINGS
+;;;; PROJECT AND WINDOWS SETTINGS
 ;;;; ==========================================================================
 
-;; Since "config rebuild" functions have closed their buffers, and
-;; eide-options-file has just been closed, we are back in directory from which
-;; emacs has been launched : we can use desktop-read
-;; NB : it is important to execute desktop-read after mode-hooks have been
-;; defined, otherwise mode-hooks may not apply
-(desktop-read)
+;; Test if a project is defined
+;; NB : It is important to read desktop after mode-hooks have been defined,
+;; otherwise mode-hooks may not apply.
+(if (file-exists-p eide-project-file)
+  (progn
+    ;; Check if this project is already open
+    ;;(if (file-exists-p (concat eide-root-directory eide-project-lock-file))
+    ;;  (if (eide-popup-question-yes-or-no-p "WARNING : This project is already open (or has not exited properly)\nDo you want to continue ?")
+    ;;    (setq eide-project-already-open-flag t)
+    ;;    (kill-emacs)))
+    (find-file-noselect eide-project-file)
+    (eide-project-start-with-project)))
+
+;; Update frame title and menu
+(eide-project-update-frame-title)
+
+;; Start with "editor" mode
+(eide-keys-configure-for-editor)
 
 ;; eide-options-file might be present in desktop (in case emacs was closed
 ;; while editing options) : we must close it again.

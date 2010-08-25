@@ -1,0 +1,31 @@
+Emacs-IDE release notes
+=======================
+
+Version 1.0 (2008-12)
+---------------------
+First release.
+
+Version 1.1 (2009-04)
+---------------------
+- Generic project type:
+    - tags are built for all languages,
+    - cscope is available if C/C++ files are present.
+- Project deletion.
+- Customizable dark and light color themes.
+- Popup menu on directories (actions on several files at once).
+
+Version 1.2 (2009-08)
+---------------------
+- Use ctags instead of etags.
+- Updates for emacs22-gtk.
+- Remove toolbar (quite useless and not well supported on emacs22-gtk).
+- Use dired mode instead of speedbar for file browsing.
+
+Version 1.3 (2010-03)
+---------------------
+- Support of spaces in file and directory names.
+- Show svn modified status of files in menu.
+- Add Emacs-IDE update in menu (if Emacs-IDE is under svn).
+- Improve performance:
+    - reduce useless disk accesses and menu rebuilds,
+    - use recursive grep instead of find/grep.

@@ -1,24 +1,24 @@
 # emacs options :
+
 # -nw     : don't use X interface
 # -q      : don't load ~/.emacs
 # -l file : load lisp file
 
-# -nw option is not supported in emacs shell ($TERM = "dumb")
+# -nw option is not supported in emacs shell
 
 all: clean
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Compiling Emacs-IDE..."
 	@echo "-------------------------------------------------------------------------------"
-	@if [ "$${TERM}" = "dumb" ]; then \
-	   emacs -q -l compile-eide.el ; \
-	 else \
-	   emacs -nw -q -l compile-eide.el ; \
-	 fi
-	@echo "====> These files have been successfully compiled :"
-	@for file in `ls *.el`; do if [ -e $${file}c ]; then echo "  $${file} -> $${file}c"; fi; done
-	@echo "====> These files have not been compiled - either failed or not requested :"
-	@for file in `ls *.el`; do if [ ! -e $${file}c ]; then echo "  $${file}"; fi; done
-	@if [ -e eide.elc ]; then ln -vsf eide.elc .emacs; else ln -vsf eide.el .emacs; fi
+	@emacs -q -l compile-eide.el
+	@for file in `ls src/*.el`; do \
+	   if [ -e $${file}c ]; then \
+	     echo "  [OK]      $${file}" ; \
+	   else \
+	     echo "  [FAILED]  $${file}" ; \
+	   fi ; \
+     done
+	@if [ -e src/eide.elc ]; then ln -vsf src/eide.elc .emacs; else ln -vsf src/eide.el .emacs; fi
 
 debug: set_debug all
 
@@ -29,8 +29,8 @@ clean:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Cleaning compilation of Emacs-IDE..."
 	@echo "-------------------------------------------------------------------------------"
-	@rm -vf *.elc
-	@ln -vsf eide.el .emacs
+	@rm -vf src/*.elc
+	@ln -vsf src/eide.el .emacs
 
 # [ -h ~/.emacs ] is necessary for broken symbolic links
 # (in that case [ -e ~/.emacs ] returns false)
@@ -39,20 +39,12 @@ install:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Installing Emacs-IDE..."
 	@echo "-------------------------------------------------------------------------------"
-	@if [ ! -e .emacs ]; then if [ -e eide.elc ]; then ln -vs eide.elc .emacs; else ln -vs eide.el .emacs; fi; fi
-	@do_install="1" ; \
-	 if [ -e ~/.emacs -o -h ~/.emacs ]; then \
-	   if [ -h ~/.emacs -a `ls -l ~/.emacs | grep -c $${PWD}` = "1" ]; then \
-	     echo "ERROR : ~/.emacs is already linked to Emacs-IDE." ; \
-	     do_install="0" ; \
-	   else \
-	     echo "WARNING : ~/.emacs already exists." ; \
-	     mv -v ~/.emacs ~/.emacs_`date +%F_%T` ; \
-	   fi ; \
-	 fi ; \
-	 if [ $${do_install} = "1" ]; then \
-	   file=$${PWD}/.emacs ; ln -vs $${file} ~ ; \
+	@if [ -e src/eide.elc ]; then ln -vsf src/eide.elc .emacs; else ln -vsf src/eide.el .emacs; fi
+	@if [ -e ~/.emacs -o -h ~/.emacs ]; then \
+	   echo "WARNING : ~/.emacs already exists." ; \
+	   mv -v ~/.emacs ~/.emacs_`date +%F_%T` ; \
 	 fi
+	@file=$${PWD}/.emacs ; ln -vs $${file} ~
 	@if which ctags > /dev/null ; then \
 	   if ctags --version | grep -q Exuberant ; then \
 	     echo "Checking ctags..... OK." ; \

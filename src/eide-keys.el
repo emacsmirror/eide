@@ -1,6 +1,6 @@
 ;;; eide-keys.el --- Emacs-IDE, keys
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,14 +13,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (provide 'eide-keys)
 
 (defvar eide-keys-is-editor-configuration-active-flag nil)
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS FOR MOVING
@@ -29,7 +28,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Scroll right in current buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-scroll-right-one-step ()
+(defun eide-i-keys-scroll-right-one-step ()
   (interactive)
   (let ((index 0))
     (while (and (not (eolp)) (< index 4))
@@ -38,12 +37,11 @@
 ;; ----------------------------------------------------------------------------
 ;; Scroll left in current buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-scroll-left-one-step ()
+(defun eide-i-keys-scroll-left-one-step ()
   (interactive)
   (let ((index 0))
     (while (and (not (bolp)) (< index 4))
       (progn (scroll-right) (backward-char) (setq index (1+ index))))))
-
 
 ;;;; ==========================================================================
 ;;;; KEYS BINDINGS
@@ -100,7 +98,6 @@
 ;; Override find-file, to get default directory from window "file"
 (global-set-key "\C-x\C-f" 'eide-windows-find-file)
 
-
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
@@ -108,7 +105,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Set key bindings for project.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-enable-keys-for-project ()
+(defun eide-i-keys-enable-keys-for-project ()
   (if (and eide-option-use-cscope-flag (not eide-option-use-cscope-and-tags-flag))
     (progn
       (global-set-key [f1] 'eide-search-back-from-symbol-definition)
@@ -128,8 +125,8 @@
       (global-unset-key [f3])
       (global-unset-key [S-f3])))
 
-  (global-set-key [f4] 'eide-search-grep-find-without-prompt)
-  (global-set-key [S-f4] 'eide-search-grep-find-with-prompt)
+  (global-set-key [f4] 'eide-search-grep-global-without-prompt)
+  (global-set-key [S-f4] 'eide-search-grep-global-with-prompt)
 
   (global-set-key [f9] 'eide-project-compile-1)
   (global-set-key [S-f9] 'eide-project-compile-2)
@@ -143,7 +140,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Unset key bindings for project.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-disable-keys-for-project ()
+(defun eide-i-keys-disable-keys-for-project ()
   (global-unset-key [f1])
   (global-unset-key [f2])
   (global-unset-key [S-f2])
@@ -166,9 +163,9 @@
 ;; ----------------------------------------------------------------------------
 ;; Set key bindings that can be used without project.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-enable-keys-for-grep ()
-  (global-set-key [f6] 'eide-search-grep-without-prompt)
-  (global-set-key [S-f6] 'eide-search-grep-with-prompt)
+(defun eide-i-keys-enable-keys-for-grep ()
+  (global-set-key [f6] 'eide-search-grep-local-without-prompt)
+  (global-set-key [S-f6] 'eide-search-grep-local-with-prompt)
 
   (global-set-key [f7] 'eide-search-grep-go-to-previous)
   (global-set-key [f8] 'eide-search-grep-go-to-next))
@@ -176,7 +173,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Unset key bindings that can be used without project.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-disable-keys-for-grep ()
+(defun eide-i-keys-disable-keys-for-grep ()
   (global-unset-key [f6])
   (global-unset-key [S-f6])
   (global-unset-key [f7])
@@ -185,7 +182,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Set key bindings for misc features.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-enable-keys-misc ()
+(defun eide-i-keys-enable-keys-misc ()
   ;; Block hiding
   ;;(global-set-key [C-f1] 'hs-hide-block)
   ;;(global-set-key [C-f2] 'hs-show-block)
@@ -207,15 +204,15 @@
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
 
   ;; Shift + Wheel up (horizontal scrolling)
-  (global-set-key [S-mouse-4] 'eide-l-keys-scroll-right-one-step)
+  (global-set-key [S-mouse-4] 'eide-i-keys-scroll-right-one-step)
 
   ;; Shift + Wheel down (horizontal scrolling)
-  (global-set-key [S-mouse-5] 'eide-l-keys-scroll-left-one-step))
+  (global-set-key [S-mouse-5] 'eide-i-keys-scroll-left-one-step))
 
 ;; ----------------------------------------------------------------------------
 ;; Unset key bindings for misc features.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-disable-keys-misc ()
+(defun eide-i-keys-disable-keys-misc ()
   ;; Block hiding
   ;;(global-unset-key [C-f1])
   ;;(global-unset-key [C-f2])
@@ -248,7 +245,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Set key bindings for ediff session.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-enable-keys-for-ediff ()
+(defun eide-i-keys-enable-keys-for-ediff ()
   (global-set-key [mouse-3] 'eide-compare-quit)
   (global-set-key [f1] 'eide-compare-copy-a-to-b)
   (global-set-key [f2] 'eide-compare-copy-b-to-a)
@@ -259,7 +256,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Set key bindings for configuration editing.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-keys-enable-keys-for-special-buffer ()
+(defun eide-i-keys-enable-keys-for-special-buffer ()
   (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3))
 
@@ -282,7 +279,6 @@
 (global-set-key [mode-line mouse-2] nil)
 (global-set-key [mode-line mouse-3] nil)
 
-
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
@@ -293,29 +289,29 @@
 (defun eide-keys-configure-for-editor ()
   (setq eide-keys-is-editor-configuration-active-flag t)
   (if eide-project-name
-    (eide-l-keys-enable-keys-for-project)
-    (eide-l-keys-disable-keys-for-project))
-  (eide-l-keys-enable-keys-for-grep)
-  (eide-l-keys-enable-keys-misc))
+    (eide-i-keys-enable-keys-for-project)
+    (eide-i-keys-disable-keys-for-project))
+  (eide-i-keys-enable-keys-for-grep)
+  (eide-i-keys-enable-keys-misc))
 
 ;; ----------------------------------------------------------------------------
 ;; Configure keys for ediff session.
 ;; ----------------------------------------------------------------------------
 (defun eide-keys-configure-for-ediff ()
   (setq eide-keys-is-editor-configuration-active-flag nil)
-  (eide-l-keys-disable-keys-for-project)
-  (eide-l-keys-disable-keys-for-grep)
-  (eide-l-keys-disable-keys-misc)
-  (eide-l-keys-enable-keys-for-ediff))
+  (eide-i-keys-disable-keys-for-project)
+  (eide-i-keys-disable-keys-for-grep)
+  (eide-i-keys-disable-keys-misc)
+  (eide-i-keys-enable-keys-for-ediff))
 
 ;; ----------------------------------------------------------------------------
 ;; Configure keys for configuration editing.
 ;; ----------------------------------------------------------------------------
 (defun eide-keys-configure-for-special-buffer ()
   (setq eide-keys-is-editor-configuration-active-flag nil)
-  (eide-l-keys-disable-keys-for-project)
-  (eide-l-keys-disable-keys-for-grep)
-  (eide-l-keys-disable-keys-misc)
-  (eide-l-keys-enable-keys-for-special-buffer))
+  (eide-i-keys-disable-keys-for-project)
+  (eide-i-keys-disable-keys-for-grep)
+  (eide-i-keys-disable-keys-misc)
+  (eide-i-keys-enable-keys-for-special-buffer))
 
 ;;; eide-keys.el ends here

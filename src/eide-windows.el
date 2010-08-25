@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE, windows
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,7 +13,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -21,6 +21,8 @@
 
 (defvar eide-windows-is-layout-visible-flag nil)
 (defvar eide-windows-menu-update-request-pending-flag nil)
+(defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
+(defvar eide-windows-menu-update-request-pending-force-update-status-flag nil)
 
 (defvar eide-windows-buffer-in-window-results nil)
 (defvar eide-compilation-buffer nil)
@@ -29,7 +31,6 @@
 (defvar eide-shell-buffer nil)
 
 (defvar eide-windows-update-result-buffer-id nil)
-
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -41,7 +42,7 @@
 ;; input  : p-buffer-name : buffer name.
 ;; return : buffer window (nil if not found).
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-get-window-for-buffer (p-buffer-name)
+(defun eide-i-windows-get-window-for-buffer (p-buffer-name)
   (if eide-keys-is-editor-configuration-active-flag
     (if (string-match "^\*.*" p-buffer-name)
       (if eide-windows-is-layout-visible-flag
@@ -74,14 +75,14 @@
 ;; output : eide-windows-update-result-buffer-id : nil.
 ;; return : buffer window.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
+(defun eide-i-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
   (let ((l-buffer-name) (l-window)
         (l-selected-window (selected-window))
         (l-browsing-mode-flag nil))
     (if (bufferp p-buffer)
       (setq l-buffer-name (buffer-name p-buffer))
       (setq l-buffer-name p-buffer))
-    ;;(message (concat "eide-l-windows-display-buffer-function : " l-buffer-name))
+    ;;(message (concat "eide-i-windows-display-buffer-function : " l-buffer-name))
     (save-excursion
       (set-buffer l-buffer-name)
       (if (or (equal major-mode 'dired-mode)
@@ -105,7 +106,7 @@
                 (select-window (next-window))
                 (setq l-window (selected-window)))))
           (progn
-            (setq l-window (eide-l-windows-get-window-for-buffer l-buffer-name))
+            (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
             (if (not l-window)
               (setq l-window l-selected-window))))
         (set-window-buffer l-window p-buffer)
@@ -161,58 +162,62 @@
 (defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer))
   (let ((l-buffer-name) (l-do-it-flag t) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
+      ;; Get buffer name from buffer
       (setq l-buffer-name (buffer-name p-buffer))
+      ;; p-buffer is already a buffer name
       (setq l-buffer-name p-buffer))
-    ;;(message (concat "switch-to-buffer : " l-buffer-name))
-    (save-excursion
-      (set-buffer l-buffer-name)
-      (if (or (equal major-mode 'dired-mode)
-              (equal major-mode 'Buffer-menu-mode))
-        (setq l-browsing-mode-flag t)))
-    (if l-browsing-mode-flag
+    (if l-buffer-name
+      ;; l-buffer-name = nil if p-buffer has been killed
+      ;; I have to find out how this is possible...
+      ;; It happens when opening multiple files with *
       (progn
-        (if (not eide-menu-browsing-mode-flag)
-          (eide-menu-browsing-mode-start))
-        ad-do-it
-        p-buffer)
-      (progn
-        ;; Do not display TAGS file, and configuration files
-        (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-file) (string-equal l-buffer-name eide-project-notes-file))
-          (setq l-do-it-flag nil))
-        (if l-do-it-flag
+        ;;(message (concat "switch-to-buffer : " l-buffer-name))
+        (save-excursion
+          (set-buffer l-buffer-name)
+          (if (or (equal major-mode 'dired-mode)
+                  (equal major-mode 'Buffer-menu-mode))
+            (setq l-browsing-mode-flag t)))
+        (if l-browsing-mode-flag
           (progn
-            (setq l-window (eide-l-windows-get-window-for-buffer l-buffer-name))
-            (if l-window
-              (select-window l-window)
-              (setq l-window (selected-window)))
+            (if (not eide-menu-browsing-mode-flag)
+              (eide-menu-browsing-mode-start))
             ad-do-it
-            (set-buffer l-buffer-name)
-            (if eide-search-find-symbol-definition-flag
-              (progn
-                (recenter)
-                (setq eide-search-find-symbol-definition-flag nil)))
-            (if (equal l-window eide-windows-window-file)
-              (progn
-                (if (and eide-menu-browsing-mode-flag
-                         (not (equal major-mode 'dired-mode))
-                         (not (equal major-mode 'Buffer-menu-mode)))
-                  (eide-menu-browsing-mode-stop))
-                ;; Update menu if necessary
-                (eide-menu-update nil)))
-            ;; Desktop is saved to avoid loss of opened buffers in case of crash of emacs
-            (if (file-exists-p (concat eide-root-directory ".emacs.desktop"))
-              (desktop-save eide-root-directory))
-            ;; Select buffer window
-            (select-window l-window)
-            ;; Return the buffer that it switched to
             p-buffer)
           (progn
-            ;; Close unwanted files (except TAGS and project configuration)
-            (if (or (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-notes-file))
+            ;; Do not display TAGS file, and configuration files
+            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-file) (string-equal l-buffer-name eide-project-notes-file))
+              (setq l-do-it-flag nil))
+            (if l-do-it-flag
               (progn
-                (kill-buffer l-buffer-name)
-                ;; Return the current buffer
-                (current-buffer)))))))))
+                (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
+                (if l-window
+                  (select-window l-window)
+                  (setq l-window (selected-window)))
+                ad-do-it
+                (set-buffer l-buffer-name)
+                (if eide-search-find-symbol-definition-flag
+                  (progn
+                    (recenter)
+                    (setq eide-search-find-symbol-definition-flag nil)))
+                (if (equal l-window eide-windows-window-file)
+                  (progn
+                    (if (and eide-menu-browsing-mode-flag
+                             (not (equal major-mode 'dired-mode))
+                             (not (equal major-mode 'Buffer-menu-mode)))
+                      (eide-menu-browsing-mode-stop))
+                    ;; Update menu if necessary
+                    (eide-menu-update nil)))
+                ;; Select buffer window
+                (select-window l-window)
+                ;; Return the buffer that it switched to
+                p-buffer)
+              (progn
+                ;; Close unwanted files (except TAGS and project configuration)
+                (if (or (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-notes-file))
+                  (progn
+                    (kill-buffer l-buffer-name)
+                    ;; Return the current buffer
+                    (current-buffer)))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Override C-x C-f find-file, to get default directory from buffer in window
@@ -235,10 +240,10 @@
     (eide-menu-update-current-buffer-modified-status)
     (select-window l-window)))
 
-;(defun eide-l-windows-is-buffer-appropriate-for-window (p-buffer-name p-window)
-;  (or (equal p-window (eide-l-windows-get-window-for-buffer p-buffer-name))
-;      (and (not eide-windows-is-layout-visible-flag)
-;           (equal p-window eide-windows-window-file)
+                                        ;(defun eide-i-windows-is-buffer-appropriate-for-window (p-buffer-name p-window)
+                                        ;  (or (equal p-window (eide-i-windows-get-window-for-buffer p-buffer-name))
+                                        ;      (and (not eide-windows-is-layout-visible-flag)
+                                        ;           (equal p-window eide-windows-window-file)
 ;; ----------------------------------------------------------------------------
 ;; Override mode-line-unbury-buffer (previous buffer) function (advice), to
 ;; select appropriate buffer according to selected window (for Emacs 21 only).
@@ -254,7 +259,7 @@
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
-        (if (or (equal l-window (eide-l-windows-get-window-for-buffer (buffer-name)))
+        (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
           (setq l-do-it-flag nil))))
     (ad-activate 'switch-to-buffer))
@@ -275,7 +280,7 @@
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
-        (if (or (equal l-window (eide-l-windows-get-window-for-buffer (buffer-name)))
+        (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
           (setq l-do-it-flag nil))))
     (ad-activate 'switch-to-buffer))
@@ -292,7 +297,7 @@
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
-      (if (or (equal l-window (eide-l-windows-get-window-for-buffer (buffer-name)))
+      (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
               (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil))))
   (ad-activate 'switch-to-buffer)
@@ -309,7 +314,7 @@
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
-      (if (or (equal l-window (eide-l-windows-get-window-for-buffer (buffer-name)))
+      (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
               (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil))))
   (ad-activate 'switch-to-buffer)
@@ -321,7 +326,7 @@
 ;; output : eide-windows-results-window-height : height of window "results".
 ;;          eide-windows-menu-window-width : width of window "menu".
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-window-setup-hook ()
+(defun eide-i-windows-window-setup-hook ()
   ;;(setq eide-windows-results-window-height (/ (frame-height) 5))
   ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 
@@ -346,15 +351,15 @@
       ;; calls switch-to-buffer => we need to override mode-line functions
       (ad-activate 'mode-line-unbury-buffer)
       (ad-activate 'mode-line-bury-buffer)))
-  (setq display-buffer-function 'eide-l-windows-display-buffer-function)
+  (setq display-buffer-function 'eide-i-windows-display-buffer-function)
   (eide-windows-skip-unwanted-buffers-in-window-file)
-  ;; Create menu content
-  (eide-menu-update t))
+  ;; Create menu content (force to build and to retrieve files status)
+  (eide-menu-update t t))
 
 ;; ----------------------------------------------------------------------------
 ;; Select window at mouse position.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-select-window-at-mouse-position ()
+(defun eide-i-windows-select-window-at-mouse-position ()
   ;; Select the window where the mouse is
   (let ((l-position (last (mouse-position))))
     (select-window (window-at (car l-position) (cdr l-position)))))
@@ -364,7 +369,7 @@
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-is-window-file-selected-p ()
+(defun eide-i-windows-is-window-file-selected-p ()
   (equal (selected-window) eide-windows-window-file))
 
 ;; ----------------------------------------------------------------------------
@@ -372,7 +377,7 @@
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-is-window-menu-selected-p ()
+(defun eide-i-windows-is-window-menu-selected-p ()
   (equal (selected-window) eide-windows-window-menu))
 
 ;; ----------------------------------------------------------------------------
@@ -380,20 +385,18 @@
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-l-windows-is-window-results-selected-p ()
+(defun eide-i-windows-is-window-results-selected-p ()
   (equal (selected-window) eide-windows-window-results))
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
 
-
 ;; ----------------------------------------------------------------------------
 ;; Initialize windows.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-init ()
-  (add-hook 'window-setup-hook 'eide-l-windows-window-setup-hook))
+  (add-hook 'window-setup-hook 'eide-i-windows-window-setup-hook))
 
 ;; ----------------------------------------------------------------------------
 ;; Build windows layout.
@@ -546,7 +549,7 @@
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (setq l-first-found-buffer-name nil)
-    (while (and (not (equal (eide-l-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
+    (while (and (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
                 l-should-we-continue
                 (< l-iteration 30))
       (progn
@@ -565,7 +568,7 @@
             ;; buffer that fits. If this buffer is valid, let's keep it
             ;; current. Otherwise, let's display "*scratch*".
             (setq l-should-we-continue nil)
-            (if (not (equal (eide-l-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
+            (if (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
               (switch-to-buffer "*scratch*"))))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
@@ -582,7 +585,7 @@
 (defun eide-windows-handle-mouse-3 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-l-windows-select-window-at-mouse-position)
+  (eide-i-windows-select-window-at-mouse-position)
 
   (if (string-equal (buffer-name) "*Colors*")
     (progn
@@ -637,10 +640,10 @@
                 (eide-popup-open-menu-for-cleaning))
               ;; No text selected
               (progn
-                (if (eide-l-windows-is-window-results-selected-p)
+                (if (eide-i-windows-is-window-results-selected-p)
                   ;; Window "results" : open grep results popup menu
                   (eide-popup-open-menu-for-search-results)
-                  (if (eide-l-windows-is-window-menu-selected-p)
+                  (if (eide-i-windows-is-window-menu-selected-p)
                     ;; Window "menu" : open project popup menu
                     (eide-popup-open-menu)
                     ;; Window "file"
@@ -655,7 +658,7 @@
                         (eide-windows-layout-build)
                         ;; Update menu if necessary
                         (if eide-windows-menu-update-request-pending-flag
-                          (eide-menu-update t))
+                          (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag))
                         (eide-windows-select-window-file t)))))))))))))
 
 ;; ----------------------------------------------------------------------------
@@ -666,9 +669,9 @@
 (defun eide-windows-handle-mouse-2 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-l-windows-select-window-at-mouse-position)
+  (eide-i-windows-select-window-at-mouse-position)
 
-  (if (and eide-windows-is-layout-visible-flag (eide-l-windows-is-window-menu-selected-p))
+  (if (and eide-windows-is-layout-visible-flag (eide-i-windows-is-window-menu-selected-p))
     (eide-menu-dired-open)
     (yank)))
 
@@ -678,9 +681,9 @@
 (defun eide-windows-handle-shift-mouse-3 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-l-windows-select-window-at-mouse-position)
+  (eide-i-windows-select-window-at-mouse-position)
 
-  (if (eide-l-windows-is-window-results-selected-p)
+  (if (eide-i-windows-is-window-results-selected-p)
     ;; In window "results", open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)
     ;; In options, show/hide list of colors

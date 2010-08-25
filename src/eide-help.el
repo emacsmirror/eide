@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE, help
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,12 +13,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (provide 'eide-help)
-
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -29,7 +28,7 @@
 ;;
 ;; input  : p-string : chapter title (string).
 ;; ----------------------------------------------------------------------------
-(defun eide-l-help-insert-header-1 (p-string)
+(defun eide-i-help-insert-header-1 (p-string)
   (insert "\n\n\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter1-face)
   (insert "\n"))
@@ -39,10 +38,9 @@
 ;;
 ;; input  : p-string : chapter title (string).
 ;; ----------------------------------------------------------------------------
-(defun eide-l-help-insert-header-2 (p-string)
+(defun eide-i-help-insert-header-2 (p-string)
   (insert "\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter2-face))
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -68,9 +66,9 @@
   (insert "(click right to exit this page)\n\n")
   (insert (concat "Emacs-IDE - version " eide-version " - " eide-release-date "\n"))
 
-  (eide-l-help-insert-header-1 "Windows layout")
+  (eide-i-help-insert-header-1 "Windows layout")
 
-  (eide-l-help-insert-header-2 "Overview")
+  (eide-i-help-insert-header-2 "Overview")
 
   (insert "
 With default options, windows layout should look like this :
@@ -98,9 +96,9 @@ You can modify the layout in options.
 
 ")
 
-  (eide-l-help-insert-header-1 "Mouse actions")
+  (eide-i-help-insert-header-1 "Mouse actions")
 
-  (eide-l-help-insert-header-2 "Right click (when no text is selected)")
+  (eide-i-help-insert-header-2 "Right click (when no text is selected)")
 
   (insert "
 Right click behaviour depends on mouse position :
@@ -111,8 +109,10 @@ In window 'file' :
 In window 'menu' :
     Open project popup menu :
     - project creation/configuration
+    - project commands (compile, run, debug)
     - options
     - help (this page)
+    - Emacs-IDE update checking (if Emacs-IDE is under svn)
 
 In window 'menu', over a file name :
     Open file popup menu (see 'Actions on files' below).
@@ -130,7 +130,7 @@ In window 'results' :
     result).
 ")
 
-  (eide-l-help-insert-header-2 "Right click (when text is selected)")
+  (eide-i-help-insert-header-2 "Right click (when text is selected)")
 
   (insert "
 If text is selected on a single line :
@@ -140,7 +140,7 @@ If text is selected over several lines :
     Open cleaning popup menu (to untabify or indent selection).
 ")
 
-  (eide-l-help-insert-header-2 "Left / right click on mode-line file name")
+  (eide-i-help-insert-header-2 "Left / right click on mode-line file name")
 
   (insert "
 On window 'file' mode-line :
@@ -150,7 +150,7 @@ On window 'results' mode-line :
     Switch to previous / next result buffer.
 ")
 
-  (eide-l-help-insert-header-2 "Middle click")
+  (eide-i-help-insert-header-2 "Middle click")
 
   (insert "
 Middle click behaviour depends on mouse position :
@@ -162,13 +162,13 @@ In other windows :
     Paste (standard behaviour).
 ")
 
-  (eide-l-help-insert-header-2 "Wheel")
+  (eide-i-help-insert-header-2 "Wheel")
 
   (insert "
 Shift + mouse wheel up/down scrolls right/left.
 ")
 
-  (eide-l-help-insert-header-1 "Options")
+  (eide-i-help-insert-header-1 "Options")
 
   (insert "
 Options are saved in a file, '.emacs-ide.options', in your home directory. This
@@ -183,9 +183,9 @@ If you delete any parameter in this file, it will be restored with default
 value.
 ")
 
-  (eide-l-help-insert-header-1 "Work on a project")
+  (eide-i-help-insert-header-1 "Work on a project")
 
-  (eide-l-help-insert-header-2 "Create a project")
+  (eide-i-help-insert-header-2 "Create a project")
 
   (insert "
 Launch emacs from your workset root directory.
@@ -214,14 +214,14 @@ To edit project notes ('.emacs-ide.project_notes'), open project popup menu and
 select 'Project notes'.
 ")
 
-  (eide-l-help-insert-header-2 "Open existing project")
+  (eide-i-help-insert-header-2 "Open existing project")
 
   (insert "
 Launch emacs from your workset root directory.
 Files opened during last session are opened again automatically.
 ")
 
-  (eide-l-help-insert-header-2 "Tags and cscope update")
+  (eide-i-help-insert-header-2 "Tags and cscope update")
 
   (insert "
 When code is changed :
@@ -235,9 +235,9 @@ When a file is added or deleted :
   be updated automatically on next search).
 ")
 
-  (eide-l-help-insert-header-1 "Actions on files (right click on file name)")
+  (eide-i-help-insert-header-1 "Actions on files (right click on file name)")
 
-  (eide-l-help-insert-header-2 "Editing with REF files")
+  (eide-i-help-insert-header-2 "Editing with REF files")
 
   (insert "
 When editing a file, you can create a copy, so as to easily switch between
@@ -263,7 +263,7 @@ File name colour :
 - red when original file is used.
 ")
 
-  (eide-l-help-insert-header-2 "Other actions on files")
+  (eide-i-help-insert-header-2 "Other actions on files")
 
   (insert "
 File popup menu actions :
@@ -273,13 +273,18 @@ File popup menu actions :
 - Delete trailing spaces
 - Convert end of line : DOS to UNIX
 - Convert end of line : UNIX to DOS
+If show_svn_status option is set :
+- svn diff
+- svn revert
 
 File name colour :
 - black when file is read/write.
 - grey when file is read only.
+If show_svn_status option is set :
+- blue when file is modified compared to svn repository.
 ")
 
-  (eide-l-help-insert-header-1 "Actions on directories (right click on directory name)")
+  (eide-i-help-insert-header-1 "Actions on directories (right click on directory name)")
 
   (insert "
 Actions on files (see above) can be applied to several files - opened files
@@ -288,7 +293,7 @@ An action is enabled in popup menu if it is allowed for at least one opened
 file, and will be applied to all files for which it is allowed.
 ")
 
-  (eide-l-help-insert-header-1 "Standard key bindings")
+  (eide-i-help-insert-header-1 "Standard key bindings")
 
   (insert "
 Control-x Control-b ........... list all buffers
@@ -300,9 +305,9 @@ Control-_ ..................... undo
 Control-g ..................... cancel current command
 ")
 
-  (eide-l-help-insert-header-1 "New key bindings")
+  (eide-i-help-insert-header-1 "New key bindings")
 
-  (eide-l-help-insert-header-2 "Editing")
+  (eide-i-help-insert-header-2 "Editing")
 
   (insert "
     Alt - left ........ Cut
@@ -314,7 +319,7 @@ Control - mouse 2 ..... Copy
 Control - mouse 3 ..... Paste
 ")
 
-  (eide-l-help-insert-header-2 "Code browsing with tags/cscope")
+  (eide-i-help-insert-header-2 "Code browsing with tags/cscope")
 
   (insert "
           F1 .......... Back from symbol definition
@@ -325,7 +330,7 @@ Control - mouse 3 ..... Paste
   Shift - F3 .......... Search symbol in whole project (prompt for symbol)
 ")
 
-  (eide-l-help-insert-header-2 "Grep search")
+  (eide-i-help-insert-header-2 "Grep search")
 
   (insert "
           F4 .......... Search string in whole project (at cursor position, or selected text if any)
@@ -334,7 +339,7 @@ Control - mouse 3 ..... Paste
   Shift - F6 .......... Search string in current directory (prompt for string)
 ")
 
-  ;;(eide-l-help-insert-header-2 "{...} block hiding")
+  ;;(eide-i-help-insert-header-2 "{...} block hiding")
 
   ;;(insert "
 ;;Control - F1 .......... Hide block
@@ -343,28 +348,28 @@ Control - mouse 3 ..... Paste
 ;;Control - F4 .......... Show all blocks in current buffer
 ;;")
 
-  (eide-l-help-insert-header-2 "Display")
+  (eide-i-help-insert-header-2 "Display")
 
   (insert "
           F5 .......... Reload current buffer (and update display)
   Shift - F5 .......... Close current buffer
 ")
 
-  (eide-l-help-insert-header-2 "Grep result browsing")
+  (eide-i-help-insert-header-2 "Grep result browsing")
 
   (insert "
           F7 .......... Go to previous instance
           F8 .......... Go to next instance
 ")
 
-  (eide-l-help-insert-header-2 "Compilation error browsing")
+  (eide-i-help-insert-header-2 "Compilation error browsing")
 
   (insert "
           F7 .......... Go to previous error
           F8 .......... Go to next error
 ")
 
-  (eide-l-help-insert-header-2 "Unix Shell commands")
+  (eide-i-help-insert-header-2 "Unix Shell commands")
 
   (insert "
           F9 .......... Compile (1)
@@ -374,16 +379,19 @@ Control - mouse 3 ..... Paste
           F11 ......... Debug (1)
   Shift - F11 ......... Debug (2)
           F12 ......... Open shell
+
+NB : Additional compile commands (Compile (3) and Compile (4)) are not
+available from the keyboard, but only from project popup menu.
 ")
 
-  ;;  (eide-l-help-insert-header-2 "User defined text insertions")
+  ;;  (eide-i-help-insert-header-2 "User defined text insertions")
 
   ;;  (insert "
   ;;Control - Shift - F1 .. Insert text #1
   ;;Control - Shift - F2 .. Insert text #2
   ;;")
 
-  (eide-l-help-insert-header-1 "Windows layout overview during diff session")
+  (eide-i-help-insert-header-1 "Windows layout overview during diff session")
   (insert "
   -----------------------------------------------------------
   |                             |                           |
@@ -405,7 +413,7 @@ Control - mouse 3 ..... Paste
   |                     Window 'control'                    |
   -----------------------------------------------------------
 ")
-  (eide-l-help-insert-header-1 "Standard key bindings in diff session")
+  (eide-i-help-insert-header-1 "Standard key bindings in diff session")
   (insert "
 These commands must be typed in window 'control' :
 
@@ -419,7 +427,7 @@ wb .................... save file B
 q ..................... quit (y to confirm)
 ? ..................... display help
 ")
-  (eide-l-help-insert-header-1 "New key bindings in diff session")
+  (eide-i-help-insert-header-1 "New key bindings in diff session")
   (insert"
 F1 .................... copy highlighted region A --> B
 F2 .................... copy highlighted region A <-- B

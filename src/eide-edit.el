@@ -1,6 +1,6 @@
 ;;; eide-edit.el --- Emacs-IDE, edit
 
-;; Copyright (C) 2005-2009 Cédric Marie
+;; Copyright (C) 2005-2010 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -13,12 +13,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (provide 'eide-edit)
-
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -37,13 +36,31 @@
       "")))
 
 ;; ----------------------------------------------------------------------------
+;; Update buffers edit status (REF, NEW or not edited).
+;;
+;; input  : p-files-list : list of files to update (overrides
+;;              eide-menu-files-list)
+;;          eide-menu-files-list : list of opened files.
+;; ----------------------------------------------------------------------------
+(defun eide-edit-update-files-status (&optional p-files-list)
+  (save-excursion
+    (let ((l-files-list nil))
+      (if p-files-list
+        (setq l-files-list p-files-list)
+        (setq l-files-list eide-menu-files-list))
+      (dolist (l-buffer-name l-files-list)
+        (set-buffer l-buffer-name)
+        (make-local-variable 'eide-menu-local-edit-status)
+        (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))))))
+
+;; ----------------------------------------------------------------------------
 ;; Set write permission for current file.
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-set-rw ()
   (if buffer-read-only
     (progn
-      (shell-command (concat "chmod +w " buffer-file-name))
+      (shell-command (concat "chmod +w \"" buffer-file-name "\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -53,7 +70,7 @@
 (defun eide-edit-set-r ()
   (if (not buffer-read-only)
     (progn
-      (shell-command (concat "chmod -w " buffer-file-name))
+      (shell-command (concat "chmod -w \"" buffer-file-name "\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -61,9 +78,9 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-make-ref-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "")
+  (if (string-equal eide-menu-local-edit-status "")
     (progn
-      (shell-command (concat "mv " buffer-file-name " " buffer-file-name ".ref ; cp " buffer-file-name ".ref " buffer-file-name " ; chmod +w " buffer-file-name))
+      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\" ; cp \"" buffer-file-name ".ref\" \"" buffer-file-name "\" ; chmod +w \"" buffer-file-name "\""))
       (revert-buffer))))
 
 ;;(setq nnn (file-modes buffer-file-name))
@@ -80,12 +97,12 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-use-ref-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "new")
+  (if (string-equal eide-menu-local-edit-status "new")
     (progn
-      (shell-command (concat "mv " buffer-file-name " " buffer-file-name ".new"))
-      (shell-command (concat "mv " buffer-file-name ".ref " buffer-file-name))
+      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
+      (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
       (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch " buffer-file-name)))
+        (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -93,12 +110,12 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-use-new-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "ref")
+  (if (string-equal eide-menu-local-edit-status "ref")
     (progn
-      (shell-command (concat "mv " buffer-file-name " " buffer-file-name ".ref"))
-      (shell-command (concat "mv " buffer-file-name ".new " buffer-file-name))
+      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
+      (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
       (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch " buffer-file-name)))
+        (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -106,9 +123,9 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-discard-new-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "ref")
+  (if (string-equal eide-menu-local-edit-status "ref")
     (progn
-      (shell-command (concat "rm -f " buffer-file-name ".new"))
+      (shell-command (concat "rm -f \"" buffer-file-name ".new\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -116,11 +133,11 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-restore-ref-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "new")
+  (if (string-equal eide-menu-local-edit-status "new")
     (progn
-      (shell-command (concat "rm -f " buffer-file-name " ; mv " buffer-file-name ".ref " buffer-file-name))
+      (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
       (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch " buffer-file-name)))
+        (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -128,9 +145,9 @@
 ;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-discard-ref-file ()
-  (if (string-equal (eide-edit-get-buffer-status) "new")
+  (if (string-equal eide-menu-local-edit-status "new")
     (progn
-      (shell-command (concat "rm -f " buffer-file-name ".ref"))
+      (shell-command (concat "rm -f \"" buffer-file-name ".ref\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -153,7 +170,7 @@
 (defun eide-edit-dos-to-unix ()
   (if (not buffer-read-only)
     (progn
-      (shell-command (concat "dos2unix " buffer-file-name))
+      (shell-command (concat "dos2unix \"" buffer-file-name "\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
@@ -163,7 +180,7 @@
 (defun eide-edit-unix-to-dos ()
   (if (not buffer-read-only)
     (progn
-      (shell-command (concat "unix2dos " buffer-file-name))
+      (shell-command (concat "unix2dos \"" buffer-file-name "\""))
       (revert-buffer))))
 
 ;; ----------------------------------------------------------------------------
