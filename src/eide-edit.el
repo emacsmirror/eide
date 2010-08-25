@@ -86,7 +86,7 @@
 ;;(setq nnn (file-modes buffer-file-name))
 ;;(setq mmm (logior (file-modes buffer-file-name) 128))) ; = "chmod +w"
 ;; file-name-sans-extension
-;; TODO : utiliser les commandes lisp équivalentes
+;; TODO: utiliser les commandes lisp équivalentes
 ;; (shell-command (concat "mv " buffer-file-name " " buffer-file-name ".ref ; cp " buffer-file-name ".ref " buffer-file-name " ; chmod +w " buffer-file-name))
 ;; (rename-file buffer-file-name (concat buffer-file-name ".ref"))
 ;; (copy-file (concat buffer-file-name ".ref") buffer-file-name)

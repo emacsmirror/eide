@@ -56,14 +56,14 @@
 ;; Execute "svn diff" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-diff ()
-  (if eide-config-show-svn-status-flag
+  (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (shell-command (concat "svn diff " buffer-file-name))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn revert" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-revert ()
-  (if eide-config-show-svn-status-flag
+  (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (progn
       (shell-command (concat "svn revert " buffer-file-name))
       (revert-buffer))))

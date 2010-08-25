@@ -227,7 +227,7 @@
     (beginning-of-line)
     (forward-char)
     ;; Marker is not set on the first char, because a problem occurs when new
-    ;; marker is on the line below old marker : when old file is removed (to be
+    ;; marker is on the line below old marker: when old file is removed (to be
     ;; displayed again later without highlight), old and new markers become
     ;; equals, and when old file is inserted, new marker remains on beginning
     ;; of line of old file. The problem is fixed if the marker is set on second
@@ -291,13 +291,13 @@
 
     (if eide-project-name
       (progn
-        (put-text-property (point) (progn (insert "Project : ") (point)) 'face 'eide-config-menu-project-header-face)
+        (put-text-property (point) (progn (insert "Project: ") (point)) 'face 'eide-config-menu-project-header-face)
         (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-menu-project-name-face))
-      (put-text-property (point) (progn (insert "Root directory :") (point)) 'face 'eide-config-menu-project-header-face))
+      (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-config-menu-project-header-face))
 
     (eide-i-menu-insert-text "\n")
     (eide-i-menu-insert-text eide-root-directory)
-    (eide-i-menu-insert-text "\n\n\n")
+    (eide-i-menu-insert-text "\n\n")
 
     (if p-force-update-status-flag
       ;; Update status of all files
@@ -377,7 +377,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-file-highlight-function ()
   (interactive)
-  ;; TODO : position non conservée (on se retrouve au niveau du nom du fichier)
+  ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
   (save-excursion
     (setq l-function-index (eide-i-menu-get-index-in-list))
     (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
@@ -447,7 +447,7 @@
       ;; Save window to go back to, once menu has been updated
       ;;(setq l-window (selected-window))
       (eide-windows-select-window-file t)
-      ;; On Emacs 22 GTK : buffer-name does not return current but previous
+      ;; On Emacs 22 GTK: buffer-name does not return current but previous
       ;; buffer !... The bug is fixed if window-buffer is used.
       ;;(setq eide-current-buffer-temp (buffer-name))
       (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
@@ -461,9 +461,9 @@
             (eide-windows-select-window-menu)
             (goto-char (point-min))
             (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
-              ;; Old and new files are both present in menu : just update current buffer
+              ;; Old and new files are both present in menu: just update current buffer
               (eide-i-menu-update-current-buffer eide-current-buffer-temp)
-              ;; file not present in menu : update whole menu
+              ;; File not present in menu: update whole menu
               (progn
                 (setq eide-current-buffer eide-current-buffer-temp)
                 (eide-i-menu-rebuild nil))))))
@@ -605,7 +605,7 @@
         (setq eide-menu-files-list (remove p-buffer-name eide-menu-files-list))
         (if (string-equal p-buffer-name eide-current-buffer)
           (progn
-            ;; Current buffer has been closed : display another one
+            ;; Current buffer has been closed: display another one
             (eide-windows-skip-unwanted-buffers-in-window-file)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t))
@@ -619,7 +619,7 @@
                 (setq l-property (get-text-property (point) 'face))
                 (if (or (equal l-property 'eide-config-menu-directory-face)
                         (equal l-property 'eide-config-menu-directory-out-of-project-face))
-                  ;; It was also the only one : we must delete directory line
+                  ;; It was also the only one: we must delete directory line
                   (let ((buffer-read-only nil))
                     (delete-region (point) (progn (forward-line 2) (point)))))))))))))
 
@@ -631,16 +631,19 @@
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-close (p-directory-name)
-  (let ((l-ask-flag nil) (l-do-it-flag t) (l-buffer-edit-status nil))
+  (let ((l-ask-flag nil) (l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil))
     ;; Check if at least one file has been edited (REF or NEW)
     (dolist (l-buffer eide-menu-files-list)
       (if (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
         (progn
           (save-excursion
             (set-buffer l-buffer)
-            (setq l-buffer-edit-status eide-menu-local-edit-status))
+            (setq l-buffer-edit-status eide-menu-local-edit-status)
+            (if eide-config-show-svn-status-flag
+              (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
           (if (or (string-equal l-buffer-edit-status "new")
-                  (string-equal l-buffer-edit-status "ref"))
+                  (string-equal l-buffer-edit-status "ref")
+                  l-buffer-svn-modified-flag)
             (setq l-ask-flag t)))))
     (if l-ask-flag
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files in " p-directory-name " have been edited. Do you really want to close them ?"))))
@@ -652,10 +655,10 @@
               (kill-buffer l-buffer)
               (setq eide-menu-files-list (remove l-buffer eide-menu-files-list)))))
         (if (get-buffer eide-current-buffer)
-          ;; Current buffer has not been closed : just remove this directory
+          ;; Current buffer has not been closed: just remove this directory
           (eide-i-menu-remove-directory)
           (progn
-            ;; Current buffer has been closed : display another one
+            ;; Current buffer has been closed: display another one
             (eide-windows-skip-unwanted-buffers-in-window-file)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t)))))))
@@ -815,7 +818,7 @@
         (l-functions-with-highlight eide-menu-local-highlighted-functions-list))
     (revert-buffer)
 
-    ;; NB : This part of code was in find-file-hook, which has been moved to
+    ;; NB: This part of code was in find-file-hook, which has been moved to
     ;; switch-to-buffer advice. But with revert-buffer, switch-to-buffer is not
     ;; called (while find-file-hook was). Therefore, this part of code has been
     ;; moved here.

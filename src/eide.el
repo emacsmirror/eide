@@ -26,49 +26,11 @@
 ;;;; SETTINGS
 ;;;; ==========================================================================
 
-(defvar eide-version "1.3")
-(defvar eide-release-date "03/2010")
-
-(defvar eide-options-file       ".emacs-ide.options")
-(defvar eide-project-file       ".emacs-ide.project")
-(defvar eide-project-notes-file ".emacs-ide.project_notes")
-;;(defvar eide-project-lock-file  ".emacs-ide.project_lock")
+(defvar eide-version "1.4")
+(defvar eide-release-date "2010-07")
 
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
-
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
-
-;; ----------------------------------------------------------------------------
-;; Cleaning before exit
-;; ----------------------------------------------------------------------------
-;;(defun eide-kill-emacs-hook ()
-;;  (if (and eide-project-name (not eide-project-already-open-flag))
-;;    ;; "Unlock" project
-;;    (shell-command (concat "rm -f " eide-root-directory eide-project-lock-file)))
-;;  (if (string-equal (buffer-name) eide-project-file)
-;;    ;; Rebuild project configuration file (because project_type might be lost
-;;    ;; otherwise !)
-;;    (progn
-;;      (save-buffer)
-;;      (eide-config-rebuild-project-file))))
-
-;;;; ==========================================================================
-;;;; LIBRARIES
-;;;; ==========================================================================
-
-(require 'desktop)
-(require 'hideshow)
-(require 'imenu)
-(require 'mwheel)
-
-;;(require 'gud)
-
-;;;; ==========================================================================
-;;;; ENVIRONMENT SPECIFIC SETTINGS
-;;;; ==========================================================================
 
 ;; Directory for including other Emacs-IDE modules (src/*.el)
 ;; file-truename follows symbolic link .emacs (if any)
@@ -85,19 +47,48 @@
 (if (file-exists-p (concat eide-emacs-root-path ".svn"))
   (setq eide-under-svn-flag t))
 
-(require 'eide-config)
-(require 'eide-project)
-(require 'eide-edit)
-(require 'eide-svn)
-(require 'eide-search)
+;; Project directory
+;; On Windows: it is necessary to open a temporary file for the directory path
+;; to be correct (Windows standard vs Unix)
+;; On Linux: it is also useful to expand path (~ => /home/xxx/).
+;; NB: "temp" was first used as a temporary filename, but it causes the project
+;; directory to be changed to "temp" if "temp" already exists and is a
+;; directory !... Hence a filename that can not exist !! :-)
+
+(let ((l-temp-file "this-is-a-temporary-file-for-emacs-ide"))
+  (find-file l-temp-file)
+  (setq eide-root-directory default-directory)
+  (kill-buffer l-temp-file))
+
+;;;; ==========================================================================
+;;;; EMACS MODULES
+;;;; ==========================================================================
+
+(require 'desktop)
+(require 'hideshow)
+(require 'imenu)
+(require 'mwheel)
+(require 'ediff)
+
+;;;; ==========================================================================
+;;;; EMACS-IDE MODULES
+;;;; ==========================================================================
+
 (require 'eide-compare)
-
-(require 'eide-popup)
-(require 'eide-menu)
-(require 'eide-windows)
+(require 'eide-config)
+(require 'eide-edit)
 (require 'eide-help)
-
 (require 'eide-keys)
+(require 'eide-menu)
+(require 'eide-popup)
+(require 'eide-project)
+(require 'eide-search)
+(require 'eide-svn)
+(require 'eide-windows)
+
+;;;; ==========================================================================
+;;;; INTERNAL FUNCTIONS
+;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
 ;; Open shell.
@@ -142,27 +133,21 @@
         (message "Checking update (svn)... No update available.")))))
 
 ;;;; ==========================================================================
-;;;; PREFERENCES
+;;;; EMACS SETTINGS
 ;;;; ==========================================================================
 
 ;; Do not display startup message
 (setq inhibit-startup-message t)
-
 ;; Disable warning for large files (especially for TAGS)
 (setq large-file-warning-threshold nil)
-
 ;; Do not save backup files (~)
 (setq make-backup-files nil)
-
 ;; Do not save place in .emacs-places
 (setq-default save-place nil)
-
 ;; No confirmation when refreshing buffer
 (setq revert-without-query '(".*"))
-
 ;; Use 'y' and 'n' instead of 'yes' and 'no' for minibuffer questions
 (fset 'yes-or-no-p 'y-or-n-p)
-
 ;; Use mouse wheel (default for Windows but not for Linux)
 (mouse-wheel-mode 1)
 ;; Mouse wheel should scroll the window over which the mouse is
@@ -175,77 +160,52 @@
   (setq mouse-wheel-scroll-amount '(4 ((shift) . 1) ((control)))))
 ;; Disable mouse wheel progressive speed
 (setq mouse-wheel-progressive-speed nil)
-
 ;; Keep cursor position when moving page up/down
 (setq scroll-preserve-screen-position t)
-
 ;; Paper type for printing
 (setq ps-paper-type 'a4)
-
 ;; Show end of buffer
 ;;(setq-default indicate-empty-lines t)
-
 ;; No menu bar
 (if window-system
   (progn
     (menu-bar-mode -1)
     (tool-bar-mode -1)))
-
 ;; "One line at a time" scrolling
 (setq-default scroll-conservatively 1)
-
 ;; Four line margin for scrolling
 (setq scroll-margin 4)
-
 ;; Display line and column numbers
 (setq line-number-mode t)
 (setq column-number-mode t)
-
 ;; Disable beep
 ;;(setq visible-bell t)
 (setq ring-bell-function (lambda() ()))
-
 ;; Vertical scroll bar on the right
-;; (default value : right for Windows, left for Linux)
+;; (default value: right for Windows, left for Linux)
 (set-scroll-bar-mode 'right)
-
 ;; Ignore invisible lines when moving cursor in project configuration
+;; TODO: not used anymore in project configuration => still necessary ?
 (setq line-move-ignore-invisible t)
-
-;;;; ==========================================================================
-;;;; CONFIGURATION
-;;;; ==========================================================================
-
-;; Project directory
-;; On Windows : it is necessary to open a temporary file for the directory path
-;; to be correct (Windows standard vs Unix)
-;; On Linux : it is also useful to expand path (~ => /home/xxx/).
-;; NB : "temp" was first used as a temporary filename, but it causes the project
-;; directory to be changed to "temp" if "temp" already exists and is a
-;; directory !... Hence a filename that can not exist !! :-)
-
-(let ((l-temp-file "this-is-a-temporary-file-for-emacs-ide"))
-  (find-file l-temp-file)
-  (setq eide-root-directory default-directory)
-  (kill-buffer l-temp-file))
-
-(if eide-option-use-cscope-flag
-  (progn
-    (cscope-set-initial-directory eide-root-directory)
-    ;;(setq cscope-do-not-update-database t)
-    ))
-
-;; init a virer si possible :
-;;(setq eide-project-already-open-flag nil)
-
-;; Load options file (it will be closed at the end of "rebuild", so that
-;; current buffer - from .emacs.desktop - is not changed)
-(find-file-noselect (concat "~/" eide-options-file))
-
-;; Options file must be rebuilt before calling eide-project-start-with-project
-;; (which may read this file to create current project config file)
-(eide-config-rebuild-options-file)
-
+;; Display current function (relating to cursor position) in info line
+;; (if possible with current major mode)
+(which-function-mode)
+;; "Warning" color highlight when possible error is detected
+;;(global-cwarn-mode)
+;; Do not prompt for updating tag file if necessary
+(setq tags-revert-without-query t)
+;; Augmenter le nombre de fonctions dans le menu pop up "liste des fonctions"
+;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
+;; (default: 25)
+;; no longer used (personal popup menu)
+;;(setq imenu-max-items 40)
+;; Augmenter le nombre de buffers dans le menu pop up "liste des buffers"
+;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
+;; (default: 20)
+;; no longer used (personal popup menu)
+;;(setq mouse-buffer-menu-maxlen 40)
+;; Highlight matching parentheses (when cursor on "(" or just after ")")
+(show-paren-mode 1)
 ;; Frame size and position
 (if window-system
   (if (eq system-type 'windows-nt)
@@ -258,51 +218,21 @@
 ;;(modify-frame-parameters nil '((fullscreen . nil)))
 ;;(modify-frame-parameters nil '((fullscreen . fullboth)))
 ;;(set-frame-parameter nil 'fullscreen 'fullboth)
-
-;;;; ==========================================================================
-;;;; PREFERENCES FOR CODE
-;;;; ==========================================================================
-
-;; Display current function (relating to cursor position) in info line
-;; (if possible with current major mode)
-(which-function-mode)
-
-;; "Warning" color highlight when possible error is detected
-;;(global-cwarn-mode)
-
-;; Do not prompt for updating tag file if necessary
-(setq tags-revert-without-query t)
-
-;; Augmenter le nombre de fonctions dans le menu pop up "liste des fonctions"
-;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
-;; (default : 25)
-;; no longer used (personal popup menu)
-(setq imenu-max-items 40)
-
-;; Augmenter le nombre de buffers dans le menu pop up "liste des buffers"
-;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
-;; (default : 20)
-;; no longer used (personal popup menu)
-(setq mouse-buffer-menu-maxlen 40)
-
-;; Highlight matching parentheses (when cursor on "(" or just after ")")
-(show-paren-mode 1)
-
-;;;; ==========================================================================
-;;;; EDIFF
-;;;; ==========================================================================
-
-(require 'ediff)
-
-;; Highlight current diff only
+(if eide-option-use-cscope-flag
+  (progn
+    (cscope-set-initial-directory eide-root-directory)
+    ;;(setq cscope-do-not-update-database t)
+    ))
+;; ediff: Highlight current diff only
 ;;(setq ediff-highlight-all-diffs nil)
-
-;; Control panel in the same frame
+;; ediff: Control panel in the same frame
 (if window-system
   (ediff-toggle-multiframe))
-
-;; Split horizontally for buffer comparison
+;; ediff: Split horizontally for buffer comparison
 (setq ediff-split-window-function 'split-window-horizontally)
+
+;; gdb: Use graphical interface
+(setq gdb-many-windows t)
 
 ;;;; ==========================================================================
 ;;;; IMENU (LIST OF FUNCTIONS)
@@ -314,7 +244,6 @@
 ;; Il faut redéfinir les expressions, car les expressions par défaut amènent
 ;; beaucoup d'erreurs : du code est parfois interprété à tort comme une
 ;; définition de fonction)
-
 
 (setq eide-regex-word              "[a-zA-Z_][a-zA-Z0-9_:<>~]*")
 (setq eide-regex-word-no-underscore "[a-zA-Z][a-zA-Z0-9_:<>~]*")
@@ -361,7 +290,7 @@
 
 (if nil
   (progn
-    ;; temp : remplace la définition au-dessus
+    ;; temp: remplace la définition au-dessus
     (setq eide-cc-imenu-c-function
           (concat
            "^\\(?:" eide-regex-word eide-regex-space "\\)*"
@@ -429,24 +358,22 @@
 (setq-default tab-width 4)
 
 ;;;; ==========================================================================
-;;;; SETTINGS FOR MAJOR MODE "C" and "C++"
+;;;; SETTINGS FOR MAJOR MODE "C" AND "C++"
 ;;;; ==========================================================================
-
-(require 'cc-mode)
-
-(if eide-option-select-whole-symbol-flag
-  ;; "_" should not be a word delimiter
-  (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
 (add-hook
  'c-mode-hook
  '(lambda()
-    (setq indent-tabs-mode nil) ; Indentation : insert spaces instead of tabs
-    (setq tab-width eide-c-indent-offset) ; Tab display : number of char for one tab (default value : 8)
+    (if eide-option-select-whole-symbol-flag
+      ;; "_" should not be a word delimiter
+      (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
-    (c-set-style "K&R")                 ; Indentation style
-    (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value : 5)
-    (c-set-offset 'case-label '+) ; Case/default in a switch (default value : 0)
+    (setq indent-tabs-mode nil) ; Indentation: insert spaces instead of tabs
+    (setq tab-width eide-c-indent-offset) ; Tab display: number of char for one tab (default value: 8)
+
+    (c-set-style "K&R") ; Indentation style
+    (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
+    (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
     ;; Autofill minor mode
     ;; (automatic line feed beyond 80th column)
@@ -480,12 +407,16 @@
 (add-hook
  'c++-mode-hook
  '(lambda()
-    (setq indent-tabs-mode nil) ; Indentation : insert spaces instead of tabs
-    (setq tab-width eide-c-indent-offset) ; Tab display : number of char for one tab (default value : 8)
+    (if eide-option-select-whole-symbol-flag
+      ;; "_" should not be a word delimiter
+      (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
-    (c-set-style "K&R")                 ; Indentation style
-    (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value : 5)
-    (c-set-offset 'case-label '+) ; Case/default in a switch (default value : 0)
+    (setq indent-tabs-mode nil) ; Indentation: insert spaces instead of tabs
+    (setq tab-width eide-c-indent-offset) ; Tab display: number of char for one tab (default value: 8)
+
+    (c-set-style "K&R") ; Indentation style
+    (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
+    (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
     ;; Autofill minor mode
     ;; (automatic line feed beyond 80th column)
@@ -518,9 +449,7 @@
 
 (font-lock-add-keywords
  'c-mode
- '(("" . font-my-dos-face)            ;font-lock-comment-face)
-   ;;("__interrupt" . font-lock-keyword-face)
-
+ '(;;("__interrupt" . font-lock-keyword-face)
    ("uint8" . font-lock-type-face)
    ("uint16" . font-lock-type-face)
    ("uint32" . font-lock-type-face)
@@ -533,14 +462,14 @@
 ;;;; SETTINGS FOR MAJOR MODE "EMACS LISP"
 ;;;; ==========================================================================
 
-(if eide-option-select-whole-symbol-flag
-  ;; "-" should not be a word delimiter
-  (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
-
 (add-hook
  'emacs-lisp-mode-hook
  '(lambda()
-    ;; Indentation : insert spaces instead of tabs
+    (if eide-option-select-whole-symbol-flag
+      ;; "-" should not be a word delimiter
+      (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
+
+    ;; Indentation: insert spaces instead of tabs
     (setq indent-tabs-mode nil)
     (setq tab-width 2)
     (setq lisp-body-indent 2)
@@ -565,7 +494,7 @@
 (add-hook
  'sgml-mode-hook
  '(lambda()
-    ;; Indentation : insert spaces instead of tabs
+    ;; Indentation: insert spaces instead of tabs
     (setq indent-tabs-mode nil)
     (setq tab-width 2)
 
@@ -580,7 +509,7 @@
 (add-hook
  'shell-mode-hook
  '(lambda()
-    ;; Indentation : insert spaces instead of tabs
+    ;; Indentation: insert spaces instead of tabs
     (setq indent-tabs-mode nil)
     (setq tab-width 2)
 
@@ -595,7 +524,7 @@
 (add-hook
  'perl-mode-hook
  '(lambda()
-    ;; Indentation : insert spaces instead of tabs
+    ;; Indentation: insert spaces instead of tabs
     (setq indent-tabs-mode nil)
     (setq tab-width 2)
 
@@ -607,51 +536,47 @@
 ;;;; SETTINGS FOR MAJOR MODE "PYTHON"
 ;;;; ==========================================================================
 
-(require 'python)
-
-(if eide-option-select-whole-symbol-flag
-  ;; "_" should not be a word delimiter
-  (modify-syntax-entry ?_ "w" python-mode-syntax-table))
-
 (add-hook
  'python-mode-hook
  '(lambda()
-    ;; Indentation : insert tabs
+    (if eide-option-select-whole-symbol-flag
+      ;; "_" should not be a word delimiter
+      (modify-syntax-entry ?_ "w" python-mode-syntax-table))
+
+    ;; Indentation: insert tabs
     (setq indent-tabs-mode t)
     (setq tab-width 4)
+    (setq python-indent 4)
 
     ;; Show trailing spaces if enabled in options
     (if eide-config-show-trailing-spaces
       (setq show-trailing-whitespace t))))
 
 ;;;; ==========================================================================
-;;;; PROJECT AND WINDOWS SETTINGS
+;;;; INITIALIZATION
 ;;;; ==========================================================================
 
-;; Test if a project is defined
-;; NB : It is important to read desktop after mode-hooks have been defined,
+;; Load options file (it will be closed at the end of "rebuild", so that
+;; current buffer - from .emacs.desktop - is not changed)
+(find-file-noselect (concat "~/" eide-options-file))
+;; Options file must be rebuilt before calling eide-project-start-with-project
+;; (which may read this file to create current project config file)
+(eide-config-rebuild-options-file)
+;; Check if a project is defined, and start it.
+;; NB: It is important to read desktop after mode-hooks have been defined,
 ;; otherwise mode-hooks may not apply.
 (if (file-exists-p eide-project-file)
   (progn
-    ;; Check if this project is already open
-    ;;(if (file-exists-p (concat eide-root-directory eide-project-lock-file))
-    ;;  (if (eide-popup-question-yes-or-no-p "WARNING : This project is already open (or has not exited properly)\nDo you want to continue ?")
-    ;;    (setq eide-project-already-open-flag t)
-    ;;    (kill-emacs)))
     (find-file-noselect eide-project-file)
     (eide-project-start-with-project)))
-
 ;; Update frame title and menu
 (eide-project-update-frame-title)
-
 ;; Start with "editor" mode
 (eide-keys-configure-for-editor)
-
 ;; eide-options-file might be present in desktop (in case emacs was closed
-;; while editing options) : we must close it again.
+;; while editing options): we must close it again.
 (if (get-buffer eide-options-file)
   (kill-buffer eide-options-file))
-
 ;; Close temporary buffers from ediff sessions (if emacs has been closed during
 ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
 ;; files) and they have been loaded in this new emacs session).
@@ -660,12 +585,10 @@
     (if (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
       ;; this is a "useless" buffer (.ref or .new)
       (kill-buffer l-buffer-name))))
-
+;; Init
 (setq eide-current-buffer (buffer-name))
 (eide-menu-init)
 (eide-windows-init)
-
-;;(add-hook 'kill-emacs-hook 'eide-kill-emacs-hook)
 
 (provide 'eide)
 

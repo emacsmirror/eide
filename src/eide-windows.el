@@ -27,7 +27,6 @@
 (defvar eide-windows-buffer-in-window-results nil)
 (defvar eide-compilation-buffer nil)
 (defvar eide-execution-buffer nil)
-(defvar eide-debug-buffer nil)
 (defvar eide-shell-buffer nil)
 
 (defvar eide-windows-update-result-buffer-id nil)
@@ -66,8 +65,8 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Display a buffer in appropriate window.
-;; Called :
-;; - when launching compile, run, debug or shell.
+;; Called:
+;; - when launching compile, run or shell.
 ;;
 ;; input  : p-buffer : buffer.
 ;;          eide-windows-update-result-buffer-id : ID of result buffer to be
@@ -82,7 +81,7 @@
     (if (bufferp p-buffer)
       (setq l-buffer-name (buffer-name p-buffer))
       (setq l-buffer-name p-buffer))
-    ;;(message (concat "eide-i-windows-display-buffer-function : " l-buffer-name))
+    ;;(message (concat "eide-i-windows-display-buffer-function: " l-buffer-name))
     (save-excursion
       (set-buffer l-buffer-name)
       (if (or (equal major-mode 'dired-mode)
@@ -117,10 +116,8 @@
               (setq eide-compilation-buffer l-buffer-name)
               (if (string-equal eide-windows-update-result-buffer-id "r")
                 (setq eide-execution-buffer l-buffer-name)
-                (if (string-equal eide-windows-update-result-buffer-id "d")
-                  (setq eide-debug-buffer l-buffer-name)
-                  (if (string-equal eide-windows-update-result-buffer-id "s")
-                    (setq eide-shell-buffer l-buffer-name)))))
+                (if (string-equal eide-windows-update-result-buffer-id "s")
+                  (setq eide-shell-buffer l-buffer-name))))
             (setq eide-windows-update-result-buffer-id nil)))
         (if (equal l-window eide-windows-window-file)
           (progn
@@ -147,8 +144,8 @@
 ;; ----------------------------------------------------------------------------
 ;; Override switch-to-buffer function (advice), to display buffer in
 ;; appropriate window.
-;; Called :
-;; - when switching to compile, run, debug or shell buffer.
+;; Called:
+;; - when switching to compile, run or shell buffer.
 ;;
 ;; input  : p-buffer : buffer.
 ;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
@@ -171,7 +168,7 @@
       ;; I have to find out how this is possible...
       ;; It happens when opening multiple files with *
       (progn
-        ;;(message (concat "switch-to-buffer : " l-buffer-name))
+        ;;(message (concat "switch-to-buffer: " l-buffer-name))
         (save-excursion
           (set-buffer l-buffer-name)
           (if (or (equal major-mode 'dired-mode)
@@ -195,18 +192,21 @@
                   (setq l-window (selected-window)))
                 ad-do-it
                 (set-buffer l-buffer-name)
-                (if eide-search-find-symbol-definition-flag
+                (if eide-project-is-gdb-session-visible-flag
+                  (eide-menu-update nil)
                   (progn
-                    (recenter)
-                    (setq eide-search-find-symbol-definition-flag nil)))
-                (if (equal l-window eide-windows-window-file)
-                  (progn
-                    (if (and eide-menu-browsing-mode-flag
-                             (not (equal major-mode 'dired-mode))
-                             (not (equal major-mode 'Buffer-menu-mode)))
-                      (eide-menu-browsing-mode-stop))
-                    ;; Update menu if necessary
-                    (eide-menu-update nil)))
+                    (if eide-search-find-symbol-definition-flag
+                      (progn
+                        (recenter)
+                        (setq eide-search-find-symbol-definition-flag nil)))
+                    (if (equal l-window eide-windows-window-file)
+                      (progn
+                        (if (and eide-menu-browsing-mode-flag
+                                 (not (equal major-mode 'dired-mode))
+                                 (not (equal major-mode 'Buffer-menu-mode)))
+                          (eide-menu-browsing-mode-stop))
+                        ;; Update menu if necessary
+                        (eide-menu-update nil)))))
                 ;; Select buffer window
                 (select-window l-window)
                 ;; Return the buffer that it switched to
@@ -254,7 +254,7 @@
   (save-selected-window
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+      ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
       ;; in window "file", until a correct one is found
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
@@ -275,7 +275,7 @@
   (save-selected-window
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+      ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
       ;; in window "file", until a correct one is found
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
@@ -292,7 +292,7 @@
 ;; ----------------------------------------------------------------------------
 (defadvice previous-buffer (around eide-previous-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-    ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+    ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
@@ -309,7 +309,7 @@
 ;; ----------------------------------------------------------------------------
 (defadvice next-buffer (around eide-next-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-    ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+    ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
@@ -319,6 +319,20 @@
         (setq l-do-it-flag nil))))
   (ad-activate 'switch-to-buffer)
   (eide-menu-update nil))
+
+;; ----------------------------------------------------------------------------
+;; Override gdb-setup-windows function (advice), to unbuild windows layout
+;; before gdb builds its own.
+;; ----------------------------------------------------------------------------
+(defadvice gdb-setup-windows (before eide-gdb-setup-windows-advice-before)
+  (eide-project-debug-mode-start))
+
+;; ----------------------------------------------------------------------------
+;; Override gdb-restore-windows function (advice), to unbuild windows layout
+;; before gdb builds its own.
+;; ----------------------------------------------------------------------------
+(defadvice gdb-restore-windows (before eide-gdb-setup-windows-advice-before)
+  (eide-project-debug-mode-start))
 
 ;; ----------------------------------------------------------------------------
 ;; Hook to be called once the frame has been resized.
@@ -351,6 +365,8 @@
       ;; calls switch-to-buffer => we need to override mode-line functions
       (ad-activate 'mode-line-unbury-buffer)
       (ad-activate 'mode-line-bury-buffer)))
+  (ad-activate 'gdb-setup-windows)
+  (ad-activate 'gdb-restore-windows)
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)
   (eide-windows-skip-unwanted-buffers-in-window-file)
   ;; Create menu content (force to build and to retrieve files status)
@@ -416,6 +432,8 @@
   (if (not eide-windows-is-layout-visible-flag)
     (progn
       (delete-other-windows)
+      ;; Make sure that current window is not dedicated
+      (set-window-dedicated-p (selected-window) nil)
 
       ;; Split into 3 windows ("file", "menu", "results")
       (if (string-equal eide-config-menu-height "full")
@@ -462,7 +480,7 @@
       (switch-to-buffer eide-menu-buffer-name)
       ;; This window should be used for this buffer only
       (set-window-dedicated-p eide-windows-window-menu t)
-      ;;(setq window-min-width 1) ; TODO : sans effet ?
+      ;;(setq window-min-width 1) ; TODO: sans effet ?
       (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
 
       ;; Window "results"
@@ -475,8 +493,11 @@
         (setq eide-windows-buffer-in-window-results "*results*"))
 
       (select-window eide-windows-window-file)
-
-      (setq eide-windows-is-layout-visible-flag t))))
+      (setq eide-windows-is-layout-visible-flag t)
+      (eide-windows-skip-unwanted-buffers-in-window-file)
+      ;; Update menu if necessary
+      (if eide-windows-menu-update-request-pending-flag
+        (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Unbuild windows layout (keep only window "file").
@@ -545,7 +566,7 @@
 (defun eide-windows-skip-unwanted-buffers-in-window-file ()
   (eide-windows-select-window-file nil)
   (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-iteration 0))
-    ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+    ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (setq l-first-found-buffer-name nil)
@@ -584,82 +605,81 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-3 ()
   (interactive)
-  ;; Select the window where the mouse is
-  (eide-i-windows-select-window-at-mouse-position)
+  (if eide-project-is-gdb-session-visible-flag
+    (eide-project-debug-mode-stop)
+    (progn
+      ;; Select the window where the mouse is
+      (eide-i-windows-select-window-at-mouse-position)
 
-  (if (string-equal (buffer-name) "*Colors*")
-    (progn
-      ;; Close colors buffer and window
-      (kill-this-buffer)
-      (select-window (next-window))
-      (if (string-equal (buffer-name) eide-options-file)
-        (delete-other-windows))))
-  (if (string-equal (buffer-name) "* Help *")
-    ;; Close "help"
-    (progn
-      (kill-buffer "* Help *")
-      (eide-config-set-colors-for-files)
-      (eide-keys-configure-for-editor)
-      (eide-windows-layout-build))
-    (if (string-equal (buffer-name) eide-options-file)
-      ;; Close ".emacs-ide.options"
-      (progn
-        (save-buffer)
-        (eide-config-rebuild-options-file)
-        (eide-config-set-colors-for-files)
-        (eide-keys-configure-for-editor)
-        (eide-windows-layout-build)
-        ;; Close colors buffer if opened
-        (if (get-buffer "*Colors*")
-          (kill-buffer "*Colors*")))
-      (if (string-equal (buffer-name) eide-project-file)
-        ;; Display another buffer (other than ".emacs-ide.project")
+      (if (string-equal (buffer-name) "*Colors*")
         (progn
-          (save-buffer)
-          (eide-config-rebuild-project-file)
-          ;; This buffer must not be closed
-          (switch-to-buffer eide-current-buffer)
+          ;; Close colors buffer and window
+          (kill-this-buffer)
+          (select-window (next-window))
+          (if (string-equal (buffer-name) eide-options-file)
+            (delete-other-windows))))
+      (if (string-equal (buffer-name) "* Help *")
+        ;; Close "help"
+        (progn
+          (kill-buffer "* Help *")
           (eide-config-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
-        (if (string-equal (buffer-name) eide-project-notes-file)
-          ;; Close ".emacs-ide.project_notes"
+        (if (string-equal (buffer-name) eide-options-file)
+          ;; Close ".emacs-ide.options"
           (progn
             (save-buffer)
-            (kill-buffer eide-project-notes-file)
+            (eide-config-rebuild-options-file)
             (eide-config-set-colors-for-files)
             (eide-keys-configure-for-editor)
-            (eide-windows-layout-build))
-          (progn
-            (if (eq mark-active t)
-              ;; Text is selected
-              (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
-                ;; Text is selected on a single line
-                (eide-popup-open-menu-for-search)
-                ;; Text is selected on several lines
-                (eide-popup-open-menu-for-cleaning))
-              ;; No text selected
+            (eide-windows-layout-build)
+            ;; Close colors buffer if opened
+            (if (get-buffer "*Colors*")
+              (kill-buffer "*Colors*")))
+          (if (string-equal (buffer-name) eide-project-file)
+            ;; Display another buffer (other than ".emacs-ide.project")
+            (progn
+              (save-buffer)
+              (eide-config-rebuild-project-file)
+              ;; This buffer must not be closed
+              (switch-to-buffer eide-current-buffer)
+              (eide-config-set-colors-for-files)
+              (eide-keys-configure-for-editor)
+              (eide-windows-layout-build))
+            (if (string-equal (buffer-name) eide-project-notes-file)
+              ;; Close ".emacs-ide.project_notes"
               (progn
-                (if (eide-i-windows-is-window-results-selected-p)
-                  ;; Window "results" : open grep results popup menu
-                  (eide-popup-open-menu-for-search-results)
-                  (if (eide-i-windows-is-window-menu-selected-p)
-                    ;; Window "menu" : open project popup menu
-                    (eide-popup-open-menu)
-                    ;; Window "file"
-                    (if eide-windows-is-layout-visible-flag
-                      ;; Hide
-                      (eide-windows-layout-unbuild)
-                      ;; Show
-                      (progn
-                        (if eide-menu-browsing-mode-flag
-                          (eide-menu-browsing-mode-stop))
-                        ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
-                        (eide-windows-layout-build)
-                        ;; Update menu if necessary
-                        (if eide-windows-menu-update-request-pending-flag
-                          (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag))
-                        (eide-windows-select-window-file t)))))))))))))
+                (save-buffer)
+                (kill-buffer eide-project-notes-file)
+                (eide-config-set-colors-for-files)
+                (eide-keys-configure-for-editor)
+                (eide-windows-layout-build))
+              (progn
+                (if (eq mark-active t)
+                  ;; Text is selected
+                  (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
+                    ;; Text is selected on a single line
+                    (eide-popup-open-menu-for-search)
+                    ;; Text is selected on several lines
+                    (eide-popup-open-menu-for-cleaning))
+                  ;; No text selected
+                  (progn
+                    (if (eide-i-windows-is-window-results-selected-p)
+                      ;; Window "results": open grep results popup menu
+                      (eide-popup-open-menu-for-search-results)
+                      (if (eide-i-windows-is-window-menu-selected-p)
+                        ;; Window "menu": open project popup menu
+                        (eide-popup-open-menu)
+                        ;; Window "file"
+                        (if eide-windows-is-layout-visible-flag
+                          ;; Hide
+                          (eide-windows-layout-unbuild)
+                          ;; Show
+                          (progn
+                            (if eide-menu-browsing-mode-flag
+                              (eide-menu-browsing-mode-stop))
+                            ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
+                            (eide-windows-layout-build)))))))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Handle mouse-2 (middle click) action.

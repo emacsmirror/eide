@@ -115,10 +115,10 @@
       (dolist (l-project eide-compare-other-projects-list)
         (eide-i-popup-menu-add-action (car l-project) (concat "(eide-compare-select-another-project \"" (car l-project) "\" \"" (cdr l-project) "\")") t))
       (eide-i-popup-menu-close-action-list "Other projects")
-      (eide-i-popup-menu-open "Select another project :"))
-    ;; eide-root-directory                             : <...>/current_project/
-    ;; directory-file-name removes last "/"            : <...>/current_project
-    ;; file-name-directory removes last directory name : <...>/
+      (eide-i-popup-menu-open "Select another project:"))
+    ;; eide-root-directory:                             <...>/current_project/
+    ;; directory-file-name removes last "/":            <...>/current_project
+    ;; file-name-directory removes last directory name: <...>/
     (eide-popup-message (concat "There is no other project in " (file-name-directory (directory-file-name eide-root-directory))))))
 
 ;;;; ==========================================================================
@@ -158,21 +158,21 @@
       ;; Project already created
       (progn
         (if (not (string-equal (eide-config-get-project-value "compile_command_1") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (1) : " (eide-project-get-full-command "compile_command_1")) "(eide-project-compile-1)" t))
+          (eide-i-popup-menu-add-action (concat "Compile (1): " (eide-project-get-full-command "compile_command_1")) "(eide-project-compile-1)" t))
         (if (not (string-equal (eide-config-get-project-value "compile_command_2") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (2) : " (eide-project-get-full-command "compile_command_2")) "(eide-project-compile-2)" t))
+          (eide-i-popup-menu-add-action (concat "Compile (2): " (eide-project-get-full-command "compile_command_2")) "(eide-project-compile-2)" t))
         (if (not (string-equal (eide-config-get-project-value "compile_command_3") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (3) : " (eide-project-get-full-command "compile_command_3")) "(eide-project-compile-3)" t))
+          (eide-i-popup-menu-add-action (concat "Compile (3): " (eide-project-get-full-command "compile_command_3")) "(eide-project-compile-3)" t))
         (if (not (string-equal (eide-config-get-project-value "compile_command_4") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (4) : " (eide-project-get-full-command "compile_command_4")) "(eide-project-compile-4)" t))
+          (eide-i-popup-menu-add-action (concat "Compile (4): " (eide-project-get-full-command "compile_command_4")) "(eide-project-compile-4)" t))
         (if (not (string-equal (eide-config-get-project-value "run_command_1") ""))
-          (eide-i-popup-menu-add-action (concat "Run (1) : " (eide-project-get-full-command "run_command_1")) "(eide-project-run-1)" t))
+          (eide-i-popup-menu-add-action (concat "Run (1): " (eide-project-get-full-command "run_command_1")) "(eide-project-run-1)" t))
         (if (not (string-equal (eide-config-get-project-value "run_command_2") ""))
-          (eide-i-popup-menu-add-action (concat "Run (2) : " (eide-project-get-full-command "run_command_2")) "(eide-project-run-2)" t))
-        (if (not (string-equal (eide-config-get-project-value "debug_command_1") ""))
-          (eide-i-popup-menu-add-action (concat "Debug (1) : " (eide-config-get-project-value "debug_command_1")) "(eide-project-debug-1)" t))
-        (if (not (string-equal (eide-config-get-project-value "debug_command_2") ""))
-          (eide-i-popup-menu-add-action (concat "Debug (2) : " (eide-config-get-project-value "debug_command_2")) "(eide-project-debug-2)" t))
+          (eide-i-popup-menu-add-action (concat "Run (2): " (eide-project-get-full-command "run_command_2")) "(eide-project-run-2)" t))
+        (if (not (string-equal (eide-config-get-project-value "debug_program_1") ""))
+          (eide-i-popup-menu-add-action (concat "Debug (1): " (eide-project-get-full-gdb-command "debug_program_1")) "(eide-project-debug-1)" t))
+        (if (not (string-equal (eide-config-get-project-value "debug_program_2") ""))
+          (eide-i-popup-menu-add-action (concat "Debug (2): " (eide-project-get-full-gdb-command "debug_program_2")) "(eide-project-debug-2)" t))
         (eide-i-popup-menu-close-action-list "Execute")
         (if (or (not eide-option-use-cscope-flag) eide-option-use-cscope-and-tags-flag)
           (eide-i-popup-menu-add-action "Update tags" "(eide-project-update-tags)" t))
@@ -180,7 +180,7 @@
           (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-project-update-cscope-list-of-files)" t))
         (eide-i-popup-menu-close-action-list "Update")
         (if eide-compare-other-project-name
-          (eide-i-popup-menu-add-action (concat "Select another project for comparison (current : \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)
+          (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)
           (eide-i-popup-menu-add-action "Select another project for comparison" "(eide-i-popup-open-menu-for-another-project)" t))
         (eide-i-popup-menu-close-action-list "Projects comparison")
         (eide-i-popup-menu-add-action "Project configuration" "(eide-config-open-project-file)" t)
@@ -188,12 +188,12 @@
         (eide-i-popup-menu-close-action-list "Configuration")
         (eide-i-popup-menu-add-action "Delete project" "(eide-project-delete)" t)
         (eide-i-popup-menu-close-action-list "Destroy")
-        (setq popup-header (concat "Project : " eide-project-name)))
+        (setq popup-header (concat "Project: " eide-project-name)))
       ;; Project not created yet
       (progn
         (eide-i-popup-menu-add-action "Create project" "(eide-project-create)" t)
         (eide-i-popup-menu-close-action-list "Create")
-        (setq popup-header (concat "Root directory : " eide-root-directory))))
+        (setq popup-header (concat "Root directory: " eide-root-directory))))
 
     (eide-i-popup-menu-add-action "Options" "(eide-config-open-options-file)" t)
     (eide-i-popup-menu-close-action-list "User config")
@@ -222,7 +222,7 @@
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Close all files from this directory" (concat "(eide-menu-directory-close \"" l-directory-name "\")") t)
 
-    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil) (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil))
+    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil) (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil) (l-buffer-svn-modified-flag nil))
       ;; Parse list of opened buffers, and find the ones located in this
       ;; directory, to check, for every possible property (read only, REF file,
       ;; ...) if at least one of them matches.
@@ -241,7 +241,9 @@
                 (if (string-equal l-buffer-status "new")
                   (setq l-buffer-status-new-flag t)
                   (if (string-equal l-buffer-status "ref")
-                    (setq l-buffer-status-ref-flag t))))))))
+                    (setq l-buffer-status-ref-flag t)))))
+            (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+              (setq l-buffer-svn-modified-flag t)))))
       ;; Actions are enabled only if it can apply to one buffer at least
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
       (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
@@ -255,9 +257,14 @@
 
       (eide-i-popup-menu-add-action "Untabify and indent all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-untabify-and-indent \"" l-directory-name "\" \"untabify and indent all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Delete trailing spaces in all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-delete-trailing-spaces \"" l-directory-name "\" \"delete trailing spaces in all read/write files\")") l-buffer-read-write-flag)
-      (eide-i-popup-menu-add-action "Convert end of line in all read/write files : DOS to UNIX" (concat "(eide-edit-action-on-directory 'eide-edit-dos-to-unix \"" l-directory-name "\" \"convert end of line (DOS to UNIX) in all read/write files\")") l-buffer-read-write-flag)
-      (eide-i-popup-menu-add-action "Convert end of line in all read/write files : UNIX to DOS" (concat "(eide-edit-action-on-directory 'eide-edit-unix-to-dos \"" l-directory-name "\" \"convert end of line (UNIX to DOS) in all read/write files\")") l-buffer-read-write-flag)
-      (eide-i-popup-menu-close-action-list "Clean"))
+      (eide-i-popup-menu-add-action "Convert end of line in all read/write files: DOS to UNIX" (concat "(eide-edit-action-on-directory 'eide-edit-dos-to-unix \"" l-directory-name "\" \"convert end of line (DOS to UNIX) in all read/write files\")") l-buffer-read-write-flag)
+      (eide-i-popup-menu-add-action "Convert end of line in all read/write files: UNIX to DOS" (concat "(eide-edit-action-on-directory 'eide-edit-unix-to-dos \"" l-directory-name "\" \"convert end of line (UNIX to DOS) in all read/write files\")") l-buffer-read-write-flag)
+      (eide-i-popup-menu-close-action-list "Clean")
+
+      (if eide-config-show-svn-status-flag
+        (progn
+          (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
+          (eide-i-popup-menu-close-action-list "svn"))))
 
     (eide-i-popup-menu-open l-directory-name-in-title)))
 
@@ -316,8 +323,8 @@
   (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
   (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
 
-  (eide-i-popup-menu-add-action "Convert end of line : DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
-  (eide-i-popup-menu-add-action "Convert end of line : UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
+  (eide-i-popup-menu-add-action "Convert end of line: DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
+  (eide-i-popup-menu-add-action "Convert end of line: UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
 
   (eide-i-popup-menu-close-action-list "Clean")
 
@@ -349,7 +356,6 @@
 ;;          eide-menu-cscope-results-list : list of cscope results.
 ;;          eide-compilation-buffer : compilation buffer name.
 ;;          eide-execution-buffer : execution buffer name.
-;;          eide-debug-buffer : debug buffer name.
 ;;          eide-shell-buffer : shell buffer name.
 ;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-search-results ()
@@ -368,10 +374,11 @@
       (eide-i-popup-menu-close-action-list "Cscope results")))
   (eide-i-popup-menu-add-action "Compilation" (concat "(eide-search-view-result-buffer \"" eide-compilation-buffer "\")") eide-compilation-buffer)
   (eide-i-popup-menu-add-action "Execution" (concat "(eide-search-view-result-buffer \"" eide-execution-buffer "\")") eide-execution-buffer)
-  (eide-i-popup-menu-add-action "Debug" (concat "(eide-search-view-result-buffer \"" eide-debug-buffer "\")") eide-debug-buffer)
   (eide-i-popup-menu-add-action "Shell" (concat "(eide-search-view-result-buffer \"" eide-shell-buffer "\")") eide-shell-buffer)
-  (eide-i-popup-menu-close-action-list "Compilation / Execution / Debug / Shell")
-  (eide-i-popup-menu-open "Switch to :"))
+  (eide-i-popup-menu-close-action-list "Compilation / Execution / Shell")
+  (eide-i-popup-menu-add-action "Debug session" (concat "(gdb-restore-windows)") eide-project-is-gdb-session-running-flag)
+  (eide-i-popup-menu-close-action-list "Debug")
+  (eide-i-popup-menu-open "Switch to:"))
 
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu to select a search result to delete.
@@ -414,7 +421,7 @@
       (eide-i-popup-menu-add-action "Grep in whole project" (concat "(eide-search-grep-global \"" string "\")") t)))
   (eide-i-popup-menu-add-action "Grep in current directory" (concat "(eide-search-grep-local \"" string "\")") t)
   (eide-i-popup-menu-close-action-list "Search")
-  (eide-i-popup-menu-open (concat "Search : " string)))
+  (eide-i-popup-menu-open (concat "Search: " string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu to clean selected lines.

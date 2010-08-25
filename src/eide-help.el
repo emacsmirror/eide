@@ -71,7 +71,7 @@
   (eide-i-help-insert-header-2 "Overview")
 
   (insert "
-With default options, windows layout should look like this :
+With default options, windows layout should look like this:
 
   -----------------------------------------------------------
   |                                         |               |
@@ -101,31 +101,31 @@ You can modify the layout in options.
   (eide-i-help-insert-header-2 "Right click (when no text is selected)")
 
   (insert "
-Right click behaviour depends on mouse position :
+Right click behaviour depends on mouse position:
 
-In window 'file' :
+In window 'file':
     Hide/show other windows (to view code full screen).
 
-In window 'menu' :
-    Open project popup menu :
+In window 'menu':
+    Open project popup menu:
     - project creation/configuration
     - project commands (compile, run, debug)
     - options
     - help (this page)
     - Emacs-IDE update checking (if Emacs-IDE is under svn)
 
-In window 'menu', over a file name :
+In window 'menu', over a file name:
     Open file popup menu (see 'Actions on files' below).
 
-In window 'menu', over a directory name :
+In window 'menu', over a directory name:
     Open directory popup menu (see 'Actions on directories' below).
 
-In window 'results' :
+In window 'results':
     Open results popup menu (to display existing 'grep' or 'cscope' result).
 
-Shift + right click behaviour depends on mouse position :
+Shift + right click behaviour depends on mouse position:
 
-In window 'results' :
+In window 'results':
     Open results deletion popup menu (to delete existing 'grep' or 'cscope'
     result).
 ")
@@ -133,32 +133,32 @@ In window 'results' :
   (eide-i-help-insert-header-2 "Right click (when text is selected)")
 
   (insert "
-If text is selected on a single line :
+If text is selected on a single line:
     Open search popup menu, for selected string.
 
-If text is selected over several lines :
+If text is selected over several lines:
     Open cleaning popup menu (to untabify or indent selection).
 ")
 
   (eide-i-help-insert-header-2 "Left / right click on mode-line file name")
 
   (insert "
-On window 'file' mode-line :
+On window 'file' mode-line:
     Switch to previous / next file.
 
-On window 'results' mode-line :
+On window 'results' mode-line:
     Switch to previous / next result buffer.
 ")
 
   (eide-i-help-insert-header-2 "Middle click")
 
   (insert "
-Middle click behaviour depends on mouse position :
+Middle click behaviour depends on mouse position:
 
-In window 'menu' :
+In window 'menu':
     Display file browser (to open a file).
 
-In other windows :
+In other windows:
     Paste (standard behaviour).
 ")
 
@@ -191,19 +191,19 @@ value.
 Launch emacs from your workset root directory.
 Open project popup menu and select 'Create project'.
 
-In your workset root directory, several files are created :
+In your workset root directory, several files are created:
 
-- TAGS :
+- TAGS:
   Tags database.
 
-- cscope.files :
+- cscope.files:
   Cscope list of files (C/C++ files).
 
-- .emacs-ide.project :
+- .emacs-ide.project:
   It defines parameters for this project.
   It is created with default values from '~/.emacs-ide.options'.
 
-- .emacs-ide.project_notes :
+- .emacs-ide.project_notes:
   It can be used to write notes about the project, it is not used by emacs.
   It is created empty.
 
@@ -224,12 +224,12 @@ Files opened during last session are opened again automatically.
   (eide-i-help-insert-header-2 "Tags and cscope update")
 
   (insert "
-When code is changed :
+When code is changed:
 - Tags database ('TAGS') needs to be updated.
 - Cscope database ('cscope.out') doesn't need to be updated (it is done
   automatically each time you search).
 
-When a file is added or deleted :
+When a file is added or deleted:
 - Tags database ('TAGS') needs to be updated.
 - Cscope list of files ('cscope.files') needs to be updated ('cscope.out' will
   be updated automatically on next search).
@@ -247,18 +247,18 @@ Original version of 'file' is saved as 'file.ref'.
 When switching to original file, 'file' becomes 'file.new', and 'file.ref'
 becomes 'file'.
 
-File popup menu actions :
-- Backup original file (REF) to work on a copy (NEW) :
-                              create a copy of 'file' ('file.ref'), and set
-                              read/write permission on 'file'.
-- Switch to REF file        : switch to original version ('file.ref').
-- Discard REF file          : discard original file, and use modified file.
-- Restore REF file          : discard modified file, and restore original file.
-- Switch to NEW file        : switch to modified version ('file.new').
-- Discard NEW file          : discard modified file, and use original file.
-- Compare REF and NEW files : compare original and modified files.
+File popup menu actions:
+- Backup original file (REF) to work on a copy (NEW):
+  create a copy of 'file' ('file.ref'), and set read/write permission on
+  'file'.
+- Switch to REF file: switch to original version ('file.ref').
+- Discard REF file: discard original file, and use modified file.
+- Restore REF file: discard modified file, and restore original file.
+- Switch to NEW file: switch to modified version ('file.new').
+- Discard NEW file: discard modified file, and use original file.
+- Compare REF and NEW files: compare original and modified files.
 
-File name colour :
+File name colour:
 - green when modified file is used.
 - red when original file is used.
 ")
@@ -266,21 +266,21 @@ File name colour :
   (eide-i-help-insert-header-2 "Other actions on files")
 
   (insert "
-File popup menu actions :
-- Set read/write : Set read/write permission on file.
-- Set read only  : Set read only permission on file.
-- Untabify and indent : Clean file (turn tabs into spaces and indent).
+File popup menu actions:
+- Set read/write: Set read/write permission on file.
+- Set read only: Set read only permission on file.
+- Untabify and indent: Clean file (turn tabs into spaces and indent).
 - Delete trailing spaces
-- Convert end of line : DOS to UNIX
-- Convert end of line : UNIX to DOS
-If show_svn_status option is set :
+- Convert end of line: DOS to UNIX
+- Convert end of line: UNIX to DOS
+If show_svn_status option is set:
 - svn diff
 - svn revert
 
-File name colour :
+File name colour:
 - black when file is read/write.
 - grey when file is read only.
-If show_svn_status option is set :
+If show_svn_status option is set:
 - blue when file is modified compared to svn repository.
 ")
 
@@ -380,7 +380,7 @@ Control - mouse 3 ..... Paste
   Shift - F11 ......... Debug (2)
           F12 ......... Open shell
 
-NB : Additional compile commands (Compile (3) and Compile (4)) are not
+NB: Additional compile commands (Compile (3) and Compile (4)) are not
 available from the keyboard, but only from project popup menu.
 ")
 
@@ -415,7 +415,7 @@ available from the keyboard, but only from project popup menu.
 ")
   (eide-i-help-insert-header-1 "Standard key bindings in diff session")
   (insert "
-These commands must be typed in window 'control' :
+These commands must be typed in window 'control':
 
 ! ..................... update diffs
 <backspace> ........... go to previous diff

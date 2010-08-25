@@ -69,17 +69,17 @@
 ;; Cut-copy-paste
 ;; (impossible to use Windows shortcuts, because Control-c and Control-x have
 ;; other meanings)
-;; Alt-left  : Cut   (Control-x)
-;; Alt-down  : Copy  (Control-c)
-;; Alt-right : Paste (Control-v)
+;; Alt-left:  Cut   (Control-x)
+;; Alt-down:  Copy  (Control-c)
+;; Alt-right: Paste (Control-v)
 (global-set-key [M-left]  'kill-region)
 (global-set-key [M-down]  'kill-ring-save)
 (global-set-key [M-right] 'yank)
 
 ;; Cut-copy-paste with mouse
-;; Control-mouse-1 : Cut   (Control-x)
-;; Control-mouse-2 : Copy  (Control-c)
-;; Control-mouse-3 : Paste (Control-v)
+;; Control-mouse-1: Cut   (Control-x)
+;; Control-mouse-2: Copy  (Control-c)
+;; Control-mouse-3: Paste (Control-v)
 (global-unset-key [C-mouse-1])
 (global-unset-key [C-mouse-2])
 (global-unset-key [C-mouse-3])
@@ -196,9 +196,6 @@
   ;; Unix Shell commands
   (global-set-key [f12] 'eide-shell-open)
 
-  ;; Menu pop up "liste des fonctions" : click droit dans la fenêtre
-  ;;(global-set-key [down-mouse-3] 'imenu)
-
   (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
 
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
@@ -254,6 +251,12 @@
   (global-set-key [f8] 'eide-compare-go-to-next-diff))
 
 ;; ----------------------------------------------------------------------------
+;; Set key bindings for gdb session.
+;; ----------------------------------------------------------------------------
+(defun eide-i-keys-enable-keys-for-gdb ()
+  (global-set-key [mouse-3] 'eide-windows-handle-mouse-3))
+
+;; ----------------------------------------------------------------------------
 ;; Set key bindings for configuration editing.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-keys-enable-keys-for-special-buffer ()
@@ -303,6 +306,16 @@
   (eide-i-keys-disable-keys-for-grep)
   (eide-i-keys-disable-keys-misc)
   (eide-i-keys-enable-keys-for-ediff))
+
+;; ----------------------------------------------------------------------------
+;; Configure keys for gdb session.
+;; ----------------------------------------------------------------------------
+(defun eide-keys-configure-for-gdb ()
+  (setq eide-keys-is-editor-configuration-active-flag nil)
+  (eide-i-keys-disable-keys-for-project)
+  (eide-i-keys-disable-keys-for-grep)
+  (eide-i-keys-disable-keys-misc)
+  (eide-i-keys-enable-keys-for-gdb))
 
 ;; ----------------------------------------------------------------------------
 ;; Configure keys for configuration editing.

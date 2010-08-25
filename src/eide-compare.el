@@ -44,7 +44,7 @@
   (eide-keys-configure-for-editor))
 
 ;; ----------------------------------------------------------------------------
-;; Hook for exiting ediff : Close temporary buffer, and restore display.
+;; Hook for exiting ediff: Close temporary buffer, and restore display.
 ;;
 ;; input  : eide-compare-buffer-name : name of compared buffer.
 ;;          eide-compare-current-line : current line in compared buffer (before
@@ -141,18 +141,18 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-build-other-projects-list ()
   (setq eide-compare-other-projects-list nil)
-  ;; eide-root-directory                                 : <...>/current_project/
-  ;; directory-file-name removes last "/"                : <...>/current_project
-  ;; file-name-directory removes last directory name     : <...>/
-  ;; directory-files returns a list of directory content : <...>/another_project
-  ;; file-name-as-directory adds "/"                     : <...>/another_project/
+  ;; eide-root-directory:                                 <...>/current_project/
+  ;; directory-file-name removes last "/":                <...>/current_project
+  ;; file-name-directory removes last directory name:     <...>/
+  ;; directory-files returns a list of directory content: <...>/another_project
+  ;; file-name-as-directory adds "/":                     <...>/another_project/
   (dolist (l-dir (mapcar 'file-name-as-directory (directory-files (file-name-directory (directory-file-name eide-root-directory)) t)))
     (if (and (not (string-equal l-dir eide-root-directory))
              (file-exists-p (concat l-dir eide-project-file)))
       ;; Another project has been defined in this directory, retrieve project name
-      ;; l-dir                                                                   : <...>/another_project/
-      ;; directory-file-name removes last "/"                                    : <...>/another_project
-      ;; file-name-nondirectory retrieves last directory name from complete path : another_project
+      ;; l-dir:                                                                   <...>/another_project/
+      ;; directory-file-name removes last "/":                                    <...>/another_project
+      ;; file-name-nondirectory retrieves last directory name from complete path: another_project
       (let ((l-other-project-name (file-name-nondirectory (directory-file-name l-dir))))
         ;; Do not add special directories (. and ..)
         (if (not (or (string-equal l-other-project-name ".") (string-equal l-other-project-name "..")))

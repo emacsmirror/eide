@@ -34,7 +34,7 @@
 (defvar eide-create-tags-command "rm -f TAGS ; ctags -eR --links=no")
 
 ;; Shell command for creating cscope.files
-;; -type f : excludes links
+;; -type f: excludes links
 ;; cscope.out will be generated on next search
 (defvar eide-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" \\) > cscope.files")
 
@@ -42,6 +42,9 @@
 (if (string-equal shell-file-name "/bin/bash")
   (setq eide-project-start-shell-alias ". ~/.bashrc") ; for bash
   (setq eide-project-start-shell-alias "")) ; for csh
+
+(defvar eide-project-is-gdb-session-running-flag nil)
+(defvar eide-project-is-gdb-session-visible-flag nil)
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -94,6 +97,7 @@
     ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
     (setq eide-windows-update-result-buffer-id "c")
     (compile l-compile-command))
+  (end-of-buffer)
   (eide-windows-select-window-file t))
 
 ;; ----------------------------------------------------------------------------
@@ -120,21 +124,18 @@
 ;; ----------------------------------------------------------------------------
 ;; Debug project.
 ;;
-;; input  : p-parameter : option parameter in project configuration for
-;;              debug command.
+;; input  : p-program : option parameter in project configuration for gdb
+;;              program.
 ;;          eide-root-directory : project root directory.
-;; output : eide-windows-update-result-buffer-id : "d" for "debug".
 ;; ----------------------------------------------------------------------------
-(defun eide-i-project-debug (p-parameter)
+(defun eide-i-project-debug (p-program)
   (eide-windows-select-window-results)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
   ;; Change current directory (of unused buffer "*results*")
   (setq default-directory eide-root-directory)
-  (let ((l-eide-debug-command (eide-config-get-project-value p-parameter)))
-    ;; Debug buffer name will be updated in eide-i-windows-display-buffer-function
-    (setq eide-windows-update-result-buffer-id "d")
+  (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
 ;;;; ==========================================================================
@@ -190,9 +191,9 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-project-start-with-project ()
   ;; Get project name from directory
-  ;; eide-root-directory                                                     : <...>/current_project/
-  ;; directory-file-name removes last "/"                                    : <...>/current_project
-  ;; file-name-nondirectory retrieves last directory name from complete path : current_project
+  ;; eide-root-directory:                                                     <...>/current_project/
+  ;; directory-file-name removes last "/":                                    <...>/current_project
+  ;; file-name-nondirectory retrieves last directory name from complete path: current_project
   (setq eide-project-name (file-name-nondirectory (directory-file-name eide-root-directory)))
 
   ;; "Lock" project
@@ -228,11 +229,11 @@
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
-  ;; TODO : sous flag
+  ;; TODO: sous flag
   ;; Tag file name with full path
   (setq tags-file-name (concat eide-root-directory "TAGS"))
 
-  ;; Enable desktop save mode : desktop is read and will be saved automatically on exit.
+  ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
   (desktop-save-mode 1)
   ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
   (setq desktop-save t)
@@ -279,6 +280,16 @@
     (if (string-equal l-init-command "")
       (eide-config-get-project-value p-parameter)
       (concat l-init-command " ; " (eide-config-get-project-value p-parameter)))))
+
+;; ----------------------------------------------------------------------------
+;; Get full gdb command (gdb command + "--annotate=3" + program name).
+;;
+;; input  : p-program : option parameter in project configuration for gdb
+;;              program.
+;; return : full command.
+;; ----------------------------------------------------------------------------
+(defun eide-project-get-full-gdb-command (p-program)
+  (concat (eide-config-get-project-value "debug_command") " --annotate=3 " (eide-config-get-project-value p-program)))
 
 ;; ----------------------------------------------------------------------------
 ;; Get project relative path from absolute path (remove project absolute path
@@ -337,17 +348,44 @@
   (eide-i-project-run "run_command_2"))
 
 ;; ----------------------------------------------------------------------------
+;; Start debug mode.
+;; ----------------------------------------------------------------------------
+(defun eide-project-debug-mode-start ()
+  ;; Restore colors (in case user was reading help or config)
+  (eide-config-set-colors-for-files)
+  (eide-keys-configure-for-gdb)
+  (eide-windows-layout-unbuild)
+  ;; Show gdb toolbar
+  (if window-system
+    (tool-bar-mode 1))
+  (setq display-buffer-function nil)
+  (setq eide-project-is-gdb-session-visible-flag t)
+  (setq eide-project-is-gdb-session-running-flag t))
+
+;; ----------------------------------------------------------------------------
+;; Stop debug mode.
+;; ----------------------------------------------------------------------------
+(defun eide-project-debug-mode-stop ()
+  (eide-keys-configure-for-editor)
+  (eide-windows-layout-build)
+  ;; Hide gdb toolbar
+  (if window-system
+    (tool-bar-mode -1))
+  (setq display-buffer-function 'eide-i-windows-display-buffer-function)
+  (setq eide-project-is-gdb-session-visible-flag nil))
+
+;; ----------------------------------------------------------------------------
 ;; Debug project (1st debug command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-1 ()
   (interactive)
-  (eide-i-project-debug "debug_command_1"))
+  (eide-i-project-debug "debug_program_1"))
 
 ;; ----------------------------------------------------------------------------
 ;; Debug project (2nd debug command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-2 ()
   (interactive)
-  (eide-i-project-debug "debug_command_2"))
+  (eide-i-project-debug "debug_program_2"))
 
 ;;; eide-project.el ends here

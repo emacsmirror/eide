@@ -23,16 +23,16 @@
 
 (defvar eide-search-find-symbol-definition-flag nil)
 
-;; grep commands should exclude following files :
-;; .svn                        : Subversion directory
-;; *.d                         : Dependency files
-;; *.o.cmd                     : Kbuild files
-;; *.map                       : Mapping files
-;; *.ref, *.new                : Emacs-IDE files
-;; .emacs.desktop              : Emacs files
-;; TAGS                        : Ctags file
-;; cscope.files, cscope.output : Cscope files
-(defvar eide-search-grep-exclude-options "--exclude-dir=.svn --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out")
+;; grep commands should exclude following files:
+;; .svn: Subversion directory
+;; *.d: Dependency files
+;; *.o.cmd: Kbuild files
+;; *.map: Mapping files
+;; *.ref, *.new: Emacs-IDE files
+;; .emacs.desktop: Emacs files
+;; TAGS: Ctags file
+;; cscope.files, cscope.output: Cscope files
+(defvar eide-search-grep-exclude-options "--devices=skip --exclude-dir=.svn --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out")
 
 (defvar eide-search-tag-string nil)
 
@@ -51,7 +51,7 @@
     (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
       (buffer-substring-no-properties (region-beginning) (region-end))
       (progn
-        (message "Text is selected over several lines : cannot search for it...")
+        (message "Text is selected over several lines: cannot search for it...")
         nil))
     ;; No text is selected
     (progn
@@ -106,7 +106,7 @@
   (call-interactively 'find-tag)
   ;; Saving string is necessary for calling eide-search-find-alternate-tag
   ;; later on... but there is no completion !
-  ;;(setq eide-search-tag-string (read-string "Go to symbol definition : "))
+  ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
   ;;(if (string-equal eide-search-tag-string "")
   ;;  (message "Cannot find empty symbol...")
   ;;  (eide-search-find-tag eide-search-tag-string))
@@ -157,7 +157,7 @@
   (interactive)
   (setq eide-search-cscope-string (find-tag-default))
   (eide-windows-select-window-file nil)
-  ;; TODO : remplacer find-tag par la bonne commande cscope
+  ;; TODO: remplacer find-tag par la bonne commande cscope
   (call-interactively 'find-tag eide-search-cscope-string)
   (recenter))
 
@@ -168,7 +168,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
   (eide-windows-select-window-results)
-  (let ((l-result-buffer-name (concat "*cscope* : " p-symbol)))
+  (let ((l-result-buffer-name (concat "*cscope*: " p-symbol)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result) ?")
@@ -194,11 +194,11 @@
   (interactive)
   (if eide-project-cscope-files-flag
     (progn
-      (setq eide-search-cscope-string (read-string "Find symbol with cscope : "))
+      (setq eide-search-cscope-string (read-string "Find symbol with cscope: "))
       (if (string-equal eide-search-cscope-string "")
         (message "Cannot find empty symbol...")
         (eide-search-find-symbol eide-search-cscope-string)))
-    (message "Cannot use cscope : there is no C/C++ file in this project...")))
+    (message "Cannot use cscope: there is no C/C++ file in this project...")))
 
 ;; ----------------------------------------------------------------------------
 ;; Find symbol at cursor position.
@@ -210,7 +210,7 @@
       (setq eide-search-cscope-string (eide-i-search-get-string-to-search))
       (if eide-search-cscope-string
         (eide-search-find-symbol eide-search-cscope-string)))
-    (message "Cannot use cscope : there is no C/C++ file in this project...")))
+    (message "Cannot use cscope: there is no C/C++ file in this project...")))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep a string in current directory.
@@ -220,7 +220,7 @@
 (defun eide-search-grep-local (p-string)
   (eide-windows-select-window-file t)
   (setq l-buffer-directory (file-name-directory (buffer-file-name)))
-  (let ((l-result-buffer-name (concat "*grep (local)* : " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
+  (let ((l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
@@ -229,7 +229,7 @@
         (setq l-do-it-flag nil)))
     (if l-do-it-flag
       (progn
-        ;; grep options : I (no binary), n (show line number), e (pattern may start with '-')
+        ;; grep options: I (no binary), n (show line number), e (pattern may start with '-')
         ;; 2> /dev/null is used to hide warnings about missing files
         ;; 'cd' is used first, in case shell init changes current directory
         (grep-find (concat "echo ; cd " l-buffer-directory " ; grep -In " eide-search-grep-exclude-options " -e \"" p-string "\" * .* 2> /dev/null"))
@@ -254,7 +254,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local-with-prompt ()
   (interactive)
-  (let ((l-string (read-string "Grep (in current directory) : ")))
+  (let ((l-string (read-string "Grep (in current directory): ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
       (eide-search-grep-local l-string))))
@@ -266,10 +266,10 @@
 ;;          eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global (p-string)
-  ;; On Emacs 22 GTK : it is necessary to select window "file", otherwise
+  ;; On Emacs 22 GTK: it is necessary to select window "file", otherwise
   ;; current result buffer will be reused if window "results" is selected.
   (eide-windows-select-window-file t)
-  (let ((l-result-buffer-name (concat "*grep (global)* : " p-string)))
+  (let ((l-result-buffer-name (concat "*grep (global)*: " p-string)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
@@ -280,7 +280,7 @@
       (progn
         ;; Temporarily change current directory, so that grep results are relative to root directory
         (let ((default-directory eide-root-directory))
-          ;; grep options : r (recursive), I (no binary), n (show line number), e (pattern may start with '-')
+          ;; grep options: r (recursive), I (no binary), n (show line number), e (pattern may start with '-')
           ;; 2> /dev/null is used to hide warnings about missing files
           ;; 'cd' is used first, in case shell init changes current directory
           (grep-find (concat "echo ; cd " eide-root-directory " ; grep -rIn " eide-search-grep-exclude-options " -e \"" p-string "\" . 2> /dev/null")))
@@ -305,7 +305,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global-with-prompt ()
   (interactive)
-  (let ((l-string (read-string "Grep (in whole project) : ")))
+  (let ((l-string (read-string "Grep (in whole project): ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
       (eide-search-grep-global l-string))))
@@ -365,7 +365,7 @@
     (setq eide-menu-grep-results-list (remove p-grep-buffer-name eide-menu-grep-results-list))
 
     (if (string-equal p-grep-buffer-name l-buffer)
-      ;; It was current result buffer : display another one
+      ;; It was current result buffer: display another one
       (progn
         (setq l-buffer (car eide-menu-grep-results-list))
         (if l-buffer
@@ -391,7 +391,7 @@
     (setq eide-menu-grep-results-list nil)
 
     (if (not (string-equal (buffer-name) l-buffer))
-      ;; It was a grep result buffer : display another search buffer
+      ;; It was a grep result buffer: display another search buffer
       (progn
         (setq l-buffer (car eide-menu-cscope-results-list))
         (if l-buffer
@@ -412,7 +412,7 @@
     (setq eide-menu-cscope-results-list (remove p-cscope-buffer-name eide-menu-cscope-results-list))
 
     (if (string-equal p-cscope-buffer-name l-buffer)
-      ;; It was current result buffer : display another one
+      ;; It was current result buffer: display another one
       (progn
         (setq l-buffer (car eide-menu-cscope-results-list))
         (if l-buffer
@@ -438,7 +438,7 @@
     (setq eide-menu-cscope-results-list nil)
 
     (if (not (string-equal (buffer-name) l-buffer))
-      ;; It was a grep result buffer : display another search buffer
+      ;; It was a grep result buffer: display another search buffer
       (progn
         (setq l-buffer (car eide-menu-grep-results-list))
         (if l-buffer
