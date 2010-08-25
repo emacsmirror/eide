@@ -2,14 +2,25 @@
 | Emacs-IDE |
 \-----------/
 
-Version 1.0  (12/2008)
+Version 1.1 - 04/2009
 
 -------------------------------------------------------------------------------
 About Emacs-IDE
 -------------------------------------------------------------------------------
 
-IDE (Integrated Development Environment) interface for Emacs.
-For C language (limited features for other languages).
+Emacs-IDE is an IDE (Integrated Development Environment) interface for Emacs.
+It is suitable for almost all languages (as long as they are supported by
+ctags). Cscope provides additional browsing facility for C/C++ files.
+
+Please note that Emacs-IDE does not stand as a package for Emacs. It should be
+considered as an IDE built on top of Emacs.
+A package is designed to be loaded from user configuration file. It is also
+supposed not to modify standard Emacs behaviour, but only add new features that
+can be enabled or disabled.
+Emacs-IDE takes the place of user configuration file. It intentionally changes
+Emacs behaviour - in order to manage display in dedicated windows - and
+redefines reserved keys - in order to have a wide range of convenient
+shortcuts.
 
 Homepage : http://emacs-ide.sourceforge.net/
 
@@ -30,14 +41,10 @@ Install (create link ~/.emacs) ....... make install
 
 Uninstall (remove link ~/.emacs) ..... make uninstall
 
-
-NB : Compilation is optional. Compiled code is just supposed to execute
-     faster...
-     If you compile, keep in mind that compiled files (*.elc) will always be
-     used instead of source files (*.el). As a consequence, any change in
-     source files will be ignored until you compile again.
-     So, if you update from SVN repository (svn update), remember to compile
-     after update.
+Compilation is optional. Compiled code is just supposed to execute faster...
+If you compile, keep in mind that compiled files (*.elc) will always be used
+instead of source files (*.el). As a consequence, any change in source files
+will be ignored until you compile again.
 
 
 -------------------------------------------------------------------------------
@@ -66,8 +73,8 @@ When you launch Emacs, it should look like this :
         |                                                         |
         -----------------------------------------------------------
 
-NB : If you click on right button over window "file", all other windows are
-     closed. Click again to get them back.
+If you click on right button over window "file", all other windows are closed.
+Click again to get them back.
 
 
 -------------------------------------------------------------------------------

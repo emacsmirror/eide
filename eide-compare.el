@@ -1,6 +1,6 @@
 ;;; eide-compare.el --- Emacs-IDE, compare
 
-;; Copyright (C) 2005-2008 Cédric Marie
+;; Copyright (C) 2005-2009 Cédric Marie
 
 ;; This program is free software ; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,8 +21,13 @@
 
 (provide 'eide-compare)
 
-(defvar eide-compare-other-project-directory nil)
 (defvar eide-compare-other-projects-list nil)
+(defvar eide-compare-other-project-name nil)
+(defvar eide-compare-other-project-directory nil)
+
+(defvar eide-compare-buffer-name nil)
+(defvar eide-compare-current-line nil)
+(defvar eide-compare-other-buffer-name nil)
 
 
 ;;;; ==========================================================================
@@ -30,26 +35,27 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Start ediff mode
+;; Start ediff mode.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-internal-ediff-mode-start ()
-  ;(ad-deactivate 'switch-to-buffer)
-  (eide-key-bindings-configure-for-ediff))
+(defun eide-l-compare-ediff-mode-start ()
+  (eide-keys-configure-for-ediff))
 
 ;; ----------------------------------------------------------------------------
-;; Stop ediff mode
+;; Stop ediff mode.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-internal-ediff-mode-stop ()
-  ;(ad-activate 'switch-to-buffer)
-  (eide-key-bindings-configure-for-editor))
+(defun eide-l-compare-ediff-mode-stop ()
+  (eide-keys-configure-for-editor))
 
 ;; ----------------------------------------------------------------------------
-;; Hook for exiting ediff : Close temporary buffer, and restore display
+;; Hook for exiting ediff : Close temporary buffer, and restore display.
 ;;
-;; input  : eide-compare-other-buffer-name : name of temporary buffer to be
-;;                                           closed
+;; input  : eide-compare-buffer-name : name of compared buffer.
+;;          eide-compare-current-line : current line in compared buffer (before
+;;              ediff session).
+;;          eide-compare-other-buffer-name : name of temporary buffer.
+;;          eide-current-buffer : current buffer (before ediff session).
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-internal-ediff-quit-hook ()
+(defun eide-l-compare-ediff-quit-hook ()
   ;; Call default hook
   (ediff-cleanup-mess)
   ;; Delete other windows, otherwise current line is not restored in
@@ -65,21 +71,26 @@
   (eide-windows-layout-build)
   ;; Restore default hook
   (setq ediff-quit-hook 'ediff-cleanup-mess)
-  (eide-compare-internal-ediff-mode-stop)
+  (eide-l-compare-ediff-mode-stop)
   (kill-buffer eide-compare-other-buffer-name))
 
 ;; ----------------------------------------------------------------------------
-;; Compare a buffer and a file
+;; Compare a buffer and a file.
 ;;
-;; input  : other-buffer-name-prefix   : prefix to add before file buffer name
-;;          buffer-in-left-window-flag : t = buffer|file, nil = file|buffer
-;;          force-major-mode-flag      : t = force syntax highlighting for file
-;;                                       (necessary when file name ends in .ref
-;;                                       or .new)
+;; input  : p-other-buffer-filename : name of compared file.
+;;          p-other-buffer-name-prefix : prefix to add before file buffer name.
+;;          p-buffer-in-left-window-flag : t = buffer | file,
+;;              nil = file | buffer.
+;;          p-force-major-mode-flag : t = force syntax highlighting for file
+;;              (necessary for ".ref" or ".new" files)
+;;          eide-compare-buffer-name : name of compared buffer.
+;; output : eide-compare-current-line : current line in compared buffer (before
+;;              ediff session).
+;;          eide-compare-other-buffer-name : name of compared file buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-internal-ediff-2-files (other-buffer-name-prefix buffer-in-left-window-flag force-major-mode-flag)
-  (eide-compare-internal-ediff-mode-start)
-  (setq ediff-quit-hook 'eide-compare-internal-ediff-quit-hook)
+(defun eide-l-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
+  (eide-l-compare-ediff-mode-start)
+  (setq ediff-quit-hook 'eide-l-compare-ediff-quit-hook)
   ;; Hide menu
   (eide-windows-layout-unbuild)
   ;; Save current line of buffer to compare
@@ -88,46 +99,42 @@
   (if (= (current-column) 0)
     (setq eide-compare-current-line  (1+ eide-compare-current-line)))
 
-  (if force-major-mode-flag
+  (if p-force-major-mode-flag
     (setq default-major-mode major-mode))
-  (eide-menu-find-file-without-hook eide-compare-other-buffer-filename)
-;;  (setq eide-compare-other-buffer-name (buffer-name))
-  (setq eide-compare-other-buffer-name (concat other-buffer-name-prefix eide-compare-buffer-name))
+  (eide-menu-find-file-without-advice p-other-buffer-filename)
+  ;;(setq eide-compare-other-buffer-name (buffer-name))
+  (setq eide-compare-other-buffer-name (concat p-other-buffer-name-prefix eide-compare-buffer-name))
   (rename-buffer eide-compare-other-buffer-name)
-; fichier non enregistré dans .emacs.desktop
-; mais : du coup, on ne peut pas le modifier (c'est un buffer sans fichier associé !)
-;  (set-buffer (generate-new-buffer eide-compare-other-buffer-name))
-;  (insert-file-contents eide-compare-other-buffer-filename)
-  (if force-major-mode-flag
+  ;; fichier non enregistré dans .emacs.desktop
+  ;; mais : du coup, on ne peut pas le modifier (c'est un buffer sans fichier associé !)
+  ;;(set-buffer (generate-new-buffer eide-compare-other-buffer-name))
+  ;;(insert-file-contents p-other-buffer-filename)
+  (if p-force-major-mode-flag
     (progn
       ;; Set major mode, in case file name ends in .ref or .new
-      (set-buffer-major-mode (current-buffer)) ;eide-compare-other-buffer-name)
+      (set-buffer-major-mode (current-buffer))
       ;; Turn hide/show mode off, because if emacs is closed before this
       ;; temporary buffer is closed, it will be loaded next time, with an error
       ;; because default major mode is Fundamental
-      ;; TODO : réécrire le commentaire ci-dessus ! :-)
       (if hs-minor-mode
-          (hs-minor-mode))))
+        (hs-minor-mode))))
 
-;  (ediff-files my-ref-file eide-compare-buffer-name)
-  (if buffer-in-left-window-flag
+  (if p-buffer-in-left-window-flag
     (ediff-buffers eide-compare-buffer-name eide-compare-other-buffer-name)
     (ediff-buffers eide-compare-other-buffer-name eide-compare-buffer-name))
 
-  (if force-major-mode-flag
+  (if p-force-major-mode-flag
     (setq default-major-mode 'fundamental-mode)))
 
-;; TODO : action "update project list"
-
 ;; ----------------------------------------------------------------------------
-;; Quit ediff session
+;; Select ediff control window (before calling ediff command).
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-internal-select-control-window ()
-  (let ((my-control-window nil))
+(defun eide-l-compare-select-control-window ()
+  (let ((l-control-window nil))
     (save-excursion
       (set-buffer "*Ediff Control Panel*")
-      (setq my-control-window ediff-control-window))
-    (select-window my-control-window)))
+      (setq l-control-window ediff-control-window))
+    (select-window l-control-window)))
 
 
 ;;;; ==========================================================================
@@ -135,121 +142,121 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Build the list of other projects
+;; Build the list of other projects.
 ;;
-;; output :  eide-compare-other-projects-list : list of other projects
+;; input  : eide-root-directory : root directory of current project.
+;; output : eide-compare-other-projects-list : list of other projects (name and
+;;              directory).
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-build-other-projects-list ()
   (setq eide-compare-other-projects-list nil)
-  ;; file-name-as-directory adds "/"
-  (dolist (this-dir (mapcar 'file-name-as-directory (directory-files (concat eide-project-directory "..") t)))
-    (let ((my-project-file (concat this-dir eide-project-file)))
-      (if (file-exists-p my-project-file)
-        ;; A project has been defined in this directory
-        (progn
-          (if eide-windows-is-layout-visible-flag
-            (eide-windows-select-window-file t))
-          ;; Load ".emacs-ide.project" for this project
-          (eide-menu-find-file-without-hook my-project-file)
-          ;; Retrieve project name
-          (let ((proj-name (eide-custom-get-project-value-in-current-buffer "project_name")))
-            (if (string-equal proj-name eide-project-name)
-              ;; This is current project : no need to add it to the list
-              ;; ".emacs-ide.project" should not be closed : switch to current
-              ;; buffer instead (without defadvice, because current buffer
-              ;; might be *scratch*)
-              (eide-menu-switch-to-buffer-without-advice eide-current-buffer)
-              (progn
-                ;; Close ".emacs-ide.project" for this project
-                (kill-this-buffer)
-                ;; Add this project to the list
-                (setq eide-compare-other-projects-list (append (list (cons proj-name this-dir)) eide-compare-other-projects-list))))))))))
+  ;; eide-root-directory                                 : <...>/current_project/
+  ;; directory-file-name removes last "/"                : <...>/current_project
+  ;; file-name-directory removes last directory name     : <...>/
+  ;; directory-files returns a list of directory content : <...>/another_project
+  ;; file-name-as-directory adds "/"                     : <...>/another_project/
+  (dolist (l-dir (mapcar 'file-name-as-directory (directory-files (file-name-directory (directory-file-name eide-root-directory)) t)))
+    (if (and (not (string-equal l-dir eide-root-directory))
+             (file-exists-p (concat l-dir eide-project-file)))
+      ;; Another project has been defined in this directory, retrieve project name
+      ;; l-dir                                                                   : <...>/another_project/
+      ;; directory-file-name removes last "/"                                    : <...>/another_project
+      ;; file-name-nondirectory retrieves last directory name from complete path : another_project
+      (let ((l-other-project-name (file-name-nondirectory (directory-file-name l-dir))))
+        ;; Do not add special directories (. and ..)
+        (if (not (or (string-equal l-other-project-name ".") (string-equal l-other-project-name "..")))
+          ;; Add this project to the list
+          (setq eide-compare-other-projects-list (append (list (cons l-other-project-name l-dir)) eide-compare-other-projects-list)))))))
 
 ;; ----------------------------------------------------------------------------
+;; Select another project for comparison.
 ;;
+;; input  : p-project-name : project name.
+;;          p-project-directory : project directory.
+;; output : eide-compare-other-project-name : project name.
+;;          eide-compare-other-project-directory : project directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-select-another-project (this-project-name this-project-directory)
-  (interactive)
-  (setq eide-compare-other-project-name this-project-name)
-  (setq eide-compare-other-project-directory this-project-directory)
-  (message (concat "Now you can compare files with project \"" this-project-name "\"")))
+(defun eide-compare-select-another-project (p-project-name p-project-directory)
+  (setq eide-compare-other-project-name p-project-name)
+  (setq eide-compare-other-project-directory p-project-directory)
+  (message (concat "Now you can compare files with project \"" p-project-name "\"")))
 
 ;; ----------------------------------------------------------------------------
-;; Compare selected file (".new" version) with ".ref" version
+;; Compare selected file (".new" version) with ".ref" version.
+;;
+;; input  : p-buffer-name : name of compared buffer.
+;; output : eide-compare-buffer-name : name of compared buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-with-ref-file (this-buffer)
-  (interactive)
-  (setq eide-compare-buffer-name this-buffer)
-  (setq eide-compare-buffer-filename (buffer-file-name (get-buffer eide-compare-buffer-name)))
-  (setq eide-compare-other-buffer-filename (concat eide-compare-buffer-filename ".ref"))
-  (eide-compare-internal-ediff-2-files "* (REF) " nil t))
+(defun eide-compare-with-ref-file (p-buffer-name)
+  (setq eide-compare-buffer-name p-buffer-name)
+  (eide-l-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".ref") "* (REF) " nil t))
 
 ;; ----------------------------------------------------------------------------
-;; Compare selected file (".ref" version) with ".new" version
+;; Compare selected file (".ref" version) with ".new" version.
+;;
+;; input  : p-buffer-name : name of compared buffer.
+;; output : eide-compare-buffer-name : name of compared buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-with-new-file (this-buffer)
-  (interactive)
-  (setq eide-compare-buffer-name this-buffer)
-  (setq eide-compare-buffer-filename (buffer-file-name (get-buffer eide-compare-buffer-name)))
-  (setq eide-compare-other-buffer-filename (concat eide-compare-buffer-filename ".new"))
-  (eide-compare-internal-ediff-2-files "* (NEW) " t t))
+(defun eide-compare-with-new-file (p-buffer-name)
+  (setq eide-compare-buffer-name p-buffer-name)
+  (eide-l-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".new") "* (NEW) " t t))
 
 ;; ----------------------------------------------------------------------------
-;; Compare selected file with version in another project
+;; Compare selected file with version in another project.
+;;
+;; input  : p-buffer-name : name of compared buffer.
+;; output : eide-compare-buffer-name : name of compared buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-compare-with-other-project (this-buffer)
-  (interactive)
-  (setq eide-compare-buffer-name this-buffer)
-  (setq eide-compare-buffer-filename (buffer-file-name (get-buffer eide-compare-buffer-name)))
-  (setq eide-compare-other-buffer-filename (concat eide-compare-other-project-directory (substring eide-compare-buffer-filename (length eide-project-directory))))
-  (eide-compare-internal-ediff-2-files (concat "* (" eide-compare-other-project-name ") ") nil nil))
+(defun eide-compare-with-other-project (p-buffer-name)
+  (setq eide-compare-buffer-name p-buffer-name)
+  (eide-l-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil))
 
 ;; ----------------------------------------------------------------------------
-;; Quit ediff session
+;; Quit ediff session.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-quit ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (call-interactively 'ediff-quit))
 
 ;; ----------------------------------------------------------------------------
-;; Update diffs
+;; Update diffs.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-update ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (ediff-update-diffs))
 
 ;; ----------------------------------------------------------------------------
-;; Go to previous diff
+;; Go to previous diff.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-go-to-previous-diff ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (ediff-previous-difference))
 
 ;; ----------------------------------------------------------------------------
-;; Go to next diff
+;; Go to next diff.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-go-to-next-diff ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (ediff-next-difference))
 
 ;; ----------------------------------------------------------------------------
-;; Copy A to B
+;; Copy A to B.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-copy-a-to-b ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (call-interactively 'ediff-copy-A-to-B))
 
 ;; ----------------------------------------------------------------------------
-;; Copy B to A
+;; Copy B to A.
 ;; ----------------------------------------------------------------------------
 (defun eide-compare-copy-b-to-a ()
   (interactive)
-  (eide-compare-internal-select-control-window)
+  (eide-l-compare-select-control-window)
   (call-interactively 'ediff-copy-B-to-A))
 
 ;;; eide-compare.el ends here

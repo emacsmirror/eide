@@ -1,6 +1,6 @@
 ;;; eide-toolbar.el --- Emacs-IDE, toolbar
 
-;; Copyright (C) 2005-2008 Cédric Marie
+;; Copyright (C) 2005-2009 Cédric Marie
 
 ;; This program is free software ; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,225 +21,251 @@
 
 (provide 'eide-toolbar)
 
+(defvar eide-toolbar-buffer-name nil)
+(defvar eide-toolbar-current-tab nil)
+
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Insert text in "toolbar" buffer (with white background)
+;; Insert text in "toolbar" buffer (with specific background).
 ;;
-;; input  :   string : string to insert
+;; input  : p-string : string to insert.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-insert-text (string)
-  (if eide-option-buffer-menu-white-background-flag
-    (put-text-property (point) (progn (insert string) (point)) 'face 'eide-menu-white-background-face)
-    (insert string)))
+(defun eide-l-toolbar-insert-text (p-string)
+  (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-toolbar-separator-face))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Display previous file (in window "file").
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-previous-file ()
+(defun eide-l-toolbar-view-previous-file ()
   (interactive)
-  (eide-windows-select-window-file t)
-  (eide-display-skip-unwanted-buffers t nil))
+  (eide-windows-skip-unwanted-buffers-in-window-file t nil))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Display next file (in window "file").
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-next-file ()
+(defun eide-l-toolbar-view-next-file ()
   (interactive)
-  (eide-windows-select-window-file t)
-  (eide-display-skip-unwanted-buffers t t))
+  (eide-windows-skip-unwanted-buffers-in-window-file t t))
 
 ;; ----------------------------------------------------------------------------
+;; Display a buffer in window "results".
 ;;
+;; input  : p-buffer-name : buffer name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-buffer-in-window-results (my-buffer)
-  (if my-buffer
+(defun eide-l-toolbar-view-buffer-in-window-results (p-buffer-name)
+  (if p-buffer-name
     (progn
-      (eide-windows-select-window-results t)
-      (switch-to-buffer my-buffer)
-      (eide-toolbar-update))
+      (eide-windows-select-window-results)
+      (switch-to-buffer p-buffer-name))
     (message "This buffer has not been created yet...")))
 
 ;; ----------------------------------------------------------------------------
+;; Display compile buffer in window "results".
 ;;
+;; input  : eide-compile-buffer : compile buffer name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-compile-buffer ()
+(defun eide-l-toolbar-view-compile-buffer ()
   (interactive)
-  (eide-toolbar-internal-view-buffer-in-window-results eide-buffer-compile))
+  (eide-l-toolbar-view-buffer-in-window-results eide-compile-buffer))
 
 ;; ----------------------------------------------------------------------------
+;; Display run buffer in window "results".
 ;;
+;; input  : eide-run-buffer : run buffer name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-run-buffer ()
+(defun eide-l-toolbar-view-run-buffer ()
   (interactive)
-  (eide-toolbar-internal-view-buffer-in-window-results eide-buffer-run))
+  (eide-l-toolbar-view-buffer-in-window-results eide-run-buffer))
 
 ;; ----------------------------------------------------------------------------
+;; Display debug buffer in window "results".
 ;;
+;; input  : eide-debug-buffer : debug buffer name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-debug-buffer ()
+(defun eide-l-toolbar-view-debug-buffer ()
   (interactive)
-  (eide-toolbar-internal-view-buffer-in-window-results eide-buffer-debug))
+  (eide-l-toolbar-view-buffer-in-window-results eide-debug-buffer))
 
 ;; ----------------------------------------------------------------------------
+;; Display shell buffer in window "results".
 ;;
+;; input  : eide-shell-buffer : shell buffer name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-view-shell-buffer ()
+(defun eide-l-toolbar-view-shell-buffer ()
   (interactive)
-  (eide-toolbar-internal-view-buffer-in-window-results eide-buffer-shell))
+  (eide-l-toolbar-view-buffer-in-window-results eide-shell-buffer))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send a command string to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-send-string-to-debug-buffer (my-string)
-  (eide-windows-select-window-results t)
-  (process-send-string nil (concat "echo " my-string "\n"))
-;  (process-send-string nil (concat "info source\n"))
-  (process-send-string nil (concat my-string "\n")))
+(defun eide-l-toolbar-send-string-to-debug-buffer (p-string)
+  (eide-windows-select-window-results)
+  (process-send-string nil (concat "echo " p-string "\n"))
+  ;;(process-send-string nil (concat "info source\n"))
+  (process-send-string nil (concat p-string "\n")))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "next" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-next ()
+(defun eide-l-toolbar-debug-execute-next ()
   (interactive)
-;  (gud-next "next"))
-  (eide-toolbar-internal-send-string-to-debug-buffer "n"))
+  ;;(gud-next "next"))
+  (eide-l-toolbar-send-string-to-debug-buffer "n"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "step" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-step ()
+(defun eide-l-toolbar-debug-execute-step ()
   (interactive)
-;  (gud-step "step 1"))
-  (eide-toolbar-internal-send-string-to-debug-buffer "s"))
+  ;;(gud-step "step 1"))
+  (eide-l-toolbar-send-string-to-debug-buffer "s"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "continue" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-continue ()
+(defun eide-l-toolbar-debug-execute-continue ()
   (interactive)
-;  (gud-cont "cont"))
-  (eide-toolbar-internal-send-string-to-debug-buffer "c"))
+  ;;(gud-cont "cont"))
+  (eide-l-toolbar-send-string-to-debug-buffer "c"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "break" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-break ()
+(defun eide-l-toolbar-debug-execute-break ()
   (interactive)
   ;; Get full file name (the same file name may be used in different
   ;; directories, and gdb chooses the first one !)
   (eide-windows-select-window-file t)
-;  (gud-break (concat "\"" (buffer-file-name) ":" (number-to-string (count-lines (point-min) (point))) "\"")))
-  (eide-toolbar-internal-send-string-to-debug-buffer (concat "break " (buffer-file-name) ":" (number-to-string (count-lines (point-min) (point))))))
+  ;;(gud-break (concat "\"" (buffer-file-name) ":" (number-to-string (count-lines (point-min) (point))) "\"")))
+  (eide-l-toolbar-send-string-to-debug-buffer (concat "break " (buffer-file-name) ":" (number-to-string (count-lines (point-min) (point))))))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "info break" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-info-break ()
+(defun eide-l-toolbar-debug-execute-info-break ()
   (interactive)
-  (eide-toolbar-internal-send-string-to-debug-buffer "info break"))
+  (eide-l-toolbar-send-string-to-debug-buffer "info break"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "bt" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-bt ()
+(defun eide-l-toolbar-debug-execute-bt ()
   (interactive)
-  (eide-toolbar-internal-send-string-to-debug-buffer "bt"))
+  (eide-l-toolbar-send-string-to-debug-buffer "bt"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "up" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-up ()
+(defun eide-l-toolbar-debug-execute-up ()
   (interactive)
-  (eide-toolbar-internal-send-string-to-debug-buffer "up"))
+  (eide-l-toolbar-send-string-to-debug-buffer "up"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "down" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-down ()
+(defun eide-l-toolbar-debug-execute-down ()
   (interactive)
-  (eide-toolbar-internal-send-string-to-debug-buffer "down"))
+  (eide-l-toolbar-send-string-to-debug-buffer "down"))
 
 ;; ----------------------------------------------------------------------------
-;;
+;; Send "info threads" command to debug buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-debug-execute-info-threads ()
+(defun eide-l-toolbar-debug-execute-info-threads ()
   (interactive)
-  (eide-toolbar-internal-send-string-to-debug-buffer "info threads"))
+  (eide-l-toolbar-send-string-to-debug-buffer "info threads"))
 
 ;; ----------------------------------------------------------------------------
-;; Insert tab name in "toolbar" buffer
+;; Insert tab name in "toolbar" buffer.
+;;
+;; input  : p-tab-name : tab name.
+;;          p-map : keymap property for tab.
+;;          p-real-buffer : related buffer (nil if not yet created).
+;;          eide-toolbar-current-tab : current tab name (to highlight).
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-insert-tab-in-toolbar-buffer (my-buffer-name my-current-buffer-name my-map my-real-buffer)
-  (put-text-property (setq from-point (point)) (progn (insert my-buffer-name) (point)) 'keymap my-map)
-  (if my-real-buffer
-    (if (string-equal my-buffer-name my-current-buffer-name)
-      (put-text-property from-point (point) 'face 'eide-menu-current-tab-face)
-      (put-text-property from-point (point) 'face 'eide-menu-other-tab-face))
-    (put-text-property from-point (point) 'face 'eide-menu-disabled-tab-face))
-  (put-text-property from-point (point) 'mouse-face 'highlight))
+(defun eide-l-toolbar-insert-tab-in-toolbar-buffer (p-tab-name p-map p-real-buffer)
+  (put-text-property (setq l-begin-point (point)) (progn (insert p-tab-name) (point)) 'keymap p-map)
+  (if p-real-buffer
+    (if (string-equal p-tab-name eide-toolbar-current-tab)
+      (put-text-property l-begin-point (point) 'face 'eide-config-toolbar-current-tab-face)
+      (put-text-property l-begin-point (point) 'face 'eide-config-toolbar-enabled-tab-face))
+    (put-text-property l-begin-point (point) 'face 'eide-config-toolbar-disabled-tab-face))
+  (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
 ;; ----------------------------------------------------------------------------
-;; Insert action in "menu" or "toolbar" buffer
+;; Insert action in "toolbar" buffer.
+;;
+;; input  : p-string : action string.
+;;          p-map : keymap property for action.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-insert-action-text (string my-map)
-  (put-text-property (setq from-point (point)) (progn (insert string) (point)) 'keymap my-map)
-  (put-text-property from-point (point) 'face 'eide-menu-action-face)
-  (put-text-property from-point (point) 'mouse-face 'highlight))
+(defun eide-l-toolbar-insert-action-text (p-string p-map)
+  (put-text-property (setq l-begin-point (point)) (progn (insert p-string) (point)) 'keymap p-map)
+  (put-text-property l-begin-point (point) 'face 'eide-config-toolbar-action-face)
+  (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
 ;; ----------------------------------------------------------------------------
-;; Insert common actions in "toolbar" buffer
+;; Insert common actions in "toolbar" buffer.
+;;
+;; input  : eide-project-name : project name.
+;;          eide-compile-buffer : compile buffer.
+;;          eide-run-buffer : run buffer.
+;;          eide-debug-buffer : debug buffer.
+;;          eide-shell-buffer : shell buffer.
+;;          eide-config-toolbar-position : toolbar position (windows layout).
+;;          eide-config-menu-height : menu height (windows layout).
+;;          eide-toolbar-current-tab : current tab name.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-insert-common-items-in-toolbar-buffer (my-current-buffer-name)
-  (eide-toolbar-internal-insert-text " ")
+(defun eide-l-toolbar-insert-common-items-in-toolbar-buffer ()
+  (eide-l-toolbar-insert-text " ")
 
-  (eide-toolbar-internal-insert-action-text " <<" toolbar-file-previous-map)
-  (eide-toolbar-internal-insert-text " ")
-  (eide-toolbar-internal-insert-action-text ">> " toolbar-file-next-map)
-  (eide-toolbar-internal-insert-text " - ")
+  (eide-l-toolbar-insert-action-text " <<" toolbar-file-previous-map)
+  (eide-l-toolbar-insert-text " ")
+  (eide-l-toolbar-insert-action-text ">> " toolbar-file-next-map)
+  (eide-l-toolbar-insert-text " - ")
 
-  (if eide-session-project
+  (if eide-project-name
     (progn
-      (eide-toolbar-internal-insert-tab-in-toolbar-buffer "compile" my-current-buffer-name toolbar-compile-map eide-buffer-compile)
-      (eide-toolbar-internal-insert-text " / ")
-      (eide-toolbar-internal-insert-tab-in-toolbar-buffer "run" my-current-buffer-name toolbar-run-map eide-buffer-run)
-      (eide-toolbar-internal-insert-text " / ")
-      (eide-toolbar-internal-insert-tab-in-toolbar-buffer "debug" my-current-buffer-name toolbar-debug-map eide-buffer-debug)
-      (eide-toolbar-internal-insert-text " / ")))
-  (eide-toolbar-internal-insert-tab-in-toolbar-buffer "shell" my-current-buffer-name toolbar-shell-map eide-buffer-shell)
-  (if (and (string-equal eide-custom-toolbar-position "middle")
-           (string-equal eide-custom-menu-height "full")
+      (eide-l-toolbar-insert-tab-in-toolbar-buffer "compile" toolbar-compile-map eide-compile-buffer)
+      (eide-l-toolbar-insert-text " / ")
+      (eide-l-toolbar-insert-tab-in-toolbar-buffer "run" toolbar-run-map eide-run-buffer)
+      (eide-l-toolbar-insert-text " / ")
+      (eide-l-toolbar-insert-tab-in-toolbar-buffer "debug" toolbar-debug-map eide-debug-buffer)
+      (eide-l-toolbar-insert-text " / ")))
+  (eide-l-toolbar-insert-tab-in-toolbar-buffer "shell" toolbar-shell-map eide-shell-buffer)
+  (if (and (string-equal eide-config-toolbar-position "middle")
+           (string-equal eide-config-menu-height "full")
            (string-equal eide-toolbar-current-tab "debug"))
-    (eide-toolbar-internal-insert-text "\n           ")
+    ;; Debug commands on 2nd line
+    (eide-l-toolbar-insert-text "\n           ")
     (if (string-equal eide-toolbar-current-tab "debug")
-      (eide-toolbar-internal-insert-text " - ")
-      (eide-toolbar-internal-insert-text "           "))))
+      (eide-l-toolbar-insert-text " - ")
+      (eide-l-toolbar-insert-text "   "))))
 
 ;; ----------------------------------------------------------------------------
-;; Insert specific actions for "debug" in "toolbar" buffer
+;; Insert "debug" actions in "toolbar" buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-toolbar-internal-insert-items-for-debug-in-toolbar-buffer ()
-  (eide-toolbar-internal-insert-action-text "next" toolbar-gdb-next-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "step" toolbar-gdb-step-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "cont" toolbar-gdb-continue-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "break" toolbar-gdb-setbp-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "stack" toolbar-gdb-stack-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "up" toolbar-gdb-stack-up-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "down" toolbar-gdb-stack-down-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "threads" toolbar-gdb-threads-map)
-  (eide-toolbar-internal-insert-text " | ")
-  (eide-toolbar-internal-insert-action-text "breaks" toolbar-gdb-breakpoints-map)
-  (eide-toolbar-internal-insert-text "           "))
+(defun eide-l-toolbar-insert-items-for-debug-in-toolbar-buffer ()
+  (eide-l-toolbar-insert-action-text "next" toolbar-gdb-next-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "step" toolbar-gdb-step-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "cont" toolbar-gdb-continue-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "break" toolbar-gdb-setbp-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "stack" toolbar-gdb-stack-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "up" toolbar-gdb-stack-up-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "down" toolbar-gdb-stack-down-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "threads" toolbar-gdb-threads-map)
+  (eide-l-toolbar-insert-text " | ")
+  (eide-l-toolbar-insert-action-text "breaks" toolbar-gdb-breakpoints-map)
+  (eide-l-toolbar-insert-text "   "))
 
 
 ;;;; ==========================================================================
@@ -247,56 +273,71 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Init "toolbar" buffer
+;; Initialize "toolbar" buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-toolbar-init ()
   ;; Toolbar buffer is created empty (content will be built by
   ;; eide-toolbar-update)
-  (setq eide-toolbar-buffer (buffer-name (get-buffer-create "* Toolbar *")))
+  (setq eide-toolbar-buffer-name (buffer-name (get-buffer-create "* Toolbar *")))
   (save-excursion
-    (set-buffer eide-toolbar-buffer)
+    (set-buffer eide-toolbar-buffer-name)
+    ;; Truncate lines to keep toolbar on a single line
+    (setq truncate-lines t)
     (setq buffer-read-only t))
   (setq eide-toolbar-current-tab "edit"))
 
 ;; ----------------------------------------------------------------------------
-;; Update window "toolbar"
+;; Update "toolbar" buffer.
+;;
+;; input  : eide-config-use-toolbar-flag : toolbar activation (windows layout).
+;;          eide-compile-buffer : compile buffer.
+;;          eide-run-buffer : run buffer.
+;;          eide-debug-buffer : debug buffer.
+;;          eide-shell-buffer : shell buffer.
+;;          eide-config-toolbar-position : toolbar position (windows layout).
+;;          eide-config-menu-height : menu height (windows layout).
+;; output : eide-toolbar-current-tab : current tab name.
 ;; ----------------------------------------------------------------------------
 (defun eide-toolbar-update ()
-  (if eide-custom-use-toolbar
-    (let ((my-window (selected-window)))
+  (if (and eide-windows-is-layout-visible-flag eide-config-use-toolbar-flag)
+    (let ((l-window (selected-window)))
       ;; Get name of current buffer in window "results"
-      (eide-windows-select-window-results t)
+      (eide-windows-select-window-results)
       (setq eide-windows-buffer-in-window-results (buffer-name))
-      (eide-windows-select-window-toolbar t)
+      (eide-windows-select-window-toolbar)
       ;; Set current tab according to this buffer name
-      (if (string-equal eide-windows-buffer-in-window-results eide-buffer-compile)
+      (if (string-equal eide-windows-buffer-in-window-results eide-compile-buffer)
         (setq eide-toolbar-current-tab "compile")
-        (if (string-equal eide-windows-buffer-in-window-results eide-buffer-run)
+        (if (string-equal eide-windows-buffer-in-window-results eide-run-buffer)
           (setq eide-toolbar-current-tab "run")
-          (if (string-equal eide-windows-buffer-in-window-results eide-buffer-debug)
+          (if (string-equal eide-windows-buffer-in-window-results eide-debug-buffer)
             (setq eide-toolbar-current-tab "debug")
-            (if (string-equal eide-windows-buffer-in-window-results eide-buffer-shell)
+            (if (string-equal eide-windows-buffer-in-window-results eide-shell-buffer)
               (setq eide-toolbar-current-tab "shell")
               ;; Default tab (no active tab)
               (setq eide-toolbar-current-tab "edit")))))
       ;; Update toolbar window size
       (let ((window-size-fixed nil))
-        (if (and (string-equal eide-custom-toolbar-position "middle")
-                 (string-equal eide-custom-menu-height "full")
+        (if (and (string-equal eide-config-toolbar-position "middle")
+                 (string-equal eide-config-menu-height "full")
                  (string-equal eide-toolbar-current-tab "debug"))
           (enlarge-window (- 3 (window-height)))
           (enlarge-window (- 2 (window-height)))))
       ;; Update toolbar buffer
-      (set-buffer eide-toolbar-buffer)
+      (set-buffer eide-toolbar-buffer-name)
       (let ((buffer-read-only nil))
         (delete-region (point-min) (point-max))
-        (eide-toolbar-internal-insert-common-items-in-toolbar-buffer eide-toolbar-current-tab)
+        (eide-l-toolbar-insert-common-items-in-toolbar-buffer)
         (if (string-equal eide-toolbar-current-tab "debug")
-          (eide-toolbar-internal-insert-items-for-debug-in-toolbar-buffer)))
-      ;; Move to end of line, so that the cursor doesn't disturb...
-      (end-of-line)
+          (eide-l-toolbar-insert-items-for-debug-in-toolbar-buffer))
+        ;; 500 spaces, so that window "toolbar" seems to have specific background
+        (setq l-loop-count 0)
+        (save-excursion
+          (while (< l-loop-count 500)
+            (eide-l-toolbar-insert-text " ")
+            (setq l-loop-count (+ l-loop-count 1)))))
       ;; Restore active window
-      (select-window my-window))))
+      (select-window l-window))))
 
 
 ;;;; ==========================================================================
@@ -304,86 +345,52 @@
 ;;;; ==========================================================================
 
 (setq toolbar-file-previous-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-file-previous-map [button1] 'eide-toolbar-internal-view-previous-file)
-  (define-key toolbar-file-previous-map [mouse-1] 'eide-toolbar-internal-view-previous-file))
+(define-key toolbar-file-previous-map [mouse-1] 'eide-l-toolbar-view-previous-file)
 
 (setq toolbar-file-next-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-file-next-map [button1] 'eide-toolbar-internal-view-next-file)
-  (define-key toolbar-file-next-map [mouse-1] 'eide-toolbar-internal-view-next-file))
+(define-key toolbar-file-next-map [mouse-1] 'eide-l-toolbar-view-next-file)
 
 (setq toolbar-compile-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-compile-map [button1] 'eide-toolbar-internal-view-compile-buffer)
-  (define-key toolbar-compile-map [mouse-1] 'eide-toolbar-internal-view-compile-buffer)
-  (define-key toolbar-compile-map [button3] 'eide-popup-open-menu-for-compile)
-  (define-key toolbar-compile-map [mouse-3] 'eide-popup-open-menu-for-compile))
+(define-key toolbar-compile-map [mouse-1] 'eide-l-toolbar-view-compile-buffer)
+(define-key toolbar-compile-map [mouse-3] 'eide-popup-open-menu-for-compile)
 
 (setq toolbar-run-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-run-map [button1] 'eide-toolbar-internal-view-run-buffer)
-  (define-key toolbar-run-map [mouse-1] 'eide-toolbar-internal-view-run-buffer)
-  (define-key toolbar-run-map [button3] 'eide-popup-open-menu-for-run)
-  (define-key toolbar-run-map [mouse-3] 'eide-popup-open-menu-for-run))
+(define-key toolbar-run-map [mouse-1] 'eide-l-toolbar-view-run-buffer)
+(define-key toolbar-run-map [mouse-3] 'eide-popup-open-menu-for-run)
 
 (setq toolbar-debug-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-debug-map [button1] 'eide-toolbar-internal-view-debug-buffer)
-  (define-key toolbar-debug-map [mouse-1] 'eide-toolbar-internal-view-debug-buffer)
-  (define-key toolbar-debug-map [button3] 'eide-popup-open-menu-for-debug)
-  (define-key toolbar-debug-map [mouse-3] 'eide-popup-open-menu-for-debug))
+(define-key toolbar-debug-map [mouse-1] 'eide-l-toolbar-view-debug-buffer)
+(define-key toolbar-debug-map [mouse-3] 'eide-popup-open-menu-for-debug)
 
 (setq toolbar-shell-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-shell-map [button1] 'eide-toolbar-internal-view-shell-buffer)
-  (define-key toolbar-shell-map [mouse-1] 'eide-toolbar-internal-view-shell-buffer)
-  (define-key toolbar-shell-map [button3] 'eide-popup-open-menu-for-shell)
-  (define-key toolbar-shell-map [mouse-3] 'eide-popup-open-menu-for-shell))
+(define-key toolbar-shell-map [mouse-1] 'eide-l-toolbar-view-shell-buffer)
+(define-key toolbar-shell-map [mouse-3] 'eide-popup-open-menu-for-shell)
 
 (setq toolbar-gdb-next-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-next-map [button1] 'eide-toolbar-internal-debug-execute-next)
-  (define-key toolbar-gdb-next-map [mouse-1] 'eide-toolbar-internal-debug-execute-next))
+(define-key toolbar-gdb-next-map [mouse-1] 'eide-l-toolbar-debug-execute-next)
 
 (setq toolbar-gdb-step-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-step-map [button1] 'eide-toolbar-internal-debug-execute-step)
-  (define-key toolbar-gdb-step-map [mouse-1] 'eide-toolbar-internal-debug-execute-step))
+(define-key toolbar-gdb-step-map [mouse-1] 'eide-l-toolbar-debug-execute-step)
 
 (setq toolbar-gdb-continue-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-continue-map [button1] 'eide-toolbar-internal-debug-execute-continue)
-  (define-key toolbar-gdb-continue-map [mouse-1] 'eide-toolbar-internal-debug-execute-continue))
+(define-key toolbar-gdb-continue-map [mouse-1] 'eide-l-toolbar-debug-execute-continue)
 
 (setq toolbar-gdb-setbp-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-setbp-map [button1] 'eide-toolbar-internal-debug-execute-break)
-  (define-key toolbar-gdb-setbp-map [mouse-1] 'eide-toolbar-internal-debug-execute-break))
+(define-key toolbar-gdb-setbp-map [mouse-1] 'eide-l-toolbar-debug-execute-break)
 
 (setq toolbar-gdb-breakpoints-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-breakpoints-map [button1] 'eide-toolbar-internal-debug-execute-info-break)
-  (define-key toolbar-gdb-breakpoints-map [mouse-1] 'eide-toolbar-internal-debug-execute-info-break))
+(define-key toolbar-gdb-breakpoints-map [mouse-1] 'eide-l-toolbar-debug-execute-info-break)
 
 (setq toolbar-gdb-stack-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-stack-map [button1] 'eide-toolbar-internal-debug-execute-bt)
-  (define-key toolbar-gdb-stack-map [mouse-1] 'eide-toolbar-internal-debug-execute-bt))
+(define-key toolbar-gdb-stack-map [mouse-1] 'eide-l-toolbar-debug-execute-bt)
 
 (setq toolbar-gdb-stack-up-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-stack-up-map [button1] 'eide-toolbar-internal-debug-execute-up)
-  (define-key toolbar-gdb-stack-up-map [mouse-1] 'eide-toolbar-internal-debug-execute-up))
+(define-key toolbar-gdb-stack-up-map [mouse-1] 'eide-l-toolbar-debug-execute-up)
 
 (setq toolbar-gdb-stack-down-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-stack-down-map [button1] 'eide-toolbar-internal-debug-execute-down)
-  (define-key toolbar-gdb-stack-down-map [mouse-1] 'eide-toolbar-internal-debug-execute-down))
+(define-key toolbar-gdb-stack-down-map [mouse-1] 'eide-l-toolbar-debug-execute-down)
 
 (setq toolbar-gdb-threads-map (make-sparse-keymap))
-(if (featurep 'xemacs)
-  (define-key toolbar-gdb-threads-map [button1] 'eide-toolbar-internal-debug-execute-info-threads)
-  (define-key toolbar-gdb-threads-map [mouse-1] 'eide-toolbar-internal-debug-execute-info-threads))
+(define-key toolbar-gdb-threads-map [mouse-1] 'eide-l-toolbar-debug-execute-info-threads)
 
 ;;; eide-toolbar.el ends here

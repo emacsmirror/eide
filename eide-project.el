@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE, project
 
-;; Copyright (C) 2005-2008 Cédric Marie
+;; Copyright (C) 2005-2009 Cédric Marie
 
 ;; This program is free software ; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -22,21 +22,29 @@
 (provide 'eide-project)
 
 
+;; Test if xcscope is available
+(defvar eide-option-use-cscope-flag nil)
+(if (locate-library "xcscope")
+  (progn
+    (require 'xcscope)
+    (setq eide-option-use-cscope-flag t)))
+
+(defvar eide-project-cscope-files-flag nil)
+
+(defvar eide-project-name nil)
+
 ;; Shell command for creating tags
-(setq eide-create-tags-for-c-command    "rm -f TAGS ; find . -type f -name \"*.[ch]\" -exec etags -a {} \\;")
-;; TODO : Lisp : pas seulement *.el !...
-(setq eide-create-tags-for-lisp-command "rm -f TAGS ; find . -type f -name \"*.el\" -exec etags -a {} \\;")
-;(setq eide-create-tags-command   "rm -f TAGS ; ctags -eR")
+(defvar eide-create-tags-command "rm -f TAGS ; ctags -eR --links=no")
 
 ;; Shell command for creating cscope.files
 ;; -type f : excludes links
 ;; cscope.out will be generated on next search
-(setq eide-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f -name \"*.[ch]\" > cscope.files")
+(defvar eide-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" \\) > cscope.files")
 
 ;; eide-project-start-shell-alias is necessary for bash but not csh (.cshrc is run automatically)
 (if (string-equal shell-file-name "/bin/bash")
-  (setq eide-project-start-shell-alias       ". ~/.bashrc") ; for bash
-  (setq eide-project-start-shell-alias       ""))           ; for csh
+  (setq eide-project-start-shell-alias ". ~/.bashrc") ; for bash
+  (setq eide-project-start-shell-alias "")) ; for csh
 
 
 ;;;; ==========================================================================
@@ -44,74 +52,94 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
+;; Create tags.
 ;;
+;; input  : eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-project-internal-create-tags ()
-  (shell-command (concat "cd " eide-project-directory " ; " eide-create-tags-command)))
+(defun eide-l-project-create-tags ()
+  (shell-command (concat "cd " eide-root-directory " ; " eide-create-tags-command)))
 
 ;; ----------------------------------------------------------------------------
+;; Create cscope list of files.
 ;;
+;; input  : eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
-(defun eide-project-internal-create-cscope-list-of-files ()
-  (shell-command (concat "cd " eide-project-directory " ; " eide-create-cscope-command)))
-;  (cscope-index-files nil))
+(defun eide-l-project-create-cscope-list-of-files ()
+  (shell-command (concat "cd " eide-root-directory " ; " eide-create-cscope-command)))
+;; (cscope-index-files nil))
 
 ;; ----------------------------------------------------------------------------
-;; Compile project (with given command)
+;; Set cscope status (disabled if list of files is empty).
 ;;
-;; input  : parameter
+;; input  : eide-root-directory : project root directory.
+;; output : eide-project-cscope-files-flag : t = cscope.files is not empty.
 ;; ----------------------------------------------------------------------------
-(defun eide-project-internal-compile (parameter)
-  (eide-windows-select-window-results t)
+(defun eide-l-project-update-cscope-status ()
+  (setq eide-project-cscope-files-flag nil)
+  (if (not (equal (nth 7 (file-attributes (concat eide-root-directory "cscope.files"))) 0))
+    (setq eide-project-cscope-files-flag t)))
+
+;; ----------------------------------------------------------------------------
+;; Compile project.
+;;
+;; input  : p-parameter : option parameter in project configuration for
+;;              compile command.
+;;          eide-root-directory : project root directory.
+;; output : eide-windows-update-result-buffer-id : "c" for "compile".
+;; ----------------------------------------------------------------------------
+(defun eide-l-project-compile (p-parameter)
+  (eide-windows-select-window-results)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
-  (setq compile-command (eide-project-get-full-command parameter))
   ;; Change current directory (of unused buffer "*results*")
-  (setq default-directory eide-project-directory)
-  (compile compile-command)
-  (setq eide-buffer-compile (buffer-name))
-  (eide-toolbar-update)
+  (setq default-directory eide-root-directory)
+  (let ((l-compile-command (eide-project-get-full-command p-parameter)))
+    ;; Compile buffer name will be updated in eide-l-windows-display-buffer-function
+    (setq eide-windows-update-result-buffer-id "c")
+    (compile l-compile-command))
   (eide-windows-select-window-file t))
 
 ;; ----------------------------------------------------------------------------
-;; Run project (with given command)
+;; Run project.
 ;;
-;; input  : command
+;; input  : p-parameter : option parameter in project configuration for
+;;              run command.
+;;          eide-root-directory : project root directory.
+;; output : eide-windows-update-result-buffer-id : "r" for "run".
 ;; ----------------------------------------------------------------------------
-(defun eide-project-internal-run (parameter)
-  (eide-windows-select-window-results t)
+(defun eide-l-project-run (p-parameter)
+  (eide-windows-select-window-results)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
   ;; Changing current directory has no effect with shell-command
   ;; Instead, we must change current directory in the command itself
   ;; Command ends with "&" otherwise emacs gets frozen until gdb is closed
-  (setq eide-run-command (concat "cd " eide-project-directory " ; " (eide-project-get-full-command parameter) " &"))
-  ;; Run buffer name will be updated asynchronously in eide-windows-internal-special-display-function
-  (setq eide-menu-update-run-buffer t)
-  (shell-command eide-run-command)
-;  (setq eide-buffer-run (buffer-name))
-  (eide-windows-select-window-results t))
+  (let ((l-run-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-parameter) " &")))
+    ;; Run buffer name will be updated in eide-l-windows-display-buffer-function
+    (setq eide-windows-update-result-buffer-id "r")
+    (shell-command l-run-command)))
 
 ;; ----------------------------------------------------------------------------
-;; Debug project (with given program)
+;; Debug project.
 ;;
-;; input  : this-command : gdb command
-;;          program : program to debug
+;; input  : p-parameter : option parameter in project configuration for
+;;              debug command.
+;;          eide-root-directory : project root directory.
+;; output : eide-windows-update-result-buffer-id : "d" for "debug".
 ;; ----------------------------------------------------------------------------
-(defun eide-project-internal-debug (parameter)
-  (eide-windows-select-window-results t)
+(defun eide-l-project-debug (p-parameter)
+  (eide-windows-select-window-results)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
-  (setq eide-debug-command (eide-custom-get-project-value parameter))
   ;; Change current directory (of unused buffer "*results*")
-  (setq default-directory eide-project-directory)
-  (gdb eide-debug-command)
-  (setq eide-buffer-debug (buffer-name))
-  (eide-toolbar-update)
-  (eide-windows-select-window-results t))
+  (setq default-directory eide-root-directory)
+  (let ((l-eide-debug-command (eide-config-get-project-value p-parameter)))
+    ;; Debug buffer name will be updated in eide-l-windows-display-buffer-function
+    (setq eide-windows-update-result-buffer-id "d")
+    (gdb l-eide-debug-command)))
 
 
 ;;;; ==========================================================================
@@ -119,180 +147,201 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Create a project
-;; input  :  project-type      : string describing the language of the project
-;; output :  eide-project-name : project name
+;; Create a project.
+;;
+;; input  : eide-root-directory : project root directory.
+;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
+;; output : eide-project-name : project name.
 ;; ----------------------------------------------------------------------------
-(defun eide-project-create (project-type)
-  (interactive)
-  (if (featurep 'xemacs)
-    (mouse-track last-input-event))
-
-  (if (eide-popup-question-yes-or-no-p (concat "Create " project-type " project in " eide-project-directory " ?"))
+(defun eide-project-create ()
+  (if (eide-popup-question-yes-or-no-p (concat "Create project in " eide-root-directory " ?"))
     (progn
-      (setq eide-session-project t)
-      (setq eide-project-type project-type)
-
       (eide-windows-select-window-file t)
+      ;; Create empty project file
+      (shell-command (concat "touch " eide-root-directory eide-project-file))
       (eide-project-start-with-project)
-      ;; Update menu (project is active now)
+      ;; Update frame title and menu (project is active now)
+      (eide-project-update-frame-title)
       (eide-menu-update t)
-      (if eide-custom-use-toolbar
+      (if eide-config-use-toolbar-flag
         (eide-toolbar-update))
       ;; Update key bindings for project
-      (eide-key-bindings-configure-for-editor))))
+      (eide-keys-configure-for-editor))))
 
 ;; ----------------------------------------------------------------------------
+;; Delete current project.
 ;;
+;; input  : eide-root-directory : project root directory.
+;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
+;; output : eide-project-name : project name (nil).
+;; ----------------------------------------------------------------------------
+(defun eide-project-delete ()
+  (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
+    (progn
+      (setq eide-project-name nil)
+      (kill-buffer eide-project-file)
+      (if (get-buffer "TAGS")
+        (kill-buffer "TAGS"))
+      (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide.*"))
+      (desktop-remove)
+      ;; Update frame title and menu (project is inactive now)
+      (eide-project-update-frame-title)
+      (eide-menu-update t)
+      (if eide-config-use-toolbar-flag
+        (eide-toolbar-update))
+      ;; Update key bindings for project
+      (eide-keys-configure-for-editor))))
+
+;; ----------------------------------------------------------------------------
+;; Start with current project.
+;;
+;; input  : eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-start-with-project ()
+  ;; Get project name from directory
+  ;; eide-root-directory                                                     : <...>/current_project/
+  ;; directory-file-name removes last "/"                                    : <...>/current_project
+  ;; file-name-nondirectory retrieves last directory name from complete path : current_project
+  (setq eide-project-name (file-name-nondirectory (directory-file-name eide-root-directory)))
+
   ;; "Lock" project
-  ;(shell-command (concat "touch " eide-project-directory eide-project-lock-file))
+  ;;(shell-command (concat "touch " eide-root-directory eide-project-lock-file))
 
-  ;; Load or create project file
-  (find-file-noselect (concat eide-project-directory eide-project-file))
-  (eide-custom-rebuild-project-file)
-  (eide-custom-apply-project-configuration)
+  ;; Rebuild project file
+  (eide-config-rebuild-project-file)
 
-  ;; Select appropriate command for tags, according to project type
-  (if (string-equal eide-project-type "C")
-    (setq eide-create-tags-command eide-create-tags-for-c-command)
-    (if (string-equal eide-project-type "Lisp")
-      (setq eide-create-tags-command eide-create-tags-for-lisp-command)
-      (progn
-        (setq eide-project-type "C")
-        (setq eide-create-tags-command eide-create-tags-for-c-command))))
+  (if eide-option-use-cscope-flag
+    (progn
+      ;; Create cscope database if necessary
+      (if (not (file-exists-p (concat eide-root-directory "cscope.files")))
+        (progn
+          (message "Creating cscope list of files...")
+          ;;(shell-command (concat "cd " eide-root-directory " ; cscope -bR"))
+          (eide-l-project-create-cscope-list-of-files)
+          (message "Creating cscope list of files... done")))
+      (eide-l-project-update-cscope-status)))
 
-  (if (and (string-equal eide-project-type "C") eide-option-use-cscope-flag)
-    ;; Create cscope database if necessary
-    (if (not (file-exists-p (concat eide-project-directory "cscope.files")))
-      (progn
-        (message "Creating cscope list of files...")
-;        (shell-command (concat "cd " eide-project-directory " ; cscope -bR"))
-        (eide-project-internal-create-cscope-list-of-files)
-        (message "Creating cscope list of files...done"))))
-
-  (if (or (not (string-equal eide-project-type "C")) (or (not eide-option-use-cscope-flag) eide-option-use-cscope-and-tags-flag))
+  (if (or (not eide-option-use-cscope-flag) eide-option-use-cscope-and-tags-flag)
     (progn
       ;; Create tags if necessary
-      (if (not (file-exists-p (concat eide-project-directory "TAGS")))
+      (if (not (file-exists-p (concat eide-root-directory "TAGS")))
         (progn
           (message "Creating tags...")
-          (eide-project-internal-create-tags)
-          (message "Creating tags...done")))
+          (eide-l-project-create-tags)
+          (message "Creating tags... done")))
       ;; Load tags now, otherwise first tag search will take some time...
-      (find-file-noselect (concat eide-project-directory "TAGS"))))
+      (find-file-noselect (concat eide-root-directory "TAGS"))))
 
-  (if (not (file-exists-p (concat eide-project-directory eide-project-notes-file)))
+  (if (not (file-exists-p (concat eide-root-directory eide-project-notes-file)))
     ;; Create empty project notes file
-    (shell-command (concat "touch " eide-project-directory eide-project-notes-file)))
+    (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
   ;; TODO : sous flag
   ;; Tag file name with full path
-  (setq tags-file-name (concat eide-project-directory "TAGS"))
+  (setq tags-file-name (concat eide-root-directory "TAGS"))
 
   ;; Create session file if necessary
-  (if (not (file-exists-p (concat eide-project-directory ".emacs.desktop")))
+  (if (not (file-exists-p (concat eide-root-directory ".emacs.desktop")))
     (progn
       (message "Creating .emacs.desktop...")
-      (desktop-save eide-project-directory)
-      (message "Creating .emacs.desktop...done"))))
+      (desktop-save eide-root-directory)
+      (message "Creating .emacs.desktop... done"))))
 
 ;; ----------------------------------------------------------------------------
-;; Update tags
+;; Update tags.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-update-tags ()
-  (interactive)
   (message "Updating tags...")
-  (eide-project-internal-create-tags)
-  (message "Updating tags...done"))
+  (eide-l-project-create-tags)
+  (message "Updating tags... done"))
 
 ;; ----------------------------------------------------------------------------
-;; Update cscope list of files
+;; Update cscope list of files.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-update-cscope-list-of-files ()
-  (interactive)
   (message "Updating cscope list of files...")
-;  (shell-command (concat "cd " eide-project-directory " ; rm -f cscope.files cscope.out"))
-  (eide-project-internal-create-cscope-list-of-files)
-;  (shell-command (concat "cd " eide-project-directory " ; cscope -bR"))
-  (message "Updating cscope list of files...done"))
+  ;;(shell-command (concat "cd " eide-root-directory " ; rm -f cscope.files cscope.out"))
+  (eide-l-project-create-cscope-list-of-files)
+  (eide-l-project-update-cscope-status)
+  ;;(shell-command (concat "cd " eide-root-directory " ; cscope -bR"))
+  (message "Updating cscope list of files... done"))
 
 ;; ----------------------------------------------------------------------------
+;; Update frame title with project name (or root directory if no project)
 ;;
+;; input  : eide-project-name : project name.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-update-frame-title ()
-  (setq frame-title-format (concat eide-project-name " - Emacs")))
+  (if eide-project-name
+    (setq frame-title-format (concat eide-project-name " - Emacs-IDE"))
+    (setq frame-title-format (concat eide-root-directory " - Emacs-IDE"))))
 
 ;; ----------------------------------------------------------------------------
-;; Get full command (init command + compile/run command)
+;; Get full command (init command + compile/run command).
 ;;
-;; input  : command
-;; return : full command
+;; input  : p-parameter : option parameter in project configuration.
+;; return : full command.
 ;; ----------------------------------------------------------------------------
-(defun eide-project-get-full-command (parameter)
-;  (let ((my-command (concat "cd " eide-project-directory " ; ")) (my-init (eide-custom-get-project-value "init_command")))
-;    (if (not (string-equal my-init ""))
-;      (setq my-command (concat my-command my-init " ; ")))
-;    (concat my-command (eide-custom-get-project-value parameter))))
-  (let ((my-init (eide-custom-get-project-value "init_command")))
-    (if (string-equal my-init "")
-      (eide-custom-get-project-value parameter)
-      (concat my-init " ; " (eide-custom-get-project-value parameter)))))
+(defun eide-project-get-full-command (p-parameter)
+  (let ((l-init-command (eide-config-get-project-value "init_command")))
+    (if (string-equal l-init-command "")
+      (eide-config-get-project-value p-parameter)
+      (concat l-init-command " ; " (eide-config-get-project-value p-parameter)))))
 
 ;; ----------------------------------------------------------------------------
-;; Remove project path from directory
+;; Get project relative path from absolute path (remove project absolute path
+;; from directory).
 ;;
-;; input  : eide-project-directory : project directory path
-;;          this-directory : directory to shorten (?)
-;; return : short directory
+;; input  : p-directory : directory (absolute path).
+;;          eide-root-directory : project root directory.
+;; return : directory (project relative path).
 ;; ----------------------------------------------------------------------------
-(defun eide-project-get-short-directory (this-directory)
+(defun eide-project-get-short-directory (p-directory)
   ;; Remove project base path if the file is part of it (otherwise display full path)
-  (if (and (<= (length eide-project-directory) (length this-directory)) (string-equal eide-project-directory (substring this-directory 0 (length eide-project-directory))))
-    (substring this-directory (length eide-project-directory))
-    (setq this-directory this-directory)))
+  (if (and (<= (length eide-root-directory) (length p-directory)) (string-equal eide-root-directory (substring p-directory 0 (length eide-root-directory))))
+    (substring p-directory (length eide-root-directory))
+    p-directory))
 
 ;; ----------------------------------------------------------------------------
-;; Compile project (1st compile command)
+;; Compile project (1st compile command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-compile-1 ()
   (interactive)
-  (eide-project-internal-compile "compile_command_1"))
+  (eide-l-project-compile "compile_command_1"))
 
 ;; ----------------------------------------------------------------------------
-;; Compile project (2nd compile command)
+;; Compile project (2nd compile command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-compile-2 ()
   (interactive)
-  (eide-project-internal-compile "compile_command_2"))
+  (eide-l-project-compile "compile_command_2"))
 
 ;; ----------------------------------------------------------------------------
-;; Run project (1st run command)
+;; Run project (1st run command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-run-1 ()
   (interactive)
-  (eide-project-internal-run "run_command_1"))
+  (eide-l-project-run "run_command_1"))
 
 ;; ----------------------------------------------------------------------------
-;; Run project (2nd run command)
+;; Run project (2nd run command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-run-2 ()
   (interactive)
-  (eide-project-internal-run "run_command_2"))
+  (eide-l-project-run "run_command_2"))
 
 ;; ----------------------------------------------------------------------------
-;; Debug project (1st debug command)
+;; Debug project (1st debug command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-1 ()
   (interactive)
-  (eide-project-internal-debug "debug_command_1"))
+  (eide-l-project-debug "debug_command_1"))
 
 ;; ----------------------------------------------------------------------------
-;; Debug project (2nd debug command)
+;; Debug project (2nd debug command).
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-2 ()
   (interactive)
-  (eide-project-internal-debug "debug_command_2"))
+  (eide-l-project-debug "debug_command_2"))
 
 ;;; eide-project.el ends here

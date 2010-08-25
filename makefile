@@ -18,6 +18,7 @@ all: clean
 	@for file in `ls *.el`; do if [ -e $${file}c ]; then echo "  $${file} -> $${file}c"; fi; done
 	@echo "====> These files have not been compiled - either failed or not requested :"
 	@for file in `ls *.el`; do if [ ! -e $${file}c ]; then echo "  $${file}"; fi; done
+	@if [ -e eide.elc ]; then ln -vsf eide.elc .emacs; else ln -vsf eide.el .emacs; fi
 
 debug: set_debug all
 
@@ -29,6 +30,7 @@ clean:
 	@echo "Cleaning compilation of Emacs-IDE..."
 	@echo "-------------------------------------------------------------------------------"
 	@rm -vf *.elc
+	@ln -vsf eide.el .emacs
 
 # [ -h ~/.emacs ] is necessary for broken symbolic links
 # (in that case [ -e ~/.emacs ] returns false)
@@ -37,6 +39,7 @@ install:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Installing Emacs-IDE..."
 	@echo "-------------------------------------------------------------------------------"
+	@if [ ! -e .emacs ]; then if [ -e eide.elc ]; then ln -vs eide.elc .emacs; else ln -vs eide.el .emacs; fi; fi
 	@do_install="1" ; \
 	 if [ -e ~/.emacs -o -h ~/.emacs ]; then \
 	   if [ -h ~/.emacs -a `ls -l ~/.emacs | grep -c $${PWD}` = "1" ]; then \

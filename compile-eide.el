@@ -1,6 +1,6 @@
 ;;; compile-eide.el --- Compilation of Emacs-IDE
 
-;; Copyright (C) 2005-2008 Cédric Marie
+;; Copyright (C) 2005-2009 Cédric Marie
 
 ;; This program is free software ; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,10 +20,8 @@
 ;;; Code:
 
 ;; Configuration
-(if (not (featurep 'xemacs))
-  (progn
-    (mouse-wheel-mode 1)
-    (set-scroll-bar-mode 'right)))
+(mouse-wheel-mode 1)
+(set-scroll-bar-mode 'right)
 
 ;; Load path
 (add-to-list 'load-path default-directory)
@@ -32,9 +30,10 @@
 (shell-command (concat "cd " default-directory " ; rm -f *.elc"))
 
 (byte-compile-file "eide-compare.el")
-(byte-compile-file "eide-custom.el")
+(byte-compile-file "eide-config.el")
 (byte-compile-file "eide-edit.el")
-(byte-compile-file "eide-key-bindings.el")
+(byte-compile-file "eide-help.el")
+(byte-compile-file "eide-keys.el")
 (byte-compile-file "eide-menu.el")
 (byte-compile-file "eide-popup.el")
 (byte-compile-file "eide-project.el")

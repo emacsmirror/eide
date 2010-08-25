@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE, windows
 
-;; Copyright (C) 2005-2008 Cédric Marie
+;; Copyright (C) 2005-2009 Cédric Marie
 
 ;; This program is free software ; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,11 +21,16 @@
 
 (provide 'eide-windows)
 
-(setq eide-windows-buffer-in-window-results nil)
-(setq eide-buffer-compile nil)
-(setq eide-buffer-run nil)
-(setq eide-buffer-debug nil)
-(setq eide-buffer-shell nil)
+(defvar eide-windows-is-layout-visible-flag nil)
+(defvar eide-windows-menu-update-request-pending-flag nil)
+
+(defvar eide-windows-buffer-in-window-results nil)
+(defvar eide-compile-buffer nil)
+(defvar eide-run-buffer nil)
+(defvar eide-debug-buffer nil)
+(defvar eide-shell-buffer nil)
+
+(defvar eide-windows-update-result-buffer-id nil)
 
 
 ;;;; ==========================================================================
@@ -33,169 +38,156 @@
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
+;; Test if a buffer should be displayed in window "file".
 ;;
+;; input  : p-buffer-name : buffer name.
+;; return : t = yes, nil = no.
 ;; ----------------------------------------------------------------------------
-(defun eide-display-test-if-buffer-should-be-displayed-p (my-buffer-name)
-  (if (or (string-equal my-buffer-name "TAGS") (string-equal my-buffer-name eide-options-file) (string-equal my-buffer-name eide-project-file) (string-equal my-buffer-name eide-project-notes-file) (string-match "^\*.*" my-buffer-name))
+(defun eide-l-windows-should-buffer-be-displayed-in-window-file-p (p-buffer-name)
+  (if (or (string-equal p-buffer-name "TAGS") (string-equal p-buffer-name eide-options-file) (string-equal p-buffer-name eide-project-file) (string-equal p-buffer-name eide-project-notes-file) (string-match "^\*.*" p-buffer-name))
     nil
     t))
 
 ;; ----------------------------------------------------------------------------
-;; If current buffer is a temporary buffer (starts with "*"), or should not be
-;; displayed, switch to another one, until correct
+;; Get the window in which a buffer should be displayed.
+;;
+;; input  : p-buffer-name : buffer name.
+;; return : buffer window (nil if not found).
 ;; ----------------------------------------------------------------------------
-(defun eide-display-skip-unwanted-buffers (skip-current go-forward)
-  (let ((should-we-continue t) (current-buffer-name (buffer-name)) (iteration 0))
-    ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
-    ;; in window "file", until a correct one is found
-    (ad-deactivate 'switch-to-buffer)
-    ;(eide-debug-print-trace (concat "current-buffer-name = " current-buffer-name))
-    (if skip-current
+(defun eide-l-windows-get-window-for-buffer (p-buffer-name)
+  (if eide-windows-is-layout-visible-flag
+    (if (string-match "^\*.*" p-buffer-name)
+      (if (string-equal eide-toolbar-buffer-name p-buffer-name)
+        eide-windows-window-toolbar
+        (if (string-equal eide-menu-buffer-name p-buffer-name)
+          eide-windows-window-menu
+          eide-windows-window-results))
+      (if (string-equal " SPEEDBAR" p-buffer-name)
+        nil
+        eide-windows-window-file))
+      nil))
+
+;; ----------------------------------------------------------------------------
+;; Update menu or toolbar if necessary.
+;;
+;; input  : p-window : window in which a buffer has been displayed.
+;; ----------------------------------------------------------------------------
+(defun eide-l-windows-update-display (p-window)
+  (if (equal p-window eide-windows-window-file)
+    (eide-menu-update nil)
+    (if (equal p-window eide-windows-window-results)
+      (eide-toolbar-update))))
+
+;; ----------------------------------------------------------------------------
+;; Display a buffer in appropriate window.
+;; Called :
+;; - when launching compile, run, debug or shell.
+;;
+;; input  : p-buffer : buffer.
+;;          eide-windows-update-result-buffer-id : ID of result buffer to be
+;;              displayed (or nil).
+;; output : eide-windows-update-result-buffer-id : nil.
+;; return : buffer window.
+;; ----------------------------------------------------------------------------
+(defun eide-l-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
+  (let ((l-buffer-name) (l-window)
+        (l-selected-window (selected-window)))
+    (if (bufferp p-buffer)
+      (setq l-buffer-name (buffer-name p-buffer))
+      (setq l-buffer-name p-buffer))
+    (eide-debug-print-trace (concat "eide-l-windows-display-buffer-function : " l-buffer-name))
+    (setq l-window (eide-l-windows-get-window-for-buffer l-buffer-name))
+    (if (not l-window)
+      (setq l-window l-selected-window))
+    (set-window-buffer l-window p-buffer)
+    ;; Result buffer name is updated asynchronously
+    (if eide-windows-update-result-buffer-id
       (progn
-        (if go-forward
-          (bs-cycle-previous)
-          (bs-cycle-next))
-        ;; To avoid list of buffers in minibuffer
-        (message "")
-        ;(eide-debug-print-trace (concat "bs-cycle-xxx => " (buffer-name)))
-        (setq first-found-buffer-name (buffer-name)))
-      (setq first-found-buffer-name nil))
-    (while (and (not (eide-display-test-if-buffer-should-be-displayed-p (buffer-name)))
-                should-we-continue
-                (< iteration 10))
+        (if (string-equal eide-windows-update-result-buffer-id "c")
+          (setq eide-compile-buffer l-buffer-name)
+          (if (string-equal eide-windows-update-result-buffer-id "r")
+            (setq eide-run-buffer l-buffer-name)
+            (if (string-equal eide-windows-update-result-buffer-id "d")
+              (setq eide-debug-buffer l-buffer-name)
+              (if (string-equal eide-windows-update-result-buffer-id "s")
+                (setq eide-shell-buffer l-buffer-name)))))
+        (setq eide-windows-update-result-buffer-id nil)))
+    ;; Update menu or toolbar if necessary
+    (eide-l-windows-update-display l-window)
+    (if (string-equal l-buffer-name "*Completions*")
       (progn
-        (if go-forward
-          (bs-cycle-previous)
-          (bs-cycle-next))
-        ;; To avoid list of buffers in minibuffer
-        (message "")
-        ;(eide-debug-print-trace (concat "bs-cycle-xxx => " (buffer-name)))
-        (if (and (= iteration 0) (not first-found-buffer-name))
-          (setq first-found-buffer-name (buffer-name))
-          (if (string-equal (buffer-name) first-found-buffer-name)
-            ;; We have parsed the whole buffer list without finding any other
-            ;; buffer that fits. Moreover, current buffer cannot be found again
-            ;; (because bs-cycle-xxx ignores temporary buffers), which means
-            ;; that it is not valid either. Let's display "*scratch*".
-            (progn
-              ;(eide-debug-print-trace (concat "back to first found buffer = " (buffer-name)))
-              (switch-to-buffer "*scratch*")
-              ;(eide-debug-print-trace (concat "force buffer *scratch* => " (buffer-name)))
-              )))
-        (if (string-equal (buffer-name) current-buffer-name)
+        (select-window l-window)
+        ;; Window "results" temporarily expands to half or 2/3 of the frame to
+        ;; display completions
+        (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
+          (if (> l-completion-height (/ (frame-height) 2))
+            (setq l-completion-height (/ (* (frame-height) 2) 3)))
+          (enlarge-window (- l-completion-height (window-height))))))
+    ;; Restore selected window
+    (select-window l-selected-window)
+    ;; Return buffer window
+    l-window))
+
+;; ----------------------------------------------------------------------------
+;; Override switch-to-buffer function (advice), to display buffer in
+;; appropriate window.
+;; Called :
+;; - when switching to compile, run, debug or shell buffer.
+;;
+;; input  : p-buffer : buffer.
+;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-search-find-symbol-definition-flag : t = display update is
+;;              necessary after symbol search.
+;;          eide-root-directory : project root directory.
+;; output : eide-search-find-symbol-definition-flag : display update pending
+;;              (nil).
+;; return : p-buffer (or current buffer if it didn't switch to p-buffer).
+;; ----------------------------------------------------------------------------
+(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer))
+  (let ((l-buffer-name) (l-do-it-flag) (l-window))
+    (if (bufferp p-buffer)
+      (setq l-buffer-name (buffer-name p-buffer))
+      (setq l-buffer-name p-buffer))
+    (eide-debug-print-trace (concat "switch-to-buffer : " l-buffer-name))
+    (save-excursion
+      (set-buffer l-buffer-name)
+      ;; Do not display "dired mode", TAGS file, and configuration files
+      (if (or (equal major-mode 'dired-mode) (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-file) (string-equal l-buffer-name eide-project-notes-file))
+        (setq l-do-it-flag nil)
+        (setq l-do-it-flag t)))
+    (if l-do-it-flag
+      (progn
+        ;;(eide-debug-print-trace (concat "switch-to-buffer : " l-buffer-name))
+        (setq l-window (eide-l-windows-get-window-for-buffer l-buffer-name))
+        (if l-window
+          (select-window l-window)
+          (setq l-window (selected-window)))
+        ad-do-it
+        (if eide-search-find-symbol-definition-flag
           (progn
-            ;; We have parsed the whole buffer list without finding any other
-            ;; buffer that fits. If this buffer is valid, let's keep it
-            ;; current. Otherwise, let's display "*scratch*".
-            ;(eide-debug-print-trace (concat "back to current buffer = " (buffer-name)))
-            (setq should-we-continue nil)
-            (if (not (eide-display-test-if-buffer-should-be-displayed-p (buffer-name)))
-              (progn
-                (switch-to-buffer "*scratch*")
-                ;(eide-debug-print-trace (concat "force buffer *scratch* => " (buffer-name)))
-                ))))
-        (setq iteration (1+ iteration))))
-    (ad-activate 'switch-to-buffer)
-    ;; Update menu (switch-to-buffer advice was disabled)
-    (eide-menu-update nil)))
+            (recenter)
+            (setq eide-search-find-symbol-definition-flag nil)))
+        ;; Update menu or toolbar if necessary
+        (eide-l-windows-update-display l-window)
+        ;; Desktop is saved to avoid loss of opened buffers in case of crash of emacs
+        (if (file-exists-p (concat eide-root-directory ".emacs.desktop"))
+          (desktop-save eide-root-directory))
+        ;; Select buffer window
+        (select-window l-window)
+        ;; Return the buffer that it switched to
+        p-buffer)
+      (progn
+        ;; Close unwanted files (except TAGS and project configuration)
+        (if (or (equal major-mode 'dired-mode) (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-notes-file))
+          (progn
+            ;;(eide-debug-print-trace (concat "switch-to-buffer : discard dired-mode buffer " l-buffer-name))
+            (kill-buffer l-buffer-name)
+            ;; Return the current buffer
+            (current-buffer)))))))
 
 ;; ----------------------------------------------------------------------------
-;; Display buffer in appropriate window
-;; Called for grep (new "*grep*" buffer), and when clicking on a grep result
-;; (switch to buffer to display match)
-;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-special-display-function (my-buffer &optional not-this-window frame)
-  (let ((my-buffer-name) (my-window) (my-selected-window) (my-completion-height))
-  (if (bufferp my-buffer)
-    (setq my-buffer-name (buffer-name my-buffer))
-    (setq my-buffer-name my-buffer))
-  ;(eide-debug-print-trace (concat "eide-windows-internal-special-display-function : " my-buffer-name))
-  (if (string-equal my-buffer-name eide-menu-buffer)
-    (setq my-window eide-windows-window-menu)
-    (if (and (string-match "^\*.*" my-buffer-name) (not (string-match "\* clean : *" my-buffer-name)))
-      (setq my-window eide-windows-window-results)
-      (setq my-window eide-windows-window-file)))
-  (set-window-buffer my-window my-buffer)
-  ;; Run buffer name is updated asynchronously (see eide-project-internal-run)
-  (if eide-menu-update-run-buffer
-    (progn
-      ;; Use get-buffer because my-buffer may be a buffer or a buffer name
-      (setq eide-buffer-run (buffer-name (get-buffer my-buffer)))
-      (eide-toolbar-update)
-      (setq eide-menu-update-run-buffer nil)))
-  ;; Update menu when a buffer is displayed by grep result
-  (if (equal my-window eide-windows-window-file)
-    (eide-menu-update nil))
-  (if (string-equal my-buffer-name "*Completions*")
-    (progn
-      (setq my-selected-window (selected-window))
-      (select-window my-window)
-      ;; Window "results" temporarily expands to half or 2/3 of the frame to
-      ;; display completions
-      (setq my-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2)))
-      (if (> my-completion-height (/ (frame-height) 2))
-        (setq my-completion-height (/ (* (frame-height) 2) 3)))
-;      (if (< (window-height) my-completion-height)
-      (enlarge-window (- my-completion-height (window-height))) ;)
-      (select-window my-selected-window)))
-  (setq my-window my-window)))
-
-;(setq special-display-regexps '(".*"))
-;(setq special-display-function 'eide-windows-internal-special-display-function)
-;(setq display-buffer-function 'eide-windows-internal-special-display-function)
-
-;; ----------------------------------------------------------------------------
-;; Override switch-to-buffer function
-;; ----------------------------------------------------------------------------
-(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (my-buffer))
-  (let ((my-buffer-name) (my-really-switch))
-  (if (bufferp my-buffer)
-    (setq my-buffer-name (buffer-name my-buffer))
-    (setq my-buffer-name my-buffer))
-  (save-excursion
-    (set-buffer my-buffer-name)
-    ;; Do not display "dired mode", TAGS file, and configuration files
-    (if (or (equal major-mode 'dired-mode) (string-equal my-buffer-name "TAGS") (string-equal my-buffer-name eide-options-file) (string-equal my-buffer-name eide-project-file) (string-equal my-buffer-name eide-project-notes-file))
-      (setq my-really-switch nil)
-      (setq my-really-switch t)))
-  (if my-really-switch
-    (progn
-      ;(eide-debug-print-trace (concat "switch-to-buffer : " my-buffer-name))
-      (if (not (string-equal " SPEEDBAR" my-buffer-name))
-        (if eide-windows-is-layout-visible-flag
-          (if (and (string-match "^\*.*" my-buffer-name) (not (string-match "\* clean : *" my-buffer-name)))
-            (if (string-equal "* Toolbar *" my-buffer-name)
-              (eide-windows-select-window-toolbar t)
-              (eide-windows-select-window-results t))
-            (eide-windows-select-window-file t))))
-      ad-do-it
-      (if (not (string-equal eide-menu-symbol-definition-to-find "-"))
-        (progn
-;          (if (not eide-windows-is-layout-visible-flag)
-;            (delete-other-windows))
-          (recenter)
-          (setq eide-menu-symbol-definition-to-find "-")))
-      ; TODO : one window !
-      ;; Update menu if necessary
-      (if (not (string-equal " SPEEDBAR" my-buffer-name))
-        (if (or (not (string-match "^\*.*" my-buffer-name)) (string-match "\* clean : *" my-buffer-name))
-          ;; Buffer = file buffer : update menu
-          (eide-menu-update nil)
-          ;; Buffer = result buffer : update toolbar
-          (if eide-windows-is-layout-visible-flag
-            (eide-toolbar-update))))
-      ;; Desktop is saved to avoid loss of opened buffers in case of crash of emacs
-      (if (file-exists-p (concat eide-project-directory ".emacs.desktop"))
-        (desktop-save eide-project-directory)))
-    (progn
-      ;; Close unwanted files (except TAGS and project configuration)
-      (if (or (equal major-mode 'dired-mode) (string-equal my-buffer-name eide-options-file) (string-equal my-buffer-name eide-project-notes-file))
-        (progn
-          ;(eide-debug-print-trace (concat "switch-to-buffer : discard dired-mode buffer " my-buffer-name))
-          (kill-buffer my-buffer-name)))))))
-
-;; ----------------------------------------------------------------------------
-;; Override C-x C-f find-file
+;; Override C-x C-f find-file, to get default directory from buffer in window
+;; "file".
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-find-file ()
   (interactive)
@@ -203,23 +195,24 @@
   (call-interactively 'find-file))
 
 ;; ----------------------------------------------------------------------------
-;; Override save-buffer function
-;; Always save buffer displayed in window "file"
+;; Override save-buffer function (advice), to save buffer in window "file".
 ;; ----------------------------------------------------------------------------
 (defadvice save-buffer (around eide-save-buffer-advice-around)
-  (let ((my-window))
-    (setq my-window (selected-window))
+  (let ((l-window (selected-window)))
     (eide-windows-select-window-file nil)
     ad-do-it
     (eide-menu-update-current-buffer-modified-status)
-    (select-window my-window)))
+    (select-window l-window)))
 
 ;; ----------------------------------------------------------------------------
-;; Hook to be called once frame has been resized
+;; Hook to be called once the frame has been resized.
+;;
+;; output : eide-windows-results-window-height : height of window "results".
+;;          eide-windows-menu-window-width : width of window "menu".
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-window-setup-hook ()
-;  (setq eide-windows-results-window-height (/ (frame-height) 5))
-;  (setq eide-windows-menu-window-width (/ (frame-width) 4))
+(defun eide-l-windows-window-setup-hook ()
+  ;;(setq eide-windows-results-window-height (/ (frame-height) 5))
+  ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 
   ;; Close buffer "*Buffer List*" (created when emacs is launched with files as
   ;; parameters)
@@ -231,59 +224,60 @@
   (eide-windows-layout-build)
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
-
-  (eide-display-skip-unwanted-buffers nil nil)
+  (eide-windows-skip-unwanted-buffers-in-window-file nil nil)
   ;; Create menu content
   (eide-menu-update t)
   (eide-toolbar-update))
 
 ;; ----------------------------------------------------------------------------
-;; Select window at mouse position
+;; Select window at mouse position.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-select-window-at-mouse-position ()
+(defun eide-l-windows-select-window-at-mouse-position ()
   ;; Select the window where the mouse is
-;  (let ((my-position (last (mouse-position))))
-;    (let ((my-x (car my-position)) (my-y (cdr my-position)))
-;      (select-window (window-at my-x my-y)))))
-  (let ((my-position (last (mouse-position))))
-    (select-window (window-at (car my-position) (cdr my-position)))))
+  (let ((l-position (last (mouse-position))))
+    (select-window (window-at (car l-position) (cdr l-position)))))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is "file"
+;; Test if selected window is window "file".
 ;;
-;; return : t / nil
+;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-is-window-file-selected-p ()
+(defun eide-l-windows-is-window-file-selected-p ()
   (equal (selected-window) eide-windows-window-file))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is "menu"
+;; Test if selected window is window "menu".
 ;;
-;; return : t / nil
+;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-is-window-menu-selected-p ()
+(defun eide-l-windows-is-window-menu-selected-p ()
   (equal (selected-window) eide-windows-window-menu))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is "results"
+;; Test if selected window is window "results".
 ;;
-;; return : t / nil
+;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-is-window-results-selected-p ()
+(defun eide-l-windows-is-window-results-selected-p ()
   (equal (selected-window) eide-windows-window-results))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is "toolbar"
+;; Test if selected window is window "toolbar".
 ;;
-;; return : t / nil
+;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-is-window-toolbar-selected-p ()
+(defun eide-l-windows-is-window-toolbar-selected-p ()
   (equal (selected-window) eide-windows-window-toolbar))
 
 ;; ----------------------------------------------------------------------------
-;; Resize layout : up
+;; Resize layout : enlarge window "results".
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-windows-results-window-height : height of window "results".
+;; output : eide-windows-results-window-height : updated height of window
+;;              "results".
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-layout-resize-up ()
+(defun eide-l-windows-layout-resize-enlarge-window-results ()
   (if (and eide-windows-is-layout-visible-flag
            (< eide-windows-results-window-height (- (frame-height) 8)))
     (progn
@@ -292,9 +286,14 @@
       (eide-windows-layout-build))))
 
 ;; ----------------------------------------------------------------------------
-;; Resize layout : down
+;; Resize layout : shrink window "results".
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-windows-results-window-height : height of window "results".
+;; output : eide-windows-results-window-height : updated height of window
+;;              "results".
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-layout-resize-down ()
+(defun eide-l-windows-layout-resize-shrink-window-results ()
   (if (and eide-windows-is-layout-visible-flag
            (> eide-windows-results-window-height 3))
     (progn
@@ -303,9 +302,13 @@
       (eide-windows-layout-build))))
 
 ;; ----------------------------------------------------------------------------
-;; Resize layout : enlarge window "menu"
+;; Resize layout : enlarge window "menu".
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-windows-menu-window-width : width of window "menu".
+;; output : eide-windows-menu-window-width : updated width of window "menu".
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-layout-resize-enlarge-menu ()
+(defun eide-l-windows-layout-resize-enlarge-window-menu ()
   (if (and eide-windows-is-layout-visible-flag
            (< eide-windows-menu-window-width (- (frame-width) 16)))
     (progn
@@ -314,9 +317,13 @@
       (eide-windows-layout-build))))
 
 ;; ----------------------------------------------------------------------------
-;; Resize layout : shrink window "menu"
+;; Resize layout : shrink window "menu".
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-windows-menu-window-width : width of window "menu".
+;; output : eide-windows-menu-window-width : updated width of window "menu".
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-internal-layout-resize-shrink-menu ()
+(defun eide-l-windows-layout-resize-shrink-window-menu ()
   (if (and eide-windows-is-layout-visible-flag
            (> eide-windows-menu-window-width 16))
     (progn
@@ -331,139 +338,161 @@
 
 
 ;; ----------------------------------------------------------------------------
-;; Init windows
+;; Initialize windows.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-init ()
-  (add-hook 'window-setup-hook 'eide-windows-internal-window-setup-hook))
+  (add-hook 'window-setup-hook 'eide-l-windows-window-setup-hook))
 
 ;; ----------------------------------------------------------------------------
-;; Split current single window display into 3 windows
-;; (file, menu and results)
+;; Build windows layout.
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
+;;          eide-config-toolbar-position : toolbar position (windows layout).
+;;          eide-config-menu-position : menu position (windows layout).
+;;          eide-config-menu-height : menu height (windows layout).
+;;          eide-windows-menu-window-width : width of window "menu".
+;;          eide-windows-results-window-height : height of window "results".
+;;          eide-windows-buffer-in-window-results : buffer in window "results".
+;;          eide-toolbar-current-tab : current tab name in window "toolbar".
+;; output : eide-windows-window-file : window "file".
+;;          eide-windows-window-menu : window "menu".
+;;          eide-windows-window-results : window "results".
+;;          eide-windows-window-toolbar : window "toolbar".
+;;          eide-windows-is-layout-visible-flag : t (windows layout is shown).
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-layout-build ()
-  (delete-other-windows)
-
-  ;; Create window "toolbar" now if position is "top" or "bottom"
-  (if (and eide-custom-use-toolbar (or (string-equal eide-custom-toolbar-position "top")
-                                       (string-equal eide-custom-toolbar-position "bottom")))
+  (if (not eide-windows-is-layout-visible-flag)
     (progn
-      (split-window-vertically)
-      (if (string-equal eide-custom-toolbar-position "bottom")
-        (select-window (next-window)))
-      (setq eide-windows-window-toolbar (selected-window))
-      (select-window (next-window))))
-
-  ;; Split into 3 windows ("file", "menu", "results")
-  (if (string-equal eide-custom-menu-height "full")
-    (progn
-      (split-window-horizontally)
-      (if (string-equal eide-custom-menu-position "left")
-        ;; Menu on left side
-        (progn
-          (setq eide-windows-window-menu (selected-window))
-          (select-window (next-window))
-          (split-window-vertically)
-          (setq eide-windows-window-file (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-results (selected-window)))
-        ;; Menu on right side
+      (delete-other-windows)
+      ;; Create window "toolbar" now if position is "top" or "bottom"
+      (if (and eide-config-use-toolbar-flag (or (string-equal eide-config-toolbar-position "top")
+                                                (string-equal eide-config-toolbar-position "bottom")))
         (progn
           (split-window-vertically)
-          (setq eide-windows-window-file (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-results (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-menu (selected-window)))))
-    (progn
-      (split-window-vertically)
-      (split-window-horizontally)
-      (if (string-equal eide-custom-menu-position "left")
-        ;; Menu on left side
+          (if (string-equal eide-config-toolbar-position "bottom")
+            (select-window (next-window)))
+          (setq eide-windows-window-toolbar (selected-window))
+          (select-window (next-window))))
+
+      ;; Split into 3 windows ("file", "menu", "results")
+      (if (string-equal eide-config-menu-height "full")
         (progn
-          (setq eide-windows-window-menu (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-file (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-results (selected-window)))
-        ;; Menu on right side
+          (split-window-horizontally)
+          (if (string-equal eide-config-menu-position "left")
+            ;; Menu on left side
+            (progn
+              (setq eide-windows-window-menu (selected-window))
+              (select-window (next-window))
+              (split-window-vertically)
+              (setq eide-windows-window-file (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-results (selected-window)))
+            ;; Menu on right side
+            (progn
+              (split-window-vertically)
+              (setq eide-windows-window-file (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-results (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-menu (selected-window)))))
         (progn
-          (setq eide-windows-window-file (selected-window))
+          (split-window-vertically)
+          (split-window-horizontally)
+          (if (string-equal eide-config-menu-position "left")
+            ;; Menu on left side
+            (progn
+              (setq eide-windows-window-menu (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-file (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-results (selected-window)))
+            ;; Menu on right side
+            (progn
+              (setq eide-windows-window-file (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-menu (selected-window))
+              (select-window (next-window))
+              (setq eide-windows-window-results (selected-window))))))
+
+      ;; Create window "toolbar" now if position is "middle"
+      ;; (Split window "results" into 2 windows ("toolbar" and "results"))
+      (if (and eide-config-use-toolbar-flag (string-equal eide-config-toolbar-position "middle"))
+        (progn
+          (select-window eide-windows-window-results)
+          (setq eide-windows-window-toolbar (selected-window))
+          ;; +2 for window "toolbar"
+          (enlarge-window (+ 2 (- eide-windows-results-window-height (window-height))))
+          ;; split window "results" to create window "toolbar"
+          (split-window-vertically)
           (select-window (next-window))
-          (setq eide-windows-window-menu (selected-window))
-          (select-window (next-window))
-          (setq eide-windows-window-results (selected-window))))))
+          (setq eide-windows-window-results (selected-window))))
 
-  ;; Create window "toolbar" now if position is "middle"
-  ;; (Split window "results" into 2 windows ("toolbar" and "results"))
-  (if (and eide-custom-use-toolbar (string-equal eide-custom-toolbar-position "middle"))
-    (progn
-      (select-window eide-windows-window-results)
-      (setq eide-windows-window-toolbar (selected-window))
-      ;; +2 for window "toolbar"
-      (enlarge-window (+ 2 (- eide-windows-results-window-height (window-height))))
-      ;; split window "results" to create window "toolbar"
-      (split-window-vertically)
-      (select-window (next-window))
-      (setq eide-windows-window-results (selected-window))))
-
-  ;; Window "menu"
-  (select-window eide-windows-window-menu)
-  (switch-to-buffer eide-menu-buffer)
-  ;; This window should be used for this buffer only
-  (set-window-dedicated-p eide-windows-window-menu t)
-;  (setq window-min-width 1) ; TODO : sans effet ?
-  (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
-
-  ;; Window "toolbar"
-  (if eide-custom-use-toolbar
-    (progn
-      (select-window eide-windows-window-toolbar)
-      (switch-to-buffer eide-toolbar-buffer)
+      ;; Window "menu"
+      (select-window eide-windows-window-menu)
+      (switch-to-buffer eide-menu-buffer-name)
       ;; This window should be used for this buffer only
-      (set-window-dedicated-p eide-windows-window-toolbar t)
-      ;; Resize window "toolbar"
-      (setq window-min-height 1)
-      (if (and (string-equal eide-custom-toolbar-position "middle")
-               (string-equal eide-custom-menu-height "full")
-               (string-equal eide-toolbar-current-tab "debug"))
-        (enlarge-window (- 3 (window-height)))
-        (enlarge-window (- 2 (window-height))))
-      ;; Do not enable resizing of this window
-      (setq window-size-fixed t)))
+      (set-window-dedicated-p eide-windows-window-menu t)
+      ;;(setq window-min-width 1) ; TODO : sans effet ?
+      (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
 
-  ;; Window "results" (may be split into "toolbar" and "results")
-  (select-window eide-windows-window-results)
-  (setq window-min-height 2)
-  (enlarge-window (- eide-windows-results-window-height (window-height)))
-  (switch-to-buffer (get-buffer-create "*results*"))
-  (if eide-windows-buffer-in-window-results
-    (switch-to-buffer eide-windows-buffer-in-window-results)
-    (setq eide-windows-buffer-in-window-results "*results*"))
+      ;; Window "toolbar"
+      (if eide-config-use-toolbar-flag
+        (progn
+          (select-window eide-windows-window-toolbar)
+          (switch-to-buffer eide-toolbar-buffer-name)
+          ;; This window should be used for this buffer only
+          (set-window-dedicated-p eide-windows-window-toolbar t)
+          ;; Resize window "toolbar"
+          (setq window-min-height 1)
+          (if (and (string-equal eide-config-toolbar-position "middle")
+                   (string-equal eide-config-menu-height "full")
+                   (string-equal eide-toolbar-current-tab "debug"))
+            (enlarge-window (- 3 (window-height)))
+            (enlarge-window (- 2 (window-height))))
+          ;; Do not enable resizing of this window
+          (setq window-size-fixed t)))
 
-  (select-window eide-windows-window-file)
+      ;; Window "results" (may be split into "toolbar" and "results")
+      (select-window eide-windows-window-results)
+      (setq window-min-height 2)
+      (enlarge-window (- eide-windows-results-window-height (window-height)))
+      (switch-to-buffer (get-buffer-create "*results*"))
+      (if eide-windows-buffer-in-window-results
+        (switch-to-buffer eide-windows-buffer-in-window-results)
+        (setq eide-windows-buffer-in-window-results "*results*"))
 
-  (setq eide-windows-is-layout-visible-flag t)
-  (setq display-buffer-function 'eide-windows-internal-special-display-function))
+      (select-window eide-windows-window-file)
+
+      (setq eide-windows-is-layout-visible-flag t)
+      (setq display-buffer-function 'eide-l-windows-display-buffer-function))))
 
 ;; ----------------------------------------------------------------------------
-;; Close windows layout (keep window "file" only)
-;; (file, menu and results)
+;; Unbuild windows layout (keep only window "file").
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-config-use-toolbar-flag : toolbar activation (windows layout).
+;; output : eide-windows-menu-window-width : width of window "menu".
+;;          eide-windows-results-window-height : height of window "results".
+;;          eide-windows-buffer-in-window-results : buffer in window "results".
+;;          eide-windows-is-layout-visible-flag : nil (windows layout is
+;;              hidden).
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-layout-unbuild ()
   (if eide-windows-is-layout-visible-flag
     (progn
       ;; Remember window "menu" width
-      (eide-windows-select-window-menu t)
+      (eide-windows-select-window-menu)
       (setq eide-windows-menu-window-width (window-width))
       ;; Remember window "results" height
-      (eide-windows-select-window-results t)
+      (eide-windows-select-window-results)
       (setq eide-windows-results-window-height (window-height))
       ;; Remember which result buffer is displayed in window "results"
       (setq eide-windows-buffer-in-window-results (buffer-name))
-      (if eide-custom-use-toolbar
+      (if eide-config-use-toolbar-flag
         (progn
           ;; Enable resizing of window "toolbar", otherwise it can't be deleted
-          (eide-windows-select-window-toolbar t)
+          (eide-windows-select-window-toolbar)
           (setq window-size-fixed nil)))
       ;; Keep only window "file"
       (eide-windows-select-window-file t)
@@ -473,94 +502,170 @@
       (setq display-buffer-function nil))))
 
 ;; ----------------------------------------------------------------------------
-;; Move to window "file" (left) (split into 3 windows if not visible)
+;; Select window "file".
+;;
+;; input  : p-force-build-flag : t = build windows layout if not visible.
+;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-file (force-build-flag)
-  (if (or eide-windows-is-layout-visible-flag force-build-flag)
+(defun eide-windows-select-window-file (p-force-build-flag)
+  (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
     (progn
       (if (not eide-windows-is-layout-visible-flag)
         (eide-windows-layout-build))
       (select-window eide-windows-window-file))))
 
 ;; ----------------------------------------------------------------------------
-;; Move to window "menu" (right) (split into 3 windows if not visible)
+;; Select window "menu" (build windows layout if necessary).
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-menu (force-build-flag)
-  (if (or eide-windows-is-layout-visible-flag force-build-flag)
-    (progn
-      (if (not eide-windows-is-layout-visible-flag)
-        (eide-windows-layout-build))
-      (select-window eide-windows-window-menu))))
+(defun eide-windows-select-window-menu ()
+  (if (not eide-windows-is-layout-visible-flag)
+    (eide-windows-layout-build))
+  (select-window eide-windows-window-menu))
 
 ;; ----------------------------------------------------------------------------
-;; Move to window "results" (bottom) (split into 3 windows if not visible)
+;; Select window "results" (build windows layout if necessary).
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-results (force-build-flag)
-  (if (or eide-windows-is-layout-visible-flag force-build-flag)
-    (progn
-      (if (not eide-windows-is-layout-visible-flag)
-        (eide-windows-layout-build))
-      (select-window eide-windows-window-results))))
+(defun eide-windows-select-window-results ()
+  (if (not eide-windows-is-layout-visible-flag)
+    (eide-windows-layout-build))
+  (select-window eide-windows-window-results))
 
 ;; ----------------------------------------------------------------------------
-;; Move to window "toolbar" (split into 3 windows if not visible)
+;; Select window "toolbar" (build windows layout if necessary).
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-toolbar (force-build-flag)
-  (if (or eide-windows-is-layout-visible-flag force-build-flag)
-    (progn
-      (if (not eide-windows-is-layout-visible-flag)
-        (eide-windows-layout-build))
-      (select-window eide-windows-window-toolbar))))
+(defun eide-windows-select-window-toolbar ()
+  (if (not eide-windows-is-layout-visible-flag)
+    (eide-windows-layout-build))
+  (select-window eide-windows-window-toolbar))
 
 ;; ----------------------------------------------------------------------------
-;; Handle mouse-3 action
+;; Parse buffers list until an appropriate buffer is found, that can be
+;; displayed.
+;;
+;; input  : p-skip-current : t = force to skip current buffer, even if correct.
+;;          p-go-forward : t = go forward, nil = go backward.
+;; ----------------------------------------------------------------------------
+(defun eide-windows-skip-unwanted-buffers-in-window-file (p-skip-current p-go-forward)
+  (eide-windows-select-window-file nil)
+  (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-iteration 0))
+    ;; Temporarily disable switch-to-buffer advice : buffers must be displayed
+    ;; in window "file", until a correct one is found
+    (ad-deactivate 'switch-to-buffer)
+    ;;(eide-debug-print-trace (concat "l-current-buffer-name = " l-current-buffer-name))
+    (if p-skip-current
+      (progn
+        (if p-go-forward
+          (bs-cycle-previous)
+          (bs-cycle-next))
+        ;; To avoid list of buffers in minibuffer
+        (message "")
+        ;;(eide-debug-print-trace (concat "bs-cycle-xxx => " (buffer-name)))
+        (setq l-first-found-buffer-name (buffer-name)))
+      (setq l-first-found-buffer-name nil))
+    (while (and (not (eide-l-windows-should-buffer-be-displayed-in-window-file-p (buffer-name)))
+                l-should-we-continue
+                (< l-iteration 10))
+      (progn
+        (if p-go-forward
+          (bs-cycle-previous)
+          (bs-cycle-next))
+        ;; To avoid list of buffers in minibuffer
+        (message "")
+        ;;(eide-debug-print-trace (concat "bs-cycle-xxx => " (buffer-name)))
+        (if (and (= l-iteration 0) (not l-first-found-buffer-name))
+          (setq l-first-found-buffer-name (buffer-name))
+          (if (string-equal (buffer-name) l-first-found-buffer-name)
+            ;; We have parsed the whole buffer list without finding any other
+            ;; buffer that fits. Moreover, current buffer cannot be found again
+            ;; (because bs-cycle-xxx ignores temporary buffers), which means
+            ;; that it is not valid either. Let's display "*scratch*".
+            (progn
+              ;;(eide-debug-print-trace (concat "back to first found buffer = " (buffer-name)))
+              (switch-to-buffer "*scratch*")
+              ;;(eide-debug-print-trace (concat "force buffer *scratch* => " (buffer-name)))
+              )))
+        (if (string-equal (buffer-name) l-current-buffer-name)
+          (progn
+            ;; We have parsed the whole buffer list without finding any other
+            ;; buffer that fits. If this buffer is valid, let's keep it
+            ;; current. Otherwise, let's display "*scratch*".
+            ;;(eide-debug-print-trace (concat "back to current buffer = " (buffer-name)))
+            (setq l-should-we-continue nil)
+            (if (not (eide-l-windows-should-buffer-be-displayed-in-window-file-p (buffer-name)))
+              (progn
+                (switch-to-buffer "*scratch*")
+                ;;(eide-debug-print-trace (concat "force buffer *scratch* => " (buffer-name)))
+                ))))
+        (setq l-iteration (1+ l-iteration))))
+    (ad-activate 'switch-to-buffer)
+    ;; Update menu (switch-to-buffer advice was disabled)
+    (eide-menu-update nil)))
+
+;; ----------------------------------------------------------------------------
+;; Handle mouse-3 (right click) action.
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
+;;          eide-windows-menu-update-request-pending-flag : t = menu buffer
+;;              update is necessary.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-3 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-windows-internal-select-window-at-mouse-position)
+  (eide-l-windows-select-window-at-mouse-position)
 
+  (if (string-equal (buffer-name) "*Colors*")
+    (progn
+      ;; Close colors buffer and window
+      (kill-this-buffer)
+      (select-window (next-window))
+      (if (string-equal (buffer-name) eide-options-file)
+        (delete-other-windows))))
   (if (string-equal (buffer-name) "* Help *")
     ;; Close "help"
     (progn
       (kill-buffer "* Help *")
-      (eide-set-background-color-for-files)
-      (eide-key-bindings-configure-for-editor)
+      (eide-config-set-colors-for-files)
+      (eide-keys-configure-for-editor)
       (eide-windows-layout-build))
     (if (string-equal (buffer-name) eide-options-file)
       ;; Close ".emacs-ide.options"
       (progn
         (save-buffer)
-        (eide-custom-rebuild-options-file)
-        (eide-custom-apply-options)
-        (kill-buffer eide-options-file)
-        (eide-set-background-color-for-files)
-        (eide-key-bindings-configure-for-editor)
+        (eide-config-rebuild-options-file)
+        (eide-config-set-colors-for-files)
+        (eide-keys-configure-for-editor)
         (eide-windows-layout-build)
         ;; Toolbar might have been modified in options
-        (eide-toolbar-update))
+        (eide-toolbar-update)
+        ;; Close colors buffer if opened
+        (if (get-buffer "*Colors*")
+          (kill-buffer "*Colors*")))
       (if (string-equal (buffer-name) eide-project-file)
         ;; Display another buffer (other than ".emacs-ide.project")
         (progn
           (save-buffer)
-          (eide-custom-rebuild-project-file)
-          (eide-custom-apply-project-configuration)
+          (eide-config-rebuild-project-file)
           ;; This buffer must not be closed
           (switch-to-buffer eide-current-buffer)
-          (eide-set-background-color-for-files)
-          (eide-key-bindings-configure-for-editor)
+          (eide-config-set-colors-for-files)
+          (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
         (if (string-equal (buffer-name) eide-project-notes-file)
           ;; Close ".emacs-ide.project_notes"
           (progn
             (save-buffer)
             (kill-buffer eide-project-notes-file)
-            (eide-set-background-color-for-files)
-            (eide-key-bindings-configure-for-editor)
+            (eide-config-set-colors-for-files)
+            (eide-keys-configure-for-editor)
             (eide-windows-layout-build))
           (progn
-            ;; mark-active doesn't exist in xemacs
-            (if (and (not (featurep 'xemacs)) (eq mark-active t))
+            (if (eq mark-active t)
               ;; Text is selected
               (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
                 ;; Text is selected on a single line
@@ -569,10 +674,10 @@
                 (eide-popup-open-menu-for-cleaning))
               ;; No text selected
               (progn
-                (if (eide-windows-internal-is-window-results-selected-p)
+                (if (eide-l-windows-is-window-results-selected-p)
                   ;; Window "results" : open grep results popup menu
                   (eide-popup-open-menu-for-search-results)
-                  (if (eide-windows-internal-is-window-menu-selected-p)
+                  (if (eide-l-windows-is-window-menu-selected-p)
                     ;; Window "menu" : open project popup menu
                     (eide-popup-open-menu)
                     ;; Window "file"
@@ -589,78 +694,75 @@
                         (eide-windows-select-window-file t)))))))))))))
 
 ;; ----------------------------------------------------------------------------
-;; Handle mouse-2 action
+;; Handle mouse-2 (middle click) action.
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-2 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-windows-internal-select-window-at-mouse-position)
+  (eide-l-windows-select-window-at-mouse-position)
 
-  (if (and eide-windows-is-layout-visible-flag (eide-windows-internal-is-window-menu-selected-p))
+  (if (and eide-windows-is-layout-visible-flag (eide-l-windows-is-window-menu-selected-p))
     (eide-menu-speedbar-open)
     (yank)))
 
 ;; ----------------------------------------------------------------------------
-;; Handle control + mouse-4 action (wheel up)
+;; Handle control + mouse-4 (wheel up) action.
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-control-mouse-4 ()
   (interactive)
   (if eide-windows-is-layout-visible-flag
     (progn
       ;; Select the window where the mouse is
-      (eide-windows-internal-select-window-at-mouse-position)
-      (if (eide-windows-internal-is-window-menu-selected-p)
-        (eide-windows-internal-layout-resize-enlarge-menu)
-        (eide-windows-internal-layout-resize-up)))))
+      (eide-l-windows-select-window-at-mouse-position)
+      (if (eide-l-windows-is-window-menu-selected-p)
+        (eide-l-windows-layout-resize-enlarge-window-menu)
+        (eide-l-windows-layout-resize-enlarge-window-results)))))
 
 ;; ----------------------------------------------------------------------------
-;; Handle control + mouse-5 action (wheel down)
+;; Handle control + mouse-5 (wheel down) action.
+;;
+;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-control-mouse-5 ()
   (interactive)
   (if eide-windows-is-layout-visible-flag
     (progn
       ;; Select the window where the mouse is
-      (eide-windows-internal-select-window-at-mouse-position)
-      (if (eide-windows-internal-is-window-menu-selected-p)
-        (eide-windows-internal-layout-resize-shrink-menu)
-        (eide-windows-internal-layout-resize-down)))))
+      (eide-l-windows-select-window-at-mouse-position)
+      (if (eide-l-windows-is-window-menu-selected-p)
+        (eide-l-windows-layout-resize-shrink-window-menu)
+        (eide-l-windows-layout-resize-shrink-window-results)))))
 
 ;; ----------------------------------------------------------------------------
-;; Handle shift + mouse-4 action (wheel up)
-;; ----------------------------------------------------------------------------
-(defun eide-windows-handle-shift-mouse-4 ()
-  (interactive)
-  (if eide-windows-is-layout-visible-flag
-    (progn
-      ;; Select the window where the mouse is
-      (eide-windows-internal-select-window-at-mouse-position)
-      (if (eide-windows-internal-is-window-menu-selected-p)
-        (eide-windows-internal-layout-resize-enlarge-menu)
-        (eide-windows-internal-layout-resize-up)))))
-
-;; ----------------------------------------------------------------------------
-;; Handle shift + mouse-5 action (wheel down)
-;; ----------------------------------------------------------------------------
-(defun eide-windows-handle-shift-mouse-5 ()
-  (interactive)
-  (if eide-windows-is-layout-visible-flag
-    (progn
-      ;; Select the window where the mouse is
-      (eide-windows-internal-select-window-at-mouse-position)
-      (if (eide-windows-internal-is-window-menu-selected-p)
-        (eide-windows-internal-layout-resize-shrink-menu)
-        (eide-windows-internal-layout-resize-down)))))
-
-;; ----------------------------------------------------------------------------
-;; Handle shift-mouse-3 action
+;; Handle shift + mouse-3 (right click) action.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-shift-mouse-3 ()
   (interactive)
   ;; Select the window where the mouse is
-  (eide-windows-internal-select-window-at-mouse-position)
+  (eide-l-windows-select-window-at-mouse-position)
 
-  (if (eide-windows-internal-is-window-results-selected-p)
-    (eide-popup-open-menu-for-search-results-delete)))
+  (if (eide-l-windows-is-window-results-selected-p)
+    ;; In window "results", open popup menu to delete search results
+    (eide-popup-open-menu-for-search-results-delete)
+    ;; In options, show/hide list of colors
+    (if (string-equal (buffer-name) eide-options-file)
+      (if (get-buffer "*Colors*")
+        ;; Close colors buffer and window
+        (progn
+          (delete-other-windows)
+          (kill-buffer "*Colors*"))
+        ;; Display colors in another window
+        (list-colors-display))
+      (if (string-equal (buffer-name) "*Colors*")
+        ;; Close colors buffer and window
+        (progn
+          (kill-this-buffer)
+          (select-window (next-window))
+          (if (string-equal (buffer-name) eide-options-file)
+            (delete-other-windows)))))))
 
 ;;; eide-windows.el ends here
