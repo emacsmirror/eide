@@ -54,6 +54,7 @@ Information
 -------------------------------------------------------------------------------
 
 Programming language: Emacs Lisp
+(http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html)
 
 License: GPL (http://www.gnu.org/licenses/gpl.html)
 

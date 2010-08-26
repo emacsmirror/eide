@@ -55,6 +55,9 @@
 (defun eide-i-compare-ediff-quit-hook ()
   ;; Call default hook
   (ediff-cleanup-mess)
+  ;; Restore default hook
+  (setq ediff-quit-hook 'ediff-cleanup-mess)
+  (eide-i-compare-ediff-mode-stop)
   ;; Delete other windows, otherwise current line is not restored in
   ;; eide-compare-buffer-name, unless it is the same as eide-current-buffer
   ;; (and I don't know why !!)
@@ -66,9 +69,6 @@
   (switch-to-buffer eide-current-buffer)
   ;; Build windows layout
   (eide-windows-layout-build)
-  ;; Restore default hook
-  (setq ediff-quit-hook 'ediff-cleanup-mess)
-  (eide-i-compare-ediff-mode-stop)
   (kill-buffer eide-compare-other-buffer-name))
 
 ;; ----------------------------------------------------------------------------
