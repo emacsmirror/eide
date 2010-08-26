@@ -26,7 +26,7 @@
 ;;;; SETTINGS
 ;;;; ==========================================================================
 
-(defvar eide-version "1.4")
+(defvar eide-version "1.4+")
 (defvar eide-release-date "2010-07")
 
 (defvar eide-root-directory nil)
