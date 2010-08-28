@@ -2,7 +2,7 @@
 | Emacs-IDE |
 \-----------/
 
-Version 1.4+ - 2010-07
+Version 1.4+ - 2010-08
 
 Homepage: http://home.gna.org/emacs-ide/
 

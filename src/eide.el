@@ -27,7 +27,7 @@
 ;;;; ==========================================================================
 
 (defvar eide-version "1.4+")
-(defvar eide-release-date "2010-07")
+(defvar eide-release-date "2010-08")
 
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
@@ -354,7 +354,8 @@
 ;;;; SETTINGS FOR FUNDAMENTAL MAJOR MODE
 ;;;; ==========================================================================
 
-(setq-default indent-tabs-mode t)
+;; Default indentation: insert spaces instead of tabs
+(setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 
 ;;;; ==========================================================================
@@ -368,9 +369,8 @@
       ;; "_" should not be a word delimiter
       (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
-    (setq indent-tabs-mode nil) ; Indentation: insert spaces instead of tabs
-    (setq tab-width eide-c-indent-offset) ; Tab display: number of char for one tab (default value: 8)
-
+    ;; Indentation
+    (setq tab-width eide-c-indent-offset) ; Number of spaces for one tab
     (c-set-style "K&R") ; Indentation style
     (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
     (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
@@ -411,9 +411,8 @@
       ;; "_" should not be a word delimiter
       (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
-    (setq indent-tabs-mode nil) ; Indentation: insert spaces instead of tabs
-    (setq tab-width eide-c-indent-offset) ; Tab display: number of char for one tab (default value: 8)
-
+    ;; Indentation
+    (setq tab-width eide-c-indent-offset) ; Number of spaces for one tab
     (c-set-style "K&R") ; Indentation style
     (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
     (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
@@ -469,11 +468,9 @@
       ;; "-" should not be a word delimiter
       (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
 
-    ;; Indentation: insert spaces instead of tabs
-    (setq indent-tabs-mode nil)
+    ;; Indentation
     (setq tab-width 2)
     (setq lisp-body-indent 2)
-
     ;; Indentation after "if" (with default behaviour, the "then" statement is
     ;; more indented than the "else" statement)
     (put 'if 'lisp-indent-function 1)
@@ -494,8 +491,7 @@
 (add-hook
  'sgml-mode-hook
  '(lambda()
-    ;; Indentation: insert spaces instead of tabs
-    (setq indent-tabs-mode nil)
+    ;; Indentation
     (setq tab-width 2)
 
     ;; Show trailing spaces if enabled in options
@@ -509,8 +505,7 @@
 (add-hook
  'shell-mode-hook
  '(lambda()
-    ;; Indentation: insert spaces instead of tabs
-    (setq indent-tabs-mode nil)
+    ;; Indentation
     (setq tab-width 2)
 
     ;; Show trailing spaces if enabled in options
@@ -524,8 +519,7 @@
 (add-hook
  'perl-mode-hook
  '(lambda()
-    ;; Indentation: insert spaces instead of tabs
-    (setq indent-tabs-mode nil)
+    ;; Indentation
     (setq tab-width 2)
 
     ;; Show trailing spaces if enabled in options
@@ -543,8 +537,7 @@
       ;; "_" should not be a word delimiter
       (modify-syntax-entry ?_ "w" python-mode-syntax-table))
 
-    ;; Indentation: insert tabs
-    (setq indent-tabs-mode t)
+    ;; Indentation
     (setq tab-width 4)
     (setq python-indent 4)
 
