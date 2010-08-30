@@ -445,32 +445,30 @@
       (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
       (setq eide-windows-menu-update-request-pending-force-update-status-flag nil)
       ;; Save window to go back to, once menu has been updated
-      ;;(setq l-window (selected-window))
-      (eide-windows-select-window-file t)
-      ;; On Emacs 22 GTK: buffer-name does not return current but previous
-      ;; buffer !... The bug is fixed if window-buffer is used.
-      ;;(setq eide-current-buffer-temp (buffer-name))
-      (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
-      (if p-force-rebuild-flag
-        (progn
-          (eide-windows-select-window-menu)
-          (setq eide-current-buffer eide-current-buffer-temp)
-          (eide-i-menu-rebuild p-force-update-status-flag))
-        (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
+      (let ((l-window (selected-window)))
+        (eide-windows-select-window-file t)
+        ;; On Emacs 22 GTK: buffer-name does not return current but previous
+        ;; buffer!... The bug is fixed if window-buffer is used.
+        ;;(setq eide-current-buffer-temp (buffer-name))
+        (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
+        (if p-force-rebuild-flag
           (progn
             (eide-windows-select-window-menu)
-            (goto-char (point-min))
-            (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
-              ;; Old and new files are both present in menu: just update current buffer
-              (eide-i-menu-update-current-buffer eide-current-buffer-temp)
-              ;; File not present in menu: update whole menu
-              (progn
-                (setq eide-current-buffer eide-current-buffer-temp)
-                (eide-i-menu-rebuild nil))))))
-      ;; Go back to "current window"
-      ;; pose pb avec les grep (double-click milieu)
-      ;;(select-window l-window))
-      (eide-windows-select-window-file t))
+            (setq eide-current-buffer eide-current-buffer-temp)
+            (eide-i-menu-rebuild p-force-update-status-flag))
+          (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
+            (progn
+              (eide-windows-select-window-menu)
+              (goto-char (point-min))
+              (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
+                ;; Old and new files are both present in menu: just update current buffer
+                (eide-i-menu-update-current-buffer eide-current-buffer-temp)
+                ;; File not present in menu: update whole menu
+                (progn
+                  (setq eide-current-buffer eide-current-buffer-temp)
+                  (eide-i-menu-rebuild nil))))))
+        ;; Go back to "current window"
+        (select-window l-window)))
     (progn
       (setq eide-windows-menu-update-request-pending-flag t)
       ;; Force rebuild flag must not be changed if already set
@@ -795,18 +793,6 @@
 (defun eide-menu-is-file-in-directory-p (p-buffer-name p-directory-name)
   ;; Extract the "short" directory from the buffer file name
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
-
-;; ----------------------------------------------------------------------------
-;; Load a file without using advice (when "menu" buffer must not be updated).
-;;
-;; input  : p-file : filename.
-;; ----------------------------------------------------------------------------
-(defun eide-menu-find-file-without-advice (p-file)
-  ;; find-file advice would change eide-current-buffer
-  ;; and menu buffer would be updated with temp files
-  (ad-deactivate 'switch-to-buffer)
-  (find-file p-file)
-  (ad-activate 'switch-to-buffer))
 
 ;; ----------------------------------------------------------------------------
 ;; Revert current file from disk.

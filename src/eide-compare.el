@@ -102,7 +102,7 @@
       ;; mode)
       (push (cons "\\.ref\\'" major-mode) auto-mode-alist)
       (push (cons "\\.new\\'" major-mode) auto-mode-alist)
-      (eide-menu-find-file-without-advice p-other-buffer-filename)
+      (eide-windows-find-file-without-advice p-other-buffer-filename)
       ;; Restore auto-mode-alist
       (setq auto-mode-alist l-auto-mode-alist)
       ;; Turn hide/show mode off, because if emacs is closed before this
@@ -110,7 +110,7 @@
       ;; because default major mode is Fundamental
       (if hs-minor-mode
         (hs-minor-mode)))
-    (eide-menu-find-file-without-advice p-other-buffer-filename))
+    (eide-windows-find-file-without-advice p-other-buffer-filename))
 
   (setq eide-compare-other-buffer-name (concat p-other-buffer-name-prefix eide-compare-buffer-name))
   (rename-buffer eide-compare-other-buffer-name)

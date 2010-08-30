@@ -712,7 +712,7 @@
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
-  (eide-menu-find-file-without-advice (concat "~/" eide-options-file)))
+  (eide-windows-find-file-without-advice (concat "~/" eide-options-file)))
 
 ;; ----------------------------------------------------------------------------
 ;; Display project file (full frame).
@@ -723,7 +723,7 @@
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
-  (eide-menu-find-file-without-advice (concat eide-root-directory eide-project-file))
+  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-file))
   (goto-char (point-min)))
 
 ;; ----------------------------------------------------------------------------
@@ -735,7 +735,7 @@
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
-  (eide-menu-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
+  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
 
 ;; ----------------------------------------------------------------------------
 ;; Set colors for config buffer.

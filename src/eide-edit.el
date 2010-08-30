@@ -200,6 +200,8 @@
 ;;
 ;; input  : p-function : function to call when buffer is current.
 ;;          p-buffer-name : buffer name.
+;;          p-confirmation-message : string for confirmation message, nil if
+;;              confirmation is not required.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
   (if (or (not p-confirmation-message)
@@ -216,6 +218,8 @@
 ;;
 ;; input  : p-function : function to call when buffer is current.
 ;;          p-directory-name : directory name.
+;;          p-confirmation-message : string for confirmation message, nil if
+;;              confirmation is not required.
 ;;          eide-menu-files-list : list of opened files.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)

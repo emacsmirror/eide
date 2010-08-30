@@ -19,6 +19,11 @@
 
 (provide 'eide-windows)
 
+(defvar eide-windows-window-file nil)
+(defvar eide-windows-window-menu nil)
+(defvar eide-windows-window-results nil)
+(defvar eide-windows-window-completion nil)
+
 (defvar eide-windows-is-layout-visible-flag nil)
 (defvar eide-windows-menu-update-request-pending-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
@@ -99,11 +104,15 @@
           (progn
             (setq l-window (get-buffer-window l-buffer-name))
             (if (not l-window)
-              (progn
-                (select-window eide-windows-window-file)
-                (split-window-vertically)
-                (select-window (next-window))
-                (setq l-window (selected-window)))))
+              ;; When clicking on directories, completion buffer is closed,
+              ;; but its window is not closed: we must use it
+              (if (window-live-p eide-windows-window-completion)
+                (setq l-window eide-windows-window-completion)
+                (progn
+                  (select-window eide-windows-window-file)
+                  (split-window-vertically)
+                  (setq l-window (next-window))
+                  (setq eide-windows-window-completion l-window)))))
           (progn
             (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
             (if (not l-window)
@@ -140,6 +149,27 @@
     (select-window l-selected-window)
     ;; Return buffer window
     l-window))
+
+;; ----------------------------------------------------------------------------
+;; Override select-window function (advice), to know which window is the active
+;; window "file".
+;;
+;; input  : p-window : window.
+;; output : eide-windows-window-file : updated window "file".
+;; ----------------------------------------------------------------------------
+(defadvice select-window (after eide-select-window-advice-around (p-window))
+  (if (not (or (equal p-window eide-windows-window-file)
+               (equal p-window eide-windows-window-menu)
+               (equal p-window eide-windows-window-results)
+               ;; Exclude minibuffer
+               (window-minibuffer-p p-window)
+               ;; Exclude any temporary buffer ("*...")
+               (string-match "^\*.*" (buffer-name (window-buffer p-window)))))
+    (progn
+      (ad-deactivate 'select-window)
+      (setq eide-windows-window-file p-window)
+      (eide-menu-update nil)
+      (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
 ;; Override switch-to-buffer function (advice), to display buffer in
@@ -250,13 +280,6 @@
   (save-selected-window
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      (if (and (not (equal l-window eide-windows-window-file))
-               (not (equal l-window eide-windows-window-menu))
-               (not (equal l-window eide-windows-window-results))
-               (window-live-p eide-windows-window-file))
-        ;; A window has been "manually" created: let's consider it to be a
-        ;; source window
-        (setq l-window eide-windows-window-file))
       ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
       ;; in window "file", until a correct one is found
       (ad-deactivate 'switch-to-buffer)
@@ -264,8 +287,8 @@
         ad-do-it
         (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
-          (setq l-do-it-flag nil))))
-    (ad-activate 'switch-to-buffer))
+          (setq l-do-it-flag nil)))
+      (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
@@ -278,13 +301,6 @@
   (save-selected-window
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      (if (and (not (equal l-window eide-windows-window-file))
-               (not (equal l-window eide-windows-window-menu))
-               (not (equal l-window eide-windows-window-results))
-               (window-live-p eide-windows-window-file))
-        ;; A window has been "manually" created: let's consider it to be a
-        ;; source window
-        (setq l-window eide-windows-window-file))
       ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
       ;; in window "file", until a correct one is found
       (ad-deactivate 'switch-to-buffer)
@@ -292,8 +308,8 @@
         ad-do-it
         (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
-          (setq l-do-it-flag nil))))
-    (ad-activate 'switch-to-buffer))
+          (setq l-do-it-flag nil)))
+      (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
@@ -302,13 +318,6 @@
 ;; ----------------------------------------------------------------------------
 (defadvice previous-buffer (around eide-previous-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-    (if (and (not (equal l-window eide-windows-window-file))
-             (not (equal l-window eide-windows-window-menu))
-             (not (equal l-window eide-windows-window-results))
-             (window-live-p eide-windows-window-file))
-      ;; A window has been "manually" created: let's consider it to be a source
-      ;; window
-      (setq l-window eide-windows-window-file))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
@@ -316,8 +325,8 @@
       ad-do-it
       (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
               (string-equal (buffer-name) l-starting-from-buffer-name))
-        (setq l-do-it-flag nil))))
-  (ad-activate 'switch-to-buffer)
+        (setq l-do-it-flag nil)))
+    (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
@@ -326,13 +335,6 @@
 ;; ----------------------------------------------------------------------------
 (defadvice next-buffer (around eide-next-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-    (if (and (not (equal l-window eide-windows-window-file))
-             (not (equal l-window eide-windows-window-menu))
-             (not (equal l-window eide-windows-window-results))
-             (window-live-p eide-windows-window-file))
-      ;; A window has been "manually" created: let's consider it to be a source
-      ;; window
-      (setq l-window eide-windows-window-file))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in window "file", until a correct one is found
     (ad-deactivate 'switch-to-buffer)
@@ -340,8 +342,8 @@
       ad-do-it
       (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
               (string-equal (buffer-name) l-starting-from-buffer-name))
-        (setq l-do-it-flag nil))))
-  (ad-activate 'switch-to-buffer)
+        (setq l-do-it-flag nil)))
+    (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
@@ -376,6 +378,7 @@
   (setq eide-windows-results-window-height 9)
   (setq eide-windows-menu-window-width 40)
   (eide-windows-layout-build)
+  (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
   (if (fboundp 'previous-buffer)
@@ -455,6 +458,7 @@
 (defun eide-windows-layout-build ()
   (if (not eide-windows-is-layout-visible-flag)
     (progn
+      (ad-deactivate 'select-window)
       (delete-other-windows)
       ;; Make sure that current window is not dedicated
       (set-window-dedicated-p (selected-window) nil)
@@ -520,7 +524,8 @@
       (eide-windows-skip-unwanted-buffers-in-window-file)
       ;; Update menu if necessary
       (if eide-windows-menu-update-request-pending-flag
-        (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag)))))
+        (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag))
+      (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
 ;; Unbuild windows layout (keep only window "file").
@@ -535,6 +540,7 @@
 (defun eide-windows-layout-unbuild ()
   (if eide-windows-is-layout-visible-flag
     (progn
+      (ad-deactivate 'select-window)
       (if (and (window-live-p eide-windows-window-menu)
                (window-live-p eide-windows-window-results)
                (window-live-p eide-windows-window-file))
@@ -559,7 +565,8 @@
       (setq eide-windows-window-results nil)
       (setq eide-windows-window-file (selected-window))
       (setq eide-windows-is-layout-visible-flag nil)
-      (eide-windows-skip-unwanted-buffers-in-window-file))))
+      (eide-windows-skip-unwanted-buffers-in-window-file)
+      (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
 ;; Select window "file".
@@ -765,5 +772,17 @@
           (select-window (next-window))
           (if (string-equal (buffer-name) eide-options-file)
             (delete-other-windows)))))))
+
+;; ----------------------------------------------------------------------------
+;; Load a file without using advice (when "menu" buffer must not be updated).
+;;
+;; input  : p-file : filename.
+;; ----------------------------------------------------------------------------
+(defun eide-windows-find-file-without-advice (p-file)
+  ;; find-file advice would change eide-current-buffer
+  ;; and menu buffer would be updated with temp files
+  (ad-deactivate 'switch-to-buffer)
+  (find-file p-file)
+  (ad-activate 'switch-to-buffer))
 
 ;;; eide-windows.el ends here

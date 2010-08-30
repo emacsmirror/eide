@@ -73,8 +73,7 @@
   (interactive)
   (eide-windows-select-window-file nil)
   (call-interactively 'pop-tag-mark)
-  (eide-menu-update nil)
-  (eide-windows-select-window-file nil))
+  (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of a symbol.
@@ -131,8 +130,7 @@
   (interactive)
   (eide-windows-select-window-file nil)
   (cscope-pop-mark)
-  (eide-menu-update nil)
-  (eide-windows-select-window-file nil))
+  (eide-menu-update nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of symbol at cursor position.
