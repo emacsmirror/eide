@@ -155,9 +155,10 @@
 ;; window "file".
 ;;
 ;; input  : p-window : window.
+;;          p-norecord : norecord flag
 ;; output : eide-windows-window-file : updated window "file".
 ;; ----------------------------------------------------------------------------
-(defadvice select-window (after eide-select-window-advice-around (p-window))
+(defadvice select-window (after eide-select-window-advice-around (p-window &optional p-norecord))
   (if (not (or (equal p-window eide-windows-window-file)
                (equal p-window eide-windows-window-menu)
                (equal p-window eide-windows-window-results)

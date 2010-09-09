@@ -35,12 +35,14 @@
 ;; Start ediff mode.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-compare-ediff-mode-start ()
+  (ad-deactivate 'select-window)
   (eide-keys-configure-for-ediff))
 
 ;; ----------------------------------------------------------------------------
 ;; Stop ediff mode.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-compare-ediff-mode-stop ()
+  (ad-activate 'select-window)
   (eide-keys-configure-for-editor))
 
 ;; ----------------------------------------------------------------------------
@@ -61,8 +63,9 @@
   ;; Delete other windows, otherwise current line is not restored in
   ;; eide-compare-buffer-name, unless it is the same as eide-current-buffer
   ;; (and I don't know why !!)
-  (delete-other-windows)
+  ;;(delete-other-windows)
   ;; Restore cursor position in the buffer that has been compared
+  ;; TODO: Restoring cursor position does not work anymore
   (set-buffer eide-compare-buffer-name)
   (goto-line eide-compare-current-line)
   ;; Back to current buffer

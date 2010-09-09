@@ -27,7 +27,7 @@
 ;;;; ==========================================================================
 
 (defvar eide-version "1.4+")
-(defvar eide-release-date "2010-08")
+(defvar eide-release-date "2010-09")
 
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
