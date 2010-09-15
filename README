@@ -29,38 +29,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 Description
 -------------------------------------------------------------------------------
 
-Emacs-IDE is an IDE (Integrated Development Environment) interface for Emacs
+Emacs-IDE is an Integrated Development Environment (IDE) interface for Emacs
 (code browsing, compilation, debug...).
 
-The purpose is to provide a user-friendly IDE interface for Emacs, with
-dedicated windows (current file, menu with list of opened files,
-search/compilation output) and convenient shortcuts.
+The purpose is to provide a user-friendly interface, with dedicated windows
+(source, menu and output) and convenient shortcuts.
 
 It is suitable for almost all languages (as long as they are supported by
 Ctags). Cscope provides additional browsing facility for C/C++ files.
-
-Please note that Emacs-IDE does not stand as a package for Emacs. It should be
-considered as an IDE built on top of Emacs.
-A package is designed to be loaded from user configuration file. It is also
-supposed not to modify standard Emacs behaviour, but only add new features that
-can be enabled or disabled.
-Emacs-IDE takes the place of user configuration file. It intentionally changes
-Emacs behaviour - in order to manage display in dedicated windows - and
-redefines reserved keys - in order to provide a wide range of convenient
-shortcuts.
 
 -------------------------------------------------------------------------------
 Information
 -------------------------------------------------------------------------------
 
 Programming language: Emacs Lisp
-(http://www.gnu.org/software/emacs/manual/html_node/elisp/index.html)
-
-License: GPL (http://www.gnu.org/licenses/gpl.html)
-
-Dependencies: - Emacs (http://www.gnu.org/software/emacs/)
-              - Ctags (http://ctags.sourceforge.net/)
-              - Cscope (http://cscope.sourceforge.net/)
+License: GPL
+Dependencies: Emacs, Ctags, Cscope.
+Supported OS: GNU/Linux.
 
 -------------------------------------------------------------------------------
 Installation
