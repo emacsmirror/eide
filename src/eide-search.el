@@ -71,7 +71,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-back-from-tag ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (call-interactively 'pop-tag-mark)
   (eide-menu-update nil))
 
@@ -81,7 +81,7 @@
 ;; input  : p-string : symbol.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag (p-string)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (find-tag p-string)
   (recenter))
 
@@ -101,7 +101,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag-with-prompt ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (call-interactively 'find-tag)
   ;; Saving string is necessary for calling eide-search-find-alternate-tag
   ;; later on... but there is no completion !
@@ -118,7 +118,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-alternate-tag ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (call-interactively 'pop-tag-mark)
   (find-tag eide-search-tag-string t)
   (recenter))
@@ -128,7 +128,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-back-from-symbol-definition ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (cscope-pop-mark)
   (eide-menu-update nil))
 
@@ -144,7 +144,7 @@
   (cscope-find-global-definition-no-prompting)
   ;; Update menu because a new file may have been opened
   (eide-menu-update nil)
-  (eide-windows-select-window-file nil))
+  (eide-windows-select-source-window nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of a symbol (prompt for it).
@@ -154,7 +154,7 @@
 (defun eide-search-find-symbol-definition-with-prompt ()
   (interactive)
   (setq eide-search-cscope-string (find-tag-default))
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   ;; TODO: remplacer find-tag par la bonne commande cscope
   (call-interactively 'find-tag eide-search-cscope-string)
   (recenter))
@@ -165,7 +165,7 @@
 ;; input  : p-symbol : symbol.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (let ((l-result-buffer-name (concat "*cscope*: " p-symbol)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
@@ -181,7 +181,7 @@
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
       (eide-search-view-result-buffer l-result-buffer-name))
-    (eide-windows-select-window-file t)))
+    (eide-windows-select-source-window t)))
 
 ;; ----------------------------------------------------------------------------
 ;; Find a symbol (prompt for it).
@@ -216,7 +216,7 @@
 ;; input  : p-string : string.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local (p-string)
-  (eide-windows-select-window-file t)
+  (eide-windows-select-source-window t)
   (setq l-buffer-directory (file-name-directory (buffer-file-name)))
   (let ((l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
     (setq l-do-it-flag t)
@@ -236,7 +236,7 @@
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
       (eide-search-view-result-buffer l-result-buffer-name))
-    (eide-windows-select-window-file t)))
+    (eide-windows-select-source-window t)))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep word at cursor position, in current directory.
@@ -264,9 +264,9 @@
 ;;          eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global (p-string)
-  ;; On Emacs 22 GTK: it is necessary to select window "file", otherwise
-  ;; current result buffer will be reused if window "results" is selected.
-  (eide-windows-select-window-file t)
+  ;; On Emacs 22 GTK: it is necessary to select "source" window, otherwise
+  ;; current output buffer will be reused if "output" window is selected.
+  (eide-windows-select-source-window t)
   (let ((l-result-buffer-name (concat "*grep (global)*: " p-string)))
     (setq l-do-it-flag t)
     (if (get-buffer l-result-buffer-name)
@@ -287,7 +287,7 @@
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
       (eide-search-view-result-buffer l-result-buffer-name))
-    (eide-windows-select-window-file t)))
+    (eide-windows-select-source-window t)))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep word at cursor position, in the whole project.
@@ -313,9 +313,6 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-go-to-previous ()
   (interactive)
-  ;; Move to window "file" to make sure that the buffer won't be displayed
-  ;; in window "menu"
-  ;;(eide-windows-select-window-file nil)
   (previous-error)
   (if (not eide-windows-is-layout-visible-flag)
     ;; Close grep window (appears automatically with previous-error)
@@ -323,16 +320,13 @@
   (recenter)
   ;; Update menu because a new file may have been opened
   (eide-menu-update nil)
-  (eide-windows-select-window-file nil))
+  (eide-windows-select-source-window nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to next grep match (or compile error).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-go-to-next ()
   (interactive)
-  ;; Move to window "file" to make sure that the buffer won't be displayed
-  ;; in window "menu"
-  ;;(eide-windows-select-window-file nil)
   (next-error)
   (if (not eide-windows-is-layout-visible-flag)
     ;; Close grep window (appears automatically with next-error)
@@ -340,13 +334,13 @@
   (recenter)
   ;; Update menu because a new file may have been opened
   (eide-menu-update nil)
-  (eide-windows-select-window-file nil))
+  (eide-windows-select-source-window nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Display a result buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-view-result-buffer (p-result-buffer-name)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (switch-to-buffer p-result-buffer-name))
 
 ;; ----------------------------------------------------------------------------
@@ -357,7 +351,7 @@
 ;; output : eide-menu-grep-results-list : updated grep results list.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-grep-buffer (p-grep-buffer-name)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (kill-buffer p-grep-buffer-name)
     (setq eide-menu-grep-results-list (remove p-grep-buffer-name eide-menu-grep-results-list))
@@ -382,7 +376,7 @@
 ;; output : eide-menu-grep-results-list : updated grep results list (nil).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-grep-buffers ()
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (dolist (l-grep-buffer-name eide-menu-grep-results-list)
       (kill-buffer l-grep-buffer-name))
@@ -404,7 +398,7 @@
 ;; output : eide-menu-cscope-results-list : updated cscope results list.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-cscope-buffer (p-cscope-buffer-name)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (kill-buffer p-cscope-buffer-name)
     (setq eide-menu-cscope-results-list (remove p-cscope-buffer-name eide-menu-cscope-results-list))
@@ -429,7 +423,7 @@
 ;; output : eide-menu-cscope-results-list : updated cscope results list (nil).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-cscope-buffers ()
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (dolist (l-cscope-buffer-name eide-menu-cscope-results-list)
       (kill-buffer l-cscope-buffer-name))

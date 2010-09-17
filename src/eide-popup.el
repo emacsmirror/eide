@@ -212,7 +212,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-directory ()
   (interactive)
-  (eide-windows-select-window-menu)
+  (eide-windows-select-menu-window)
   (move-to-window-line (cdr (last (mouse-position))))
 
   (let ((l-directory-name-in-title (eide-menu-get-directory-name-on-current-line)) (l-directory-name nil))
@@ -276,7 +276,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-file ()
   (interactive)
-  (eide-windows-select-window-menu)
+  (eide-windows-select-menu-window)
   (move-to-window-line (cdr (last (mouse-position))))
 
   (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
@@ -350,7 +350,7 @@
   (eide-i-popup-menu-open l-buffer))
 
 ;; ----------------------------------------------------------------------------
-;; Open a popup menu to select a buffer to display in window "results".
+;; Open a popup menu to select a buffer to display in "output" window.
 ;;
 ;; input  : eide-menu-grep-results-list : list of grep results.
 ;;          eide-menu-cscope-results-list : list of cscope results.

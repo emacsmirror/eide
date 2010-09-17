@@ -95,7 +95,7 @@
 ;; Display the list of possible symbols (in another window)
 (global-set-key [S-tab] 'dabbrev-completion)
 
-;; Override find-file, to get default directory from window "file"
+;; Override find-file, to get default directory from "source" window
 (global-set-key "\C-x\C-f" 'eide-windows-find-file)
 
 ;;;; ==========================================================================

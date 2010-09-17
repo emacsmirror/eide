@@ -76,7 +76,7 @@ With default options, windows layout should look like this:
   -----------------------------------------------------------
   |                                         |               |
   |                                         |               |
-  |       Window 'file'                     | Window 'menu' |
+  |       'source' window                   | 'menu' window |
   |                                         |               |
   |                                         |               |
   |                                         |               |
@@ -87,7 +87,7 @@ With default options, windows layout should look like this:
   |                                         |               |
   -----------------------------------------------------------
   |                                                         |
-  |               Window 'results'                          |
+  |               'output' window                           |
   |                                                         |
   -----------------------------------------------------------
 
@@ -103,10 +103,10 @@ You can modify the layout in options.
   (insert "
 Right click behaviour depends on mouse position:
 
-In window 'file':
+In 'source' window:
     Hide/show other windows (to view code full screen).
 
-In window 'menu':
+In 'menu' window:
     Open project popup menu:
     - project creation/configuration
     - project commands (compile, run, debug)
@@ -114,18 +114,18 @@ In window 'menu':
     - help (this page)
     - Emacs-IDE update checking (if Emacs-IDE is under svn)
 
-In window 'menu', over a file name:
+In 'menu' window, over a file name:
     Open file popup menu (see 'Actions on files' below).
 
-In window 'menu', over a directory name:
+In 'menu' window, over a directory name:
     Open directory popup menu (see 'Actions on directories' below).
 
-In window 'results':
+In 'output' window:
     Open results popup menu (to display existing 'grep' or 'cscope' result).
 
 Shift + right click behaviour depends on mouse position:
 
-In window 'results':
+In 'output' window:
     Open results deletion popup menu (to delete existing 'grep' or 'cscope'
     result).
 ")
@@ -143,10 +143,10 @@ If text is selected over several lines:
   (eide-i-help-insert-header-2 "Left / right click on mode-line file name")
 
   (insert "
-On window 'file' mode-line:
+On 'source' window mode-line:
     Switch to previous / next file.
 
-On window 'results' mode-line:
+On 'output' window mode-line:
     Switch to previous / next result buffer.
 ")
 
@@ -155,7 +155,7 @@ On window 'results' mode-line:
   (insert "
 Middle click behaviour depends on mouse position:
 
-In window 'menu':
+In 'menu' window:
     Display file browser (to open a file).
 
 In other windows:
@@ -396,7 +396,7 @@ available from the keyboard, but only from project popup menu.
   -----------------------------------------------------------
   |                             |                           |
   |                             |                           |
-  |     Window 'file A'         |     Window 'file B'       |
+  |     'file A' window         |     'file B' window       |
   |                             |                           |
   |                             |                           |
   |                             |                           |
@@ -410,12 +410,12 @@ available from the keyboard, but only from project popup menu.
   |                             |                           |
   |                             |                           |
   -----------------------------------------------------------
-  |                     Window 'control'                    |
+  |                     'control' window                    |
   -----------------------------------------------------------
 ")
   (eide-i-help-insert-header-1 "Standard key bindings in diff session")
   (insert "
-These commands must be typed in window 'control':
+These commands must be typed in 'control' window:
 
 ! ..................... update diffs
 <backspace> ........... go to previous diff

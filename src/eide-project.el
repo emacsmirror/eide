@@ -87,7 +87,7 @@
 ;; output : eide-windows-update-result-buffer-id : "c" for "compile".
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-compile (p-parameter)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
@@ -98,7 +98,7 @@
     (setq eide-windows-update-result-buffer-id "c")
     (compile l-compile-command))
   (end-of-buffer)
-  (eide-windows-select-window-file t))
+  (eide-windows-select-source-window t))
 
 ;; ----------------------------------------------------------------------------
 ;; Run project.
@@ -109,7 +109,7 @@
 ;; output : eide-windows-update-result-buffer-id : "r" for "run".
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-run (p-parameter)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
@@ -129,7 +129,7 @@
 ;;          eide-root-directory : project root directory.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-debug (p-program)
-  (eide-windows-select-window-results)
+  (eide-windows-select-output-window)
   ;; sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer !
   (switch-to-buffer "*results*")
@@ -151,7 +151,7 @@
 (defun eide-project-create ()
   (if (eide-popup-question-yes-or-no-p (concat "Create project in " eide-root-directory " ?"))
     (progn
-      (eide-windows-select-window-file t)
+      (eide-windows-select-source-window t)
       ;; Create empty project file
       (shell-command (concat "touch " eide-root-directory eide-project-file))
       (eide-project-start-with-project)

@@ -19,9 +19,9 @@
 
 (provide 'eide-windows)
 
-(defvar eide-windows-window-file nil)
-(defvar eide-windows-window-menu nil)
-(defvar eide-windows-window-results nil)
+(defvar eide-windows-source-window nil)
+(defvar eide-windows-menu-window nil)
+(defvar eide-windows-output-window nil)
 (defvar eide-windows-window-completion nil)
 
 (defvar eide-windows-is-layout-visible-flag nil)
@@ -29,7 +29,7 @@
 (defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-update-status-flag nil)
 
-(defvar eide-windows-buffer-in-window-results nil)
+(defvar eide-windows-output-window-buffer nil)
 (defvar eide-compilation-buffer nil)
 (defvar eide-execution-buffer nil)
 (defvar eide-shell-buffer nil)
@@ -51,9 +51,9 @@
     (if (string-match "^\*.*" p-buffer-name)
       (if eide-windows-is-layout-visible-flag
         (if (string-equal eide-menu-buffer-name p-buffer-name)
-          eide-windows-window-menu
-          eide-windows-window-results)
-        ;; Layout is not built => windows "menu" and "results" don't exist
+          eide-windows-menu-window
+          eide-windows-output-window)
+        ;; Layout is not built => "menu" and "output" windows don't exist
         nil)
       (save-excursion
         (set-buffer p-buffer-name)
@@ -65,7 +65,7 @@
                   (string-equal eide-project-file p-buffer-name)
                   (string-equal eide-project-notes-file p-buffer-name))
             nil
-            eide-windows-window-file))))
+            eide-windows-source-window))))
     nil))
 
 ;; ----------------------------------------------------------------------------
@@ -109,7 +109,7 @@
               (if (window-live-p eide-windows-window-completion)
                 (setq l-window eide-windows-window-completion)
                 (progn
-                  (select-window eide-windows-window-file)
+                  (select-window eide-windows-source-window)
                   (split-window-vertically)
                   (setq l-window (next-window))
                   (setq eide-windows-window-completion l-window)))))
@@ -128,7 +128,7 @@
                 (if (string-equal eide-windows-update-result-buffer-id "s")
                   (setq eide-shell-buffer l-buffer-name))))
             (setq eide-windows-update-result-buffer-id nil)))
-        (if (equal l-window eide-windows-window-file)
+        (if (equal l-window eide-windows-source-window)
           (progn
             (if (and eide-menu-browsing-mode-flag
                      (not (equal major-mode 'dired-mode))
@@ -139,7 +139,7 @@
         (if (string-equal l-buffer-name "*Completions*")
           (progn
             (select-window l-window)
-            ;; Window "results" temporarily expands to half or 2/3 of the frame to
+            ;; "Output" window temporarily expands to half or 2/3 of the frame to
             ;; display completions
             (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
               (if (> l-completion-height (/ (frame-height) 2))
@@ -152,23 +152,23 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Override select-window function (advice), to know which window is the active
-;; window "file".
+;; "source" window.
 ;;
 ;; input  : p-window : window.
 ;;          p-norecord : norecord flag
-;; output : eide-windows-window-file : updated window "file".
+;; output : eide-windows-source-window : updated "source" window.
 ;; ----------------------------------------------------------------------------
 (defadvice select-window (after eide-select-window-advice-around (p-window &optional p-norecord))
-  (if (not (or (equal p-window eide-windows-window-file)
-               (equal p-window eide-windows-window-menu)
-               (equal p-window eide-windows-window-results)
+  (if (not (or (equal p-window eide-windows-source-window)
+               (equal p-window eide-windows-menu-window)
+               (equal p-window eide-windows-output-window)
                ;; Exclude minibuffer
                (window-minibuffer-p p-window)
                ;; Exclude any temporary buffer ("*...")
                (string-match "^\*.*" (buffer-name (window-buffer p-window)))))
     (progn
       (ad-deactivate 'select-window)
-      (setq eide-windows-window-file p-window)
+      (setq eide-windows-source-window p-window)
       (eide-menu-update nil)
       (ad-activate 'select-window))))
 
@@ -230,7 +230,7 @@
                       (progn
                         (recenter)
                         (setq eide-search-find-symbol-definition-flag nil)))
-                    (if (equal l-window eide-windows-window-file)
+                    (if (equal l-window eide-windows-source-window)
                       (progn
                         (if (and eide-menu-browsing-mode-flag
                                  (not (equal major-mode 'dired-mode))
@@ -251,22 +251,22 @@
                     (current-buffer)))))))))))
 
 ;; ----------------------------------------------------------------------------
-;; Override C-x C-f find-file, to get default directory from buffer in window
-;; "file".
+;; Override C-x C-f find-file, to get default directory from buffer in "source"
+;; window.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-find-file ()
   (interactive)
   (if eide-keys-is-editor-configuration-active-flag
     (progn
-      (eide-windows-select-window-file nil)
+      (eide-windows-select-source-window nil)
       (call-interactively 'find-file))))
 
 ;; ----------------------------------------------------------------------------
-;; Override save-buffer function (advice), to save buffer in window "file".
+;; Override save-buffer function (advice), to save buffer in "source" window.
 ;; ----------------------------------------------------------------------------
 (defadvice save-buffer (around eide-save-buffer-advice-around)
   (let ((l-window (selected-window)))
-    (eide-windows-select-window-file nil)
+    (eide-windows-select-source-window nil)
     ad-do-it
     (eide-menu-update-current-buffer-modified-status)
     (select-window l-window)))
@@ -282,7 +282,7 @@
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
       ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-      ;; in window "file", until a correct one is found
+      ;; in "source" window, until a correct one is found
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
@@ -303,7 +303,7 @@
     (select-window (posn-window (event-start p-event)))
     (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
       ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-      ;; in window "file", until a correct one is found
+      ;; in "source" window, until a correct one is found
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
@@ -320,7 +320,7 @@
 (defadvice previous-buffer (around eide-previous-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-    ;; in window "file", until a correct one is found
+    ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
@@ -337,7 +337,7 @@
 (defadvice next-buffer (around eide-next-buffer-advice-around)
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-    ;; in window "file", until a correct one is found
+    ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
@@ -364,11 +364,11 @@
 ;; ----------------------------------------------------------------------------
 ;; Hook to be called once the frame has been resized.
 ;;
-;; output : eide-windows-results-window-height : height of window "results".
-;;          eide-windows-menu-window-width : width of window "menu".
+;; output : eide-windows-output-window-height : height of "output" window.
+;;          eide-windows-menu-window-width : width of "menu" window.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-windows-window-setup-hook ()
-  ;;(setq eide-windows-results-window-height (/ (frame-height) 5))
+  ;;(setq eide-windows-output-window-height (/ (frame-height) 5))
   ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 
   ;; Close buffer "*Buffer List*" (created when emacs is launched with files as
@@ -376,7 +376,7 @@
   (if (string-equal (buffer-name) "*Buffer List*")
     (kill-this-buffer))
 
-  (setq eide-windows-results-window-height 9)
+  (setq eide-windows-output-window-height 9)
   (setq eide-windows-menu-window-width 40)
   (eide-windows-layout-build)
   (ad-activate 'select-window)
@@ -396,7 +396,7 @@
   (ad-activate 'gdb-setup-windows)
   (ad-activate 'gdb-restore-windows)
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)
-  (eide-windows-skip-unwanted-buffers-in-window-file)
+  (eide-windows-skip-unwanted-buffers-in-source-window)
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t))
 
@@ -409,28 +409,28 @@
     (select-window (window-at (car l-position) (cdr l-position)))))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is window "file".
+;; Test if selected window is "source" window.
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-windows-is-window-file-selected-p ()
-  (equal (selected-window) eide-windows-window-file))
+(defun eide-i-windows-is-source-window-selected-p ()
+  (equal (selected-window) eide-windows-source-window))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is window "menu".
+;; Test if selected window is "menu" window.
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-windows-is-window-menu-selected-p ()
-  (equal (selected-window) eide-windows-window-menu))
+(defun eide-i-windows-is-menu-window-selected-p ()
+  (equal (selected-window) eide-windows-menu-window))
 
 ;; ----------------------------------------------------------------------------
-;; Test if selected window is window "results".
+;; Test if selected window is "output" window.
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-windows-is-window-results-selected-p ()
-  (equal (selected-window) eide-windows-window-results))
+(defun eide-i-windows-is-output-window-selected-p ()
+  (equal (selected-window) eide-windows-output-window))
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -448,12 +448,12 @@
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;;          eide-config-menu-position : menu position (windows layout).
 ;;          eide-config-menu-height : menu height (windows layout).
-;;          eide-windows-menu-window-width : width of window "menu".
-;;          eide-windows-results-window-height : height of window "results".
-;;          eide-windows-buffer-in-window-results : buffer in window "results".
-;; output : eide-windows-window-file : window "file".
-;;          eide-windows-window-menu : window "menu".
-;;          eide-windows-window-results : window "results".
+;;          eide-windows-menu-window-width : width of "menu" window.
+;;          eide-windows-output-window-height : height of "output" window.
+;;          eide-windows-output-window-buffer : buffer in "output" window.
+;; output : eide-windows-source-window : "source" window.
+;;          eide-windows-menu-window : "menu" window.
+;;          eide-windows-output-window : "output" window.
 ;;          eide-windows-is-layout-visible-flag : t (windows layout is shown).
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-layout-build ()
@@ -463,78 +463,78 @@
       (delete-other-windows)
       ;; Make sure that current window is not dedicated
       (set-window-dedicated-p (selected-window) nil)
-      ;; Split into 3 windows ("file", "menu", "results")
+      ;; Split into 3 windows ("source", "menu", "output")
       (if (string-equal eide-config-menu-height "full")
         (progn
           (split-window-horizontally)
           (if (string-equal eide-config-menu-position "left")
             ;; Menu on left side
             (progn
-              (setq eide-windows-window-menu (selected-window))
+              (setq eide-windows-menu-window (selected-window))
               (select-window (next-window))
               (split-window-vertically)
-              (setq eide-windows-window-file (selected-window))
+              (setq eide-windows-source-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-results (selected-window)))
+              (setq eide-windows-output-window (selected-window)))
             ;; Menu on right side
             (progn
               (split-window-vertically)
-              (setq eide-windows-window-file (selected-window))
+              (setq eide-windows-source-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-results (selected-window))
+              (setq eide-windows-output-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-menu (selected-window)))))
+              (setq eide-windows-menu-window (selected-window)))))
         (progn
           (split-window-vertically)
           (split-window-horizontally)
           (if (string-equal eide-config-menu-position "left")
             ;; Menu on left side
             (progn
-              (setq eide-windows-window-menu (selected-window))
+              (setq eide-windows-menu-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-file (selected-window))
+              (setq eide-windows-source-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-results (selected-window)))
+              (setq eide-windows-output-window (selected-window)))
             ;; Menu on right side
             (progn
-              (setq eide-windows-window-file (selected-window))
+              (setq eide-windows-source-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-menu (selected-window))
+              (setq eide-windows-menu-window (selected-window))
               (select-window (next-window))
-              (setq eide-windows-window-results (selected-window))))))
+              (setq eide-windows-output-window (selected-window))))))
 
-      ;; Window "menu"
-      (select-window eide-windows-window-menu)
+      ;; "Menu" window
+      (select-window eide-windows-menu-window)
       (switch-to-buffer eide-menu-buffer-name)
       ;; This window should be used for this buffer only
-      (set-window-dedicated-p eide-windows-window-menu t)
+      (set-window-dedicated-p eide-windows-menu-window t)
       ;;(setq window-min-width 1) ; TODO: sans effet ?
       (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
 
-      ;; Window "results"
-      (select-window eide-windows-window-results)
+      ;; "Output" window
+      (select-window eide-windows-output-window)
       (setq window-min-height 2)
-      (enlarge-window (- eide-windows-results-window-height (window-height)))
+      (enlarge-window (- eide-windows-output-window-height (window-height)))
       (switch-to-buffer (get-buffer-create "*results*"))
-      (if eide-windows-buffer-in-window-results
-        (switch-to-buffer eide-windows-buffer-in-window-results)
-        (setq eide-windows-buffer-in-window-results "*results*"))
+      (if eide-windows-output-window-buffer
+        (switch-to-buffer eide-windows-output-window-buffer)
+        (setq eide-windows-output-window-buffer "*results*"))
 
-      (select-window eide-windows-window-file)
+      (select-window eide-windows-source-window)
       (setq eide-windows-is-layout-visible-flag t)
-      (eide-windows-skip-unwanted-buffers-in-window-file)
+      (eide-windows-skip-unwanted-buffers-in-source-window)
       ;; Update menu if necessary
       (if eide-windows-menu-update-request-pending-flag
         (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag))
       (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
-;; Unbuild windows layout (keep only window "file").
+;; Unbuild windows layout (keep only "source" window).
 ;;
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; output : eide-windows-menu-window-width : width of window "menu".
-;;          eide-windows-results-window-height : height of window "results".
-;;          eide-windows-buffer-in-window-results : buffer in window "results".
+;; output : eide-windows-menu-window-width : width of "menu" window.
+;;          eide-windows-output-window-height : height of "output" window.
+;;          eide-windows-output-window-buffer : buffer in "output" window.
 ;;          eide-windows-is-layout-visible-flag : nil (windows layout is
 ;;              hidden).
 ;; ----------------------------------------------------------------------------
@@ -542,78 +542,78 @@
   (if eide-windows-is-layout-visible-flag
     (progn
       (ad-deactivate 'select-window)
-      (if (and (window-live-p eide-windows-window-menu)
-               (window-live-p eide-windows-window-results)
-               (window-live-p eide-windows-window-file))
+      (if (and (window-live-p eide-windows-menu-window)
+               (window-live-p eide-windows-output-window)
+               (window-live-p eide-windows-source-window))
         ;; Remember windows positions only if the layout is complete
         (progn
-          ;; Remember window "menu" width
-          (eide-windows-select-window-menu)
+          ;; Remember "menu" window width
+          (eide-windows-select-menu-window)
           (setq eide-windows-menu-window-width (window-width))
-          ;; Remember window "results" height
-          (eide-windows-select-window-results)
-          (setq eide-windows-results-window-height (window-height))
-          ;; Remember which result buffer is displayed in window "results"
-          (setq eide-windows-buffer-in-window-results (buffer-name))))
-      (if (window-live-p eide-windows-window-file)
-        ;; Keep only window "file"
-        (eide-windows-select-window-file t))
+          ;; Remember "output" window height
+          (eide-windows-select-output-window)
+          (setq eide-windows-output-window-height (window-height))
+          ;; Remember which result buffer is displayed in "output" window
+          (setq eide-windows-output-window-buffer (buffer-name))))
+      (if (window-live-p eide-windows-source-window)
+        ;; Keep only "source" window
+        (eide-windows-select-source-window t))
       (delete-other-windows)
       ;; Make sure that current window is not dedicated
       (set-window-dedicated-p (selected-window) nil)
-      ;; Current window becomes - if not already - window "file"
-      (setq eide-windows-window-menu nil)
-      (setq eide-windows-window-results nil)
-      (setq eide-windows-window-file (selected-window))
+      ;; Current window becomes - if not already - "source" window
+      (setq eide-windows-menu-window nil)
+      (setq eide-windows-output-window nil)
+      (setq eide-windows-source-window (selected-window))
       (setq eide-windows-is-layout-visible-flag nil)
-      (eide-windows-skip-unwanted-buffers-in-window-file)
+      (eide-windows-skip-unwanted-buffers-in-source-window)
       (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
-;; Select window "file".
+;; Select "source" window.
 ;;
 ;; input  : p-force-build-flag : t = build windows layout if not visible.
 ;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-file (p-force-build-flag)
+(defun eide-windows-select-source-window (p-force-build-flag)
   (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
     (progn
       (if (not eide-windows-is-layout-visible-flag)
         (eide-windows-layout-build))
-      (select-window eide-windows-window-file))))
+      (select-window eide-windows-source-window))))
 
 ;; ----------------------------------------------------------------------------
-;; Select window "menu" (build windows layout if necessary).
+;; Select "menu" window (build windows layout if necessary).
 ;;
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-menu ()
+(defun eide-windows-select-menu-window ()
   (if (not eide-windows-is-layout-visible-flag)
     (eide-windows-layout-build))
-  (select-window eide-windows-window-menu))
+  (select-window eide-windows-menu-window))
 
 ;; ----------------------------------------------------------------------------
-;; Select window "results" (build windows layout if necessary).
+;; Select "output" window (build windows layout if necessary).
 ;;
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-select-window-results ()
+(defun eide-windows-select-output-window ()
   (if (not eide-windows-is-layout-visible-flag)
     (eide-windows-layout-build))
-  (select-window eide-windows-window-results))
+  (select-window eide-windows-output-window))
 
 ;; ----------------------------------------------------------------------------
 ;; Parse buffers list until an appropriate buffer is found, that can be
 ;; displayed. Current buffer is kept if correct.
 ;; ----------------------------------------------------------------------------
-(defun eide-windows-skip-unwanted-buffers-in-window-file ()
-  (eide-windows-select-window-file nil)
+(defun eide-windows-skip-unwanted-buffers-in-source-window ()
+  (eide-windows-select-source-window nil)
   (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-iteration 0))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-    ;; in window "file", until a correct one is found
+    ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
     (setq l-first-found-buffer-name nil)
-    (while (and (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
+    (while (and (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
                 l-should-we-continue
                 (< l-iteration 30))
       (progn
@@ -632,7 +632,7 @@
             ;; buffer that fits. If this buffer is valid, let's keep it
             ;; current. Otherwise, let's display "*scratch*".
             (setq l-should-we-continue nil)
-            (if (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-window-file))
+            (if (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
               (switch-to-buffer "*scratch*"))))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
@@ -711,17 +711,17 @@
                     ;; the three windows is not visible, first unbuild, to
                     ;; force rebuild
                     (if (and eide-windows-is-layout-visible-flag
-                             (or (not (window-live-p eide-windows-window-menu))
-                                 (not (window-live-p eide-windows-window-results))
-                                 (not (window-live-p eide-windows-window-file))))
+                             (or (not (window-live-p eide-windows-menu-window))
+                                 (not (window-live-p eide-windows-output-window))
+                                 (not (window-live-p eide-windows-source-window))))
                       (eide-windows-layout-unbuild))
-                    (if (eide-i-windows-is-window-results-selected-p)
-                      ;; Window "results": open grep results popup menu
+                    (if (eide-i-windows-is-output-window-selected-p)
+                      ;; "Output" window: open search results popup menu
                       (eide-popup-open-menu-for-search-results)
-                      (if (eide-i-windows-is-window-menu-selected-p)
-                        ;; Window "menu": open project popup menu
+                      (if (eide-i-windows-is-menu-window-selected-p)
+                        ;; "Menu" window: open project popup menu
                         (eide-popup-open-menu)
-                        ;; Window "file"
+                        ;; "Source" window
                         (if eide-windows-is-layout-visible-flag
                           ;; Hide
                           (eide-windows-layout-unbuild)
@@ -742,7 +742,7 @@
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
 
-  (if (and eide-windows-is-layout-visible-flag (eide-i-windows-is-window-menu-selected-p))
+  (if (and eide-windows-is-layout-visible-flag (eide-i-windows-is-menu-window-selected-p))
     (eide-menu-dired-open)
     (yank)))
 
@@ -754,8 +754,8 @@
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
 
-  (if (eide-i-windows-is-window-results-selected-p)
-    ;; In window "results", open popup menu to delete search results
+  (if (eide-i-windows-is-output-window-selected-p)
+    ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)
     ;; In options, show/hide list of colors
     (if (string-equal (buffer-name) eide-options-file)

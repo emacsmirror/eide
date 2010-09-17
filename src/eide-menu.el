@@ -327,7 +327,7 @@
     (if eide-menu-files-list
       (eide-i-menu-insert-all-files))
 
-    ;; 80 blank lines, so that window "menu" seems to have specific background
+    ;; 80 blank lines, so that "menu" window seems to have specific background
     (setq l-loop-count 0)
     (save-excursion
       (while (< l-loop-count 80)
@@ -347,7 +347,7 @@
   (interactive)
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line)))
     (eide-i-menu-update-current-buffer l-buffer)
-    (eide-windows-select-window-file t)
+    (eide-windows-select-source-window t)
     (switch-to-buffer l-buffer)))
 
 ;; ----------------------------------------------------------------------------
@@ -404,7 +404,7 @@
   (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
 
   (eide-i-menu-update-current-buffer l-buffer)
-  (eide-windows-select-window-file t)
+  (eide-windows-select-source-window t)
   (switch-to-buffer l-buffer)
 
   (goto-char (marker-position (cdr (nth l-function-index (imenu--generic-function imenu-generic-expression)))))
@@ -446,19 +446,19 @@
       (setq eide-windows-menu-update-request-pending-force-update-status-flag nil)
       ;; Save window to go back to, once menu has been updated
       (let ((l-window (selected-window)))
-        (eide-windows-select-window-file t)
+        (eide-windows-select-source-window t)
         ;; On Emacs 22 GTK: buffer-name does not return current but previous
         ;; buffer!... The bug is fixed if window-buffer is used.
         ;;(setq eide-current-buffer-temp (buffer-name))
         (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
         (if p-force-rebuild-flag
           (progn
-            (eide-windows-select-window-menu)
+            (eide-windows-select-menu-window)
             (setq eide-current-buffer eide-current-buffer-temp)
             (eide-i-menu-rebuild p-force-update-status-flag))
           (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
             (progn
-              (eide-windows-select-window-menu)
+              (eide-windows-select-menu-window)
               (goto-char (point-min))
               (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
                 ;; Old and new files are both present in menu: just update current buffer
@@ -604,7 +604,7 @@
         (if (string-equal p-buffer-name eide-current-buffer)
           (progn
             ;; Current buffer has been closed: display another one
-            (eide-windows-skip-unwanted-buffers-in-window-file)
+            (eide-windows-skip-unwanted-buffers-in-source-window)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t))
           (progn
@@ -657,7 +657,7 @@
           (eide-i-menu-remove-directory)
           (progn
             ;; Current buffer has been closed: display another one
-            (eide-windows-skip-unwanted-buffers-in-window-file)
+            (eide-windows-skip-unwanted-buffers-in-source-window)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t)))))))
 
@@ -700,7 +700,7 @@
       (progn
         (make-local-variable 'eide-menu-local-svn-modified-status-flag)
         (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))
-  (eide-windows-select-window-menu)
+  (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
   (forward-line -1)
@@ -710,11 +710,11 @@
     (eide-i-menu-insert-file p-buffer-name))
   ;; Move one line forward, to restore expected position.
   (forward-line)
-  ;; Select window "file"
+  ;; Select "source" window
   ;; After operation on a file, user might be interested in editing this file.
   ;; If he wants to make other operations on files, he doesn't need window
   ;; "menu" to be selected anyway.
-  (eide-windows-select-window-file t))
+  (eide-windows-select-source-window t))
 
 ;; ----------------------------------------------------------------------------
 ;; Prepare update of a directory in "menu" buffer.
@@ -763,7 +763,7 @@
           (progn
             (make-local-variable 'eide-menu-local-svn-modified-status-flag)
             (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))))
-  (eide-windows-select-window-menu)
+  (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
   (forward-line -1)
@@ -777,11 +777,11 @@
       (eide-i-menu-insert-directory l-directory-full-name)))
   ;; Move one line forward, to restore expected position.
   (forward-line)
-  ;; Select window "file"
+  ;; Select "source" window
   ;; After operation on a file, user might be interested in editing this file.
   ;; If he wants to make other operations on files, he doesn't need window
   ;; "menu" to be selected anyway.
-  (eide-windows-select-window-file t))
+  (eide-windows-select-source-window t))
 
 ;; ----------------------------------------------------------------------------
 ;; Load a file without using advice (when "menu" buffer must not be updated).
@@ -799,7 +799,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-revert-buffer ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
         (l-functions-with-highlight eide-menu-local-highlighted-functions-list))
     (revert-buffer)
@@ -828,15 +828,15 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-kill-buffer ()
   (interactive)
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (kill-this-buffer)
-  (eide-windows-skip-unwanted-buffers-in-window-file))
+  (eide-windows-skip-unwanted-buffers-in-source-window))
 
 ;; ----------------------------------------------------------------------------
 ;; Open directory (dired mode).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-dired-open ()
-  (eide-windows-select-window-file nil)
+  (eide-windows-select-source-window nil)
   (find-file default-directory))
 
 ;; ----------------------------------------------------------------------------
@@ -855,7 +855,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-browsing-mode-stop ()
   (eide-keys-configure-for-editor) ;; must be done first, for eide-i-windows-get-window-for-buffer
-  (eide-windows-skip-unwanted-buffers-in-window-file)
+  (eide-windows-skip-unwanted-buffers-in-source-window)
   (if eide-i-menu-layout-should-be-built-after-browsing-mode-flag
     (progn
       ;; Build windows layout

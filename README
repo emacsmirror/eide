@@ -71,7 +71,7 @@ When you launch Emacs, it should look like this:
         -----------------------------------------------------------
         |                                         |               |
         |                                         |               |
-        |       Window "file"                     | Window "menu" |
+        |       "source" window                   | "menu" window |
         |                                         |               |
         |                                         |               |
         |                                         |               |
@@ -82,15 +82,15 @@ When you launch Emacs, it should look like this:
         |                                         |               |
         -----------------------------------------------------------
         |                                                         |
-        |               Window "results"                          |
+        |               "output" window                           |
         |                                                         |
         -----------------------------------------------------------
 
-If you click on right button over window "file", all other windows are closed.
-Click again to get them back.
+If you click on right button over "source" window, all other windows are
+closed. Click again to get them back.
 
 Instructions are available in "Help" page, in Emacs.
-Click on right button over window "menu", and select "Help" in popup menu.
+Click on right button over "menu" window, and select "Help" in popup menu.
 
 -------------------------------------------------------------------------------
 Quick start
@@ -102,5 +102,5 @@ directory during emacs session.
 If you work on a project - which is the main purpose of Emacs-IDE - you should
 always run emacs from the root directory of your project.
 
-When you first run emacs for a project, click on right button over window
-"menu", and select "Create project".
+When you first run emacs for a project, click on right button over "menu"
+window, and select "Create project".
