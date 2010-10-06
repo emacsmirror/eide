@@ -25,6 +25,9 @@
 
 (defvar eide-config-show-trailing-spaces nil)
 (defvar eide-config-show-svn-status-flag nil)
+(defvar eide-config-svn-diff-command nil)
+(defvar eide-config-menu-position nil)
+(defvar eide-config-menu-height nil)
 
 ;;;; ==========================================================================
 ;;;; OPTIONS
@@ -553,6 +556,11 @@
     (setq eide-config-show-svn-status-flag t)
     (setq eide-config-show-svn-status-flag nil))
 
+  (setq eide-config-svn-diff-command (eide-i-config-get-option-value "svn_diff_command"))
+  (if (string-equal eide-config-svn-diff-command "")
+    (setq eide-config-svn-diff-command "svn diff ")
+    (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
+
   ;; Windows layout: menu position
   (setq eide-config-menu-position (eide-i-config-get-option-value "menu_position"))
   ;; If menu position is not correct, set default value
@@ -600,6 +608,7 @@
 
     (eide-i-config-rebuild-insert-section "Version control")
     (eide-i-config-rebuild-update-value "show_svn_status" "yes" "yes/no")
+    (eide-i-config-rebuild-update-value "svn_diff_command" "")
 
     (eide-i-config-rebuild-insert-section "Customized colors for dark theme")
     (eide-i-config-rebuild-update-value "color_theme_dark_background" "gray15")
