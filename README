@@ -43,7 +43,7 @@ Information
 -------------------------------------------------------------------------------
 
 Programming language: Emacs Lisp
-License: GPL
+License: GPLv3
 Dependencies: Emacs, Ctags, Cscope.
 Supported OS: GNU/Linux.
 
@@ -51,16 +51,7 @@ Supported OS: GNU/Linux.
 Installation
 -------------------------------------------------------------------------------
 
-Compile .............................. make
-
-Install (create link ~/.emacs) ....... make install
-
-Uninstall (remove link ~/.emacs) ..... make uninstall
-
-Compilation is optional. Compiled code is just supposed to execute faster...
-If you compile, keep in mind that compiled files (*.elc) will always be used
-instead of source files (*.el). As a consequence, any change in source files
-will be ignored until you compile again.
+Execute ./install in a terminal.
 
 -------------------------------------------------------------------------------
 Instructions

@@ -1,0 +1,86 @@
+#!/usr/bin/env sh
+
+# Installation script for Emacs-IDE
+
+# Copyright (C) 2005-2010 Cédric Marie
+
+# This program is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+echo -e "\033[1mCheck dependencies\033[0m"
+if which ctags > /dev/null ; then
+  if ctags --version | grep -q Exuberant ; then
+    echo -e "\033[0;32mCheck ctags..... OK.\033[0m"
+  else
+    echo -e "\033[0;31mCheck ctags..... FAILED: your version of ctags is not \"Exuberant Ctags\".\033[0m"
+    exit 1
+  fi
+else
+  echo -e "\033[0;31mCheck ctags..... FAILED: ctags is not installed.\033[0m"
+  exit 1
+fi
+if which cscope > /dev/null ; then
+  echo -e "\033[0;32mCheck cscope.... OK.\033[0m"
+else
+  echo -e "\033[0;31mCheck cscope.... FAILED: cscope is not installed.\033[0m"
+  exit 1
+fi
+echo
+
+echo -e "\033[1mRemove .elc files (if any)\033[0m"
+rm -vf src/*.elc
+echo
+
+echo -e "\033[1mCompile Emacs-IDE\033[0m"
+emacs -nw -q -l compile-eide.el
+# -nw: don't use X interface
+# -q: don't load ~/.emacs
+# -l file.el: load lisp file
+compilation_ok=1
+for file in `ls src/*.el`; do
+  if [ -e ${file}c ]; then
+    echo -e "\033[0;32m[OK]     ${file}\033[0m"
+  else
+    echo -e "\033[0;31m[FAILED] ${file}\033[0m"
+    compilation_ok=0
+  fi
+done
+if [ $compilation_ok == 0 ]; then
+  exit 1
+fi
+echo
+
+echo -e "\033[1mInstall Emacs-IDE\033[0m"
+sudo cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
+echo
+
+echo -e "\033[1mRemove .elc files\033[0m"
+rm -vf src/*.elc
+echo
+
+echo -e "\033[1mEnable Emacs-IDE\033[0m"
+if [ ! -e $HOME/.emacs ]; then
+  echo "(require 'eide)" > $HOME/.emacs
+  echo "(eide-start)" >> $HOME/.emacs
+  echo "$HOME/.emacs did not exist, it has just been created with this content:"
+  echo -e "\033[0;34m(require 'eide)"
+  echo -e "(eide-start)\033[0m"
+  echo -e "\033[0;32mEmacs-IDE is now automatically enabled when you launch Emacs\033[0m"
+elif grep -q "(require 'eide)" $HOME/.emacs && grep -q "(eide-start)" $HOME/.emacs ; then
+  echo -e "\033[0;32mEmacs-IDE is already enabled in $HOME/.emacs\033[0m"
+else
+  echo -e "\033[0;31mEmacs-IDE is not enabled in $HOME/.emacs\033[0m"
+  echo "You must add these two lines in $HOME/.emacs:"
+  echo -e "\033[0;34m(require 'eide)"
+  echo -e "(eide-start)\033[0m"
+fi

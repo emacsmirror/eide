@@ -199,8 +199,6 @@
     (eide-i-popup-menu-close-action-list "User config")
 
     (eide-i-popup-menu-add-action "Help" "(eide-help-open)" t)
-    (if eide-under-svn-flag
-      (eide-i-popup-menu-add-action "Check Emacs-IDE update (svn)" "(eide-check-update-from-svn)" t))
     (eide-i-popup-menu-close-action-list "About")
 
     (eide-i-popup-menu-open popup-header)))

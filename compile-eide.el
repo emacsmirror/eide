@@ -24,9 +24,6 @@
 ;; Load path
 (add-to-list 'load-path (concat default-directory "src"))
 
-;; Delete all .elc files
-(shell-command (concat "cd " default-directory "src ; rm -f *.elc"))
-
 (byte-compile-file "src/eide-compare.el")
 (byte-compile-file "src/eide-config.el")
 (byte-compile-file "src/eide-edit.el")
@@ -40,12 +37,6 @@
 (byte-compile-file "src/eide-windows.el")
 (byte-compile-file "src/eide.el")
 
-(if (file-exists-p (concat default-directory ".do_not_exit_after_compilation"))
-  (progn
-    (shell-command (concat "rm -f " default-directory ".do_not_exit_after_compilation")))
-    ;; Full window for compilation log
-    (select-window (next-window))
-    (delete-other-windows)
-  (kill-emacs))
+(kill-emacs)
 
 ;;; compile-eide.el ends here
