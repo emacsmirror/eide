@@ -20,19 +20,19 @@
 echo -e "\033[1mCheck dependencies\033[0m"
 if which ctags > /dev/null ; then
   if ctags --version | grep -q Exuberant ; then
-    echo -e "\033[0;32mCheck ctags..... OK.\033[0m"
+    echo -e "\033[0;32mCheck ctags..... OK\033[0m"
   else
-    echo -e "\033[0;31mCheck ctags..... FAILED: your version of ctags is not \"Exuberant Ctags\".\033[0m"
+    echo -e "\033[0;31mCheck ctags..... FAILED: your version of ctags is not \"Exuberant Ctags\"\033[0m"
     exit 1
   fi
 else
-  echo -e "\033[0;31mCheck ctags..... FAILED: ctags is not installed.\033[0m"
+  echo -e "\033[0;31mCheck ctags..... FAILED: ctags is not installed\033[0m"
   exit 1
 fi
 if which cscope > /dev/null ; then
-  echo -e "\033[0;32mCheck cscope.... OK.\033[0m"
+  echo -e "\033[0;32mCheck cscope.... OK\033[0m"
 else
-  echo -e "\033[0;31mCheck cscope.... FAILED: cscope is not installed.\033[0m"
+  echo -e "\033[0;31mCheck cscope.... FAILED: cscope is not installed\033[0m"
   exit 1
 fi
 echo

@@ -23,11 +23,28 @@
 (defvar eide-project-file       ".emacs-ide.project")
 (defvar eide-project-notes-file ".emacs-ide.project_notes")
 
-(defvar eide-config-show-trailing-spaces nil)
+(defvar eide-config-use-color-theme-for-source-flag nil)
+(defvar eide-config-show-trailing-spaces-flag nil)
 (defvar eide-config-show-svn-status-flag nil)
 (defvar eide-config-svn-diff-command nil)
 (defvar eide-config-menu-position nil)
 (defvar eide-config-menu-height nil)
+
+(defvar eide-config-user-background-color nil)
+(defvar eide-config-user-foreground-color nil)
+(defvar eide-config-user-keyword-foreground-color nil)
+(defvar eide-config-user-type-foreground-color nil)
+(defvar eide-config-user-function-foreground-color nil)
+(defvar eide-config-user-variable-foreground-color nil)
+(defvar eide-config-user-constant-background-color nil)
+(defvar eide-config-user-constant-foreground-color nil)
+(defvar eide-config-user-builtin-background-color nil)
+(defvar eide-config-user-builtin-foreground-color nil)
+(defvar eide-config-user-string-background-color nil)
+(defvar eide-config-user-string-foreground-color nil)
+(defvar eide-config-user-comment-foreground-color nil)
+(defvar eide-config-user-selection-background-color nil)
+(defvar eide-config-user-selection-foreground-color nil)
 
 ;;;; ==========================================================================
 ;;;; OPTIONS
@@ -347,7 +364,8 @@
     ;; correct, we use default value.
     (if (not l-value)
       (setq l-value p-default-value))
-    (if (and (string-match "color_theme_.*" p-parameter)
+    (if (and (or (string-match "^dark_color_theme_" p-parameter)
+                 (string-match "^light_color_theme_" p-parameter))
              (not (color-defined-p l-value)))
       (progn
         (eide-popup-message (concat "Warning: " p-parameter " value \"" l-value "\" is not correct,\nusing default value \"" p-default-value "\" instead."))
@@ -375,26 +393,28 @@
     (if (string-equal l-color-theme "dark")
       (progn
         ;; "dark" theme
-        (setq eide-config-background-color (eide-i-config-get-option-value "color_theme_dark_background"))
-        (setq eide-config-foreground-color (eide-i-config-get-option-value "color_theme_dark_foreground"))
+        (setq eide-config-background-color (eide-i-config-get-option-value "dark_color_theme_background"))
+        (setq eide-config-foreground-color (eide-i-config-get-option-value "dark_color_theme_foreground"))
 
-        ;; Code
-        (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "color_theme_dark_keyword_foreground"))
-        (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "color_theme_dark_type_foreground"))
-        (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "color_theme_dark_function_foreground"))
-        (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "color_theme_dark_variable_foreground"))
-        (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "color_theme_dark_constant_background"))
-        (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "color_theme_dark_constant_foreground"))
-        (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "color_theme_dark_builtin_background"))
-        (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "color_theme_dark_builtin_foreground"))
-        (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "color_theme_dark_string_background"))
-        (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "color_theme_dark_foreground"))
-        (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "color_theme_dark_comment_foreground"))
-        (set-face-background 'region (eide-i-config-get-option-value "color_theme_dark_selection_background"))
-        (set-face-foreground 'region (eide-i-config-get-option-value "color_theme_dark_foreground"))
+        (if eide-config-use-color-theme-for-source-flag
+          (progn
+            ;; Code
+            (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "dark_color_theme_keyword_foreground"))
+            (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "dark_color_theme_type_foreground"))
+            (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "dark_color_theme_function_foreground"))
+            (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "dark_color_theme_variable_foreground"))
+            (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "dark_color_theme_constant_background"))
+            (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "dark_color_theme_constant_foreground"))
+            (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "dark_color_theme_builtin_background"))
+            (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "dark_color_theme_builtin_foreground"))
+            (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "dark_color_theme_string_background"))
+            (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "dark_color_theme_foreground"))
+            (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "dark_color_theme_comment_foreground"))
+            (set-face-background 'region (eide-i-config-get-option-value "dark_color_theme_selection_background"))
+            (set-face-foreground 'region (eide-i-config-get-option-value "dark_color_theme_foreground"))))
 
         ;; Menu
-        (setq eide-config-menu-background-color (eide-i-config-get-option-value "color_theme_dark_menu_background"))
+        (setq eide-config-menu-background-color (eide-i-config-get-option-value "dark_color_theme_menu_background"))
         (setq eide-config-menu-foreground-color "white")
         (set-face-foreground 'eide-config-menu-project-header-face "deep sky blue")
         (set-face-foreground 'eide-config-menu-project-name-face "orange")
@@ -437,26 +457,28 @@
 
       (progn
         ;; "light" theme
-        (setq eide-config-background-color (eide-i-config-get-option-value "color_theme_light_background"))
-        (setq eide-config-foreground-color (eide-i-config-get-option-value "color_theme_light_foreground"))
+        (setq eide-config-background-color (eide-i-config-get-option-value "light_color_theme_background"))
+        (setq eide-config-foreground-color (eide-i-config-get-option-value "light_color_theme_foreground"))
 
-        ;; Code
-        (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "color_theme_light_keyword_foreground"))
-        (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "color_theme_light_type_foreground"))
-        (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "color_theme_light_function_foreground"))
-        (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "color_theme_light_variable_foreground"))
-        (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "color_theme_light_constant_background"))
-        (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "color_theme_light_constant_foreground"))
-        (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "color_theme_light_builtin_background"))
-        (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "color_theme_light_builtin_foreground"))
-        (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "color_theme_light_string_background"))
-        (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "color_theme_light_foreground"))
-        (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "color_theme_light_comment_foreground"))
-        (set-face-background 'region (eide-i-config-get-option-value "color_theme_light_selection_background"))
-        (set-face-foreground 'region (eide-i-config-get-option-value "color_theme_light_foreground"))
+        (if eide-config-use-color-theme-for-source-flag
+          (progn
+            ;; Code
+            (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "light_color_theme_keyword_foreground"))
+            (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "light_color_theme_type_foreground"))
+            (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "light_color_theme_function_foreground"))
+            (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "light_color_theme_variable_foreground"))
+            (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "light_color_theme_constant_background"))
+            (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "light_color_theme_constant_foreground"))
+            (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "light_color_theme_builtin_background"))
+            (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "light_color_theme_builtin_foreground"))
+            (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "light_color_theme_string_background"))
+            (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "light_color_theme_foreground"))
+            (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "light_color_theme_comment_foreground"))
+            (set-face-background 'region (eide-i-config-get-option-value "light_color_theme_selection_background"))
+            (set-face-foreground 'region (eide-i-config-get-option-value "light_color_theme_foreground"))))
 
         ;; Menu
-        (setq eide-config-menu-background-color (eide-i-config-get-option-value "color_theme_light_menu_background"))
+        (setq eide-config-menu-background-color (eide-i-config-get-option-value "light_color_theme_menu_background"))
         (setq eide-config-menu-foreground-color "black")
         (set-face-foreground 'eide-config-menu-project-header-face "blue")
         (set-face-foreground 'eide-config-menu-project-name-face "red")
@@ -497,11 +519,31 @@
         ;; Information line
         (set-face-background 'mode-line "wheat")))
 
-    ;; Normal text
-    (set-foreground-color eide-config-foreground-color)
-
-    ;; Left and right borders (same color as background)
-    (set-face-background 'fringe eide-config-background-color)
+    (if eide-config-use-color-theme-for-source-flag
+      (progn
+        ;; Background
+        (set-background-color eide-config-background-color)
+        ;; Normal text
+        (set-foreground-color eide-config-foreground-color)
+        ;; Left and right borders (same color as background)
+        (set-face-background 'fringe eide-config-background-color))
+      (progn
+        (set-background-color eide-config-user-background-color)
+        (set-foreground-color eide-config-user-foreground-color)
+        (set-face-background 'fringe eide-config-user-background-color)
+        (set-face-foreground 'font-lock-keyword-face eide-config-user-keyword-foreground-color)
+        (set-face-foreground 'font-lock-type-face eide-config-user-type-foreground-color)
+        (set-face-foreground 'font-lock-function-name-face eide-config-user-function-foreground-color)
+        (set-face-foreground 'font-lock-variable-name-face eide-config-user-variable-foreground-color)
+        (set-face-background 'font-lock-constant-face eide-config-user-constant-background-color)
+        (set-face-foreground 'font-lock-constant-face eide-config-user-constant-foreground-color)
+        (set-face-background 'font-lock-builtin-face eide-config-user-builtin-background-color)
+        (set-face-foreground 'font-lock-builtin-face eide-config-user-builtin-foreground-color)
+        (set-face-background 'font-lock-string-face eide-config-user-string-background-color)
+        (set-face-foreground 'font-lock-string-face eide-config-user-string-foreground-color)
+        (set-face-foreground 'font-lock-comment-face eide-config-user-comment-foreground-color)
+        (set-face-background 'region eide-config-user-selection-background-color)
+        (set-face-foreground 'region eide-config-user-selection-foreground-color)))
 
     (set-face-background 'eide-config-menu-default-face eide-config-menu-background-color)
     (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
@@ -546,20 +588,14 @@
     (let ((l-string (concat "-*-fixed-medium-r-*-*-" (eide-i-config-get-option-value "font_size") "-*-*-*-c-*-iso8859-1")))
       (set-default-font l-string)))
 
+  (if (string-equal (eide-i-config-get-option-value "use_color_theme_for_source") "yes")
+    (setq eide-config-use-color-theme-for-source-flag t)
+    (setq eide-config-use-color-theme-for-source-flag nil))
+
   (eide-i-config-apply-color-theme)
   (if (string-equal (eide-i-config-get-option-value "show_trailing_spaces") "yes")
-    (setq eide-config-show-trailing-spaces t)
-    (setq eide-config-show-trailing-spaces nil))
-
-  ;; Version control
-  (if (string-equal (eide-i-config-get-option-value "show_svn_status") "yes")
-    (setq eide-config-show-svn-status-flag t)
-    (setq eide-config-show-svn-status-flag nil))
-
-  (setq eide-config-svn-diff-command (eide-i-config-get-option-value "svn_diff_command"))
-  (if (string-equal eide-config-svn-diff-command "")
-    (setq eide-config-svn-diff-command "svn diff ")
-    (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
+    (setq eide-config-show-trailing-spaces-flag t)
+    (setq eide-config-show-trailing-spaces-flag nil))
 
   ;; Windows layout: menu position
   (setq eide-config-menu-position (eide-i-config-get-option-value "menu_position"))
@@ -575,6 +611,16 @@
                (string-equal eide-config-menu-height "full")))
     (setq eide-config-menu-height "half"))
 
+  ;; Version control
+  (if (string-equal (eide-i-config-get-option-value "show_svn_status") "yes")
+    (setq eide-config-show-svn-status-flag t)
+    (setq eide-config-show-svn-status-flag nil))
+
+  (setq eide-config-svn-diff-command (eide-i-config-get-option-value "svn_diff_command"))
+  (if (string-equal eide-config-svn-diff-command "")
+    (setq eide-config-svn-diff-command "svn diff ")
+    (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
+
   ;; Coding rules
   ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
   (setq eide-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
@@ -582,6 +628,27 @@
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
+
+;; ----------------------------------------------------------------------------
+;; Initialize config.
+;; ----------------------------------------------------------------------------
+(defun eide-config-init ()
+  (setq eide-config-user-background-color (face-background 'default))
+  (setq eide-config-user-foreground-color (face-foreground 'default))
+
+  (setq eide-config-user-keyword-foreground-color (face-foreground 'font-lock-keyword-face))
+  (setq eide-config-user-type-foreground-color (face-foreground 'font-lock-type-face))
+  (setq eide-config-user-function-foreground-color (face-foreground 'font-lock-function-name-face))
+  (setq eide-config-user-variable-foreground-color (face-foreground 'font-lock-variable-name-face))
+  (setq eide-config-user-constant-background-color (face-background 'font-lock-constant-face))
+  (setq eide-config-user-constant-foreground-color (face-foreground 'font-lock-constant-face))
+  (setq eide-config-user-builtin-background-color (face-background 'font-lock-builtin-face))
+  (setq eide-config-user-builtin-foreground-color (face-foreground 'font-lock-builtin-face))
+  (setq eide-config-user-string-background-color (face-background 'font-lock-string-face))
+  (setq eide-config-user-string-foreground-color (face-foreground 'font-lock-string-face))
+  (setq eide-config-user-comment-foreground-color (face-foreground 'font-lock-comment-face))
+  (setq eide-config-user-selection-background-color (face-background 'region))
+  (setq eide-config-user-selection-foreground-color (face-foreground 'region)))
 
 ;; ----------------------------------------------------------------------------
 ;; Update options file.
@@ -604,67 +671,67 @@
     (eide-i-config-rebuild-insert-section "Display")
     (eide-i-config-rebuild-update-value "font_size" "18")
     (eide-i-config-rebuild-update-value "color_theme" "light" "dark/light")
+    (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes" "yes/no")
     (eide-i-config-rebuild-update-value "show_trailing_spaces" "no" "yes/no")
-
-    (eide-i-config-rebuild-insert-section "Version control")
-    (eide-i-config-rebuild-update-value "show_svn_status" "yes" "yes/no")
-    (eide-i-config-rebuild-update-value "svn_diff_command" "")
-
-    (eide-i-config-rebuild-insert-section "Customized colors for dark theme")
-    (eide-i-config-rebuild-update-value "color_theme_dark_background" "gray15")
-    (eide-i-config-rebuild-update-value "color_theme_dark_foreground" "gray90")
-    (eide-i-config-rebuild-update-value "color_theme_dark_keyword_foreground" "salmon")
-    (eide-i-config-rebuild-update-value "color_theme_dark_type_foreground" "medium sea green")
-    (eide-i-config-rebuild-update-value "color_theme_dark_function_foreground" "orange")
-    (eide-i-config-rebuild-update-value "color_theme_dark_variable_foreground" "dark orange")
-    (eide-i-config-rebuild-update-value "color_theme_dark_constant_background" "maroon4")
-    (eide-i-config-rebuild-update-value "color_theme_dark_constant_foreground" "misty rose")
-    (eide-i-config-rebuild-update-value "color_theme_dark_builtin_background" "brown")
-    (eide-i-config-rebuild-update-value "color_theme_dark_builtin_foreground" "yellow")
-    (eide-i-config-rebuild-update-value "color_theme_dark_string_background" "gray30")
-    (eide-i-config-rebuild-update-value "color_theme_dark_comment_foreground" "deep sky blue")
-    (eide-i-config-rebuild-update-value "color_theme_dark_selection_background" "gray50")
-    (eide-i-config-rebuild-update-value "color_theme_dark_menu_background" "black")
-
-    (eide-i-config-rebuild-insert-section "Customized colors for light theme")
-    (eide-i-config-rebuild-update-value "color_theme_light_background" "old lace")
-    (eide-i-config-rebuild-update-value "color_theme_light_foreground" "black")
-    (eide-i-config-rebuild-update-value "color_theme_light_keyword_foreground" "brown")
-    (eide-i-config-rebuild-update-value "color_theme_light_type_foreground" "sea green")
-    (eide-i-config-rebuild-update-value "color_theme_light_function_foreground" "red")
-    (eide-i-config-rebuild-update-value "color_theme_light_variable_foreground" "orange red")
-    (eide-i-config-rebuild-update-value "color_theme_light_constant_background" "misty rose")
-    (eide-i-config-rebuild-update-value "color_theme_light_constant_foreground" "deep pink")
-    (eide-i-config-rebuild-update-value "color_theme_light_builtin_background" "yellow")
-    (eide-i-config-rebuild-update-value "color_theme_light_builtin_foreground" "red")
-    (eide-i-config-rebuild-update-value "color_theme_light_string_background" "white")
-    (eide-i-config-rebuild-update-value "color_theme_light_comment_foreground" "light slate blue")
-    (eide-i-config-rebuild-update-value "color_theme_light_selection_background" "bisque")
-    (eide-i-config-rebuild-update-value "color_theme_light_menu_background" "white")
 
     (eide-i-config-rebuild-insert-section "Windows layout")
     (eide-i-config-rebuild-update-value "menu_position" "right" "left/right")
     (eide-i-config-rebuild-update-value "menu_height" "half" "half/full")
 
-    (eide-i-config-rebuild-insert-section "Coding rules")
+    (eide-i-config-rebuild-insert-section "Version control")
+    (eide-i-config-rebuild-update-value "show_svn_status" "yes" "yes/no")
+    (eide-i-config-rebuild-update-value "svn_diff_command" "")
 
-    ;; Compatibility with Emacs-IDE v1.0
-    (let ((l-old-value (eide-i-config-rebuild-get-current-value "indent_offset")))
-      (if l-old-value
-        (eide-i-config-rebuild-update-value "c_indent_offset" l-old-value)
-        (eide-i-config-rebuild-update-value "c_indent_offset" "2")))
+    (eide-i-config-rebuild-insert-section "Coding rules")
+    (eide-i-config-rebuild-update-value "c_indent_offset" "2")
 
     (eide-i-config-rebuild-insert-section "Compilation / run / debug commands (default for new project)")
-    (eide-i-config-rebuild-update-value "project_default_init_command"      "")
-    (eide-i-config-rebuild-update-value "project_default_compile_command_1" "make")
-    (eide-i-config-rebuild-update-value "project_default_compile_command_2" "")
-    (eide-i-config-rebuild-update-value "project_default_compile_command_3" "")
-    (eide-i-config-rebuild-update-value "project_default_compile_command_4" "")
-    (eide-i-config-rebuild-update-value "project_default_run_command_1"     "")
-    (eide-i-config-rebuild-update-value "project_default_run_command_2"     "")
-    (eide-i-config-rebuild-update-value "project_default_debug_command"     "gdb")
-    (eide-i-config-rebuild-update-value "project_default_debug_program_1"   "")
-    (eide-i-config-rebuild-update-value "project_default_debug_program_2"   "")
+    (eide-i-config-rebuild-update-value "default_init_command"      "")
+    (eide-i-config-rebuild-update-value "default_compile_command_1" "make")
+    (eide-i-config-rebuild-update-value "default_compile_command_2" "")
+    (eide-i-config-rebuild-update-value "default_compile_command_3" "")
+    (eide-i-config-rebuild-update-value "default_compile_command_4" "")
+    (eide-i-config-rebuild-update-value "default_run_command_1"     "")
+    (eide-i-config-rebuild-update-value "default_run_command_2"     "")
+    (eide-i-config-rebuild-update-value "default_debug_command"     "gdb")
+    (eide-i-config-rebuild-update-value "default_debug_program_1"   "")
+    (eide-i-config-rebuild-update-value "default_debug_program_2"   "")
+
+    (eide-i-config-rebuild-insert-section "Dark color theme - colors for source")
+    (eide-i-config-rebuild-update-value "dark_color_theme_background" "gray15")
+    (eide-i-config-rebuild-update-value "dark_color_theme_foreground" "gray90")
+    (eide-i-config-rebuild-update-value "dark_color_theme_keyword_foreground" "salmon")
+    (eide-i-config-rebuild-update-value "dark_color_theme_type_foreground" "medium sea green")
+    (eide-i-config-rebuild-update-value "dark_color_theme_function_foreground" "orange")
+    (eide-i-config-rebuild-update-value "dark_color_theme_variable_foreground" "dark orange")
+    (eide-i-config-rebuild-update-value "dark_color_theme_constant_background" "maroon4")
+    (eide-i-config-rebuild-update-value "dark_color_theme_constant_foreground" "misty rose")
+    (eide-i-config-rebuild-update-value "dark_color_theme_builtin_background" "brown")
+    (eide-i-config-rebuild-update-value "dark_color_theme_builtin_foreground" "yellow")
+    (eide-i-config-rebuild-update-value "dark_color_theme_string_background" "gray30")
+    (eide-i-config-rebuild-update-value "dark_color_theme_comment_foreground" "deep sky blue")
+    (eide-i-config-rebuild-update-value "dark_color_theme_selection_background" "gray50")
+
+    (eide-i-config-rebuild-insert-section "Dark color theme - colors for menu")
+    (eide-i-config-rebuild-update-value "dark_color_theme_menu_background" "black")
+
+    (eide-i-config-rebuild-insert-section "Light color theme - colors for source")
+    (eide-i-config-rebuild-update-value "light_color_theme_background" "old lace")
+    (eide-i-config-rebuild-update-value "light_color_theme_foreground" "black")
+    (eide-i-config-rebuild-update-value "light_color_theme_keyword_foreground" "brown")
+    (eide-i-config-rebuild-update-value "light_color_theme_type_foreground" "sea green")
+    (eide-i-config-rebuild-update-value "light_color_theme_function_foreground" "red")
+    (eide-i-config-rebuild-update-value "light_color_theme_variable_foreground" "orange red")
+    (eide-i-config-rebuild-update-value "light_color_theme_constant_background" "misty rose")
+    (eide-i-config-rebuild-update-value "light_color_theme_constant_foreground" "deep pink")
+    (eide-i-config-rebuild-update-value "light_color_theme_builtin_background" "yellow")
+    (eide-i-config-rebuild-update-value "light_color_theme_builtin_foreground" "red")
+    (eide-i-config-rebuild-update-value "light_color_theme_string_background" "white")
+    (eide-i-config-rebuild-update-value "light_color_theme_comment_foreground" "light slate blue")
+    (eide-i-config-rebuild-update-value "light_color_theme_selection_background" "bisque")
+
+    (eide-i-config-rebuild-insert-section "Light color theme - colors for menu")
+    (eide-i-config-rebuild-update-value "light_color_theme_menu_background" "white")
 
     (eide-i-config-rebuild-stop)
     (eide-i-config-apply-options)
@@ -685,16 +752,16 @@
     (eide-i-config-rebuild-insert-info "project configuration")
 
     (eide-i-config-rebuild-insert-section "Compilation / run /debug commands")
-    (eide-i-config-rebuild-update-value-from-options "init_command"      "project_default_init_command")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_1" "project_default_compile_command_1")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_2" "project_default_compile_command_2")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_3" "project_default_compile_command_3")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_4" "project_default_compile_command_4")
-    (eide-i-config-rebuild-update-value-from-options "run_command_1"     "project_default_run_command_1")
-    (eide-i-config-rebuild-update-value-from-options "run_command_2"     "project_default_run_command_2")
-    (eide-i-config-rebuild-update-value-from-options "debug_command"     "project_default_debug_command")
-    (eide-i-config-rebuild-update-value-from-options "debug_program_1"   "project_default_debug_program_1")
-    (eide-i-config-rebuild-update-value-from-options "debug_program_2"   "project_default_debug_program_2")
+    (eide-i-config-rebuild-update-value-from-options "init_command"      "default_init_command")
+    (eide-i-config-rebuild-update-value-from-options "compile_command_1" "default_compile_command_1")
+    (eide-i-config-rebuild-update-value-from-options "compile_command_2" "default_compile_command_2")
+    (eide-i-config-rebuild-update-value-from-options "compile_command_3" "default_compile_command_3")
+    (eide-i-config-rebuild-update-value-from-options "compile_command_4" "default_compile_command_4")
+    (eide-i-config-rebuild-update-value-from-options "run_command_1"     "default_run_command_1")
+    (eide-i-config-rebuild-update-value-from-options "run_command_2"     "default_run_command_2")
+    (eide-i-config-rebuild-update-value-from-options "debug_command"     "default_debug_command")
+    (eide-i-config-rebuild-update-value-from-options "debug_program_1"   "default_debug_program_1")
+    (eide-i-config-rebuild-update-value-from-options "debug_program_2"   "default_debug_program_2")
 
     ;; Close options files
     (kill-buffer eide-options-file)
@@ -766,8 +833,14 @@
 ;; Set colors for edition mode.
 ;; ----------------------------------------------------------------------------
 (defun eide-config-set-colors-for-files ()
-  (set-background-color eide-config-background-color)
-  (set-foreground-color eide-config-foreground-color)
-  (set-face-background 'fringe eide-config-background-color))
+  (if eide-config-use-color-theme-for-source-flag
+    (progn
+      (set-background-color eide-config-background-color)
+      (set-foreground-color eide-config-foreground-color)
+      (set-face-background 'fringe eide-config-background-color))
+    (progn
+      (set-background-color eide-config-user-background-color)
+      (set-foreground-color eide-config-user-foreground-color)
+      (set-face-background 'fringe eide-config-user-background-color))))
 
 ;;; eide-config.el ends here

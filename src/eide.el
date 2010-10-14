@@ -309,7 +309,7 @@
       ;;(set-fill-column 80)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))
 
       ;; Turn hide/show mode on
@@ -352,7 +352,7 @@
       ;;(set-fill-column 80)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))
 
       ;; Turn hide/show mode on
@@ -407,7 +407,7 @@
       ;;(set-fill-column 80)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))))
 
   ;; SGML (HTML, XML...) major mode
@@ -418,7 +418,7 @@
       (setq tab-width 2)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))))
 
   ;; Shell Script major mode
@@ -433,7 +433,7 @@
       (setq tab-width 2)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))))
 
   ;; Perl major mode
@@ -444,7 +444,7 @@
       (setq tab-width 2)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t))))
 
   ;; Python major mode
@@ -460,13 +460,14 @@
       (setq python-indent 4)
 
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces
+      (if eide-config-show-trailing-spaces-flag
         (setq show-trailing-whitespace t)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Initialization.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
+  (eide-config-init)
   ;; Load options file (it will be closed at the end of "rebuild", so that
   ;; current buffer - from .emacs.desktop - is not changed)
   (find-file-noselect (concat "~/" eide-options-file))
