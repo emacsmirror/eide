@@ -292,6 +292,21 @@
   (concat (eide-config-get-project-value "debug_command") " --annotate=3 " (eide-config-get-project-value p-program)))
 
 ;; ----------------------------------------------------------------------------
+;; Get short gdb command (short gdb command + "--annotate=3" + program name)
+;; for popup menu.
+;;
+;; input  : p-program : option parameter in project configuration for gdb
+;;              program.
+;; return : short command (hide gdb command path).
+;; ----------------------------------------------------------------------------
+(defun eide-project-get-short-gdb-command (p-program)
+  (let ((l-gdb-command (eide-config-get-project-value "debug_command")) (l-short-gdb-command nil))
+    (if (string-match "/" l-gdb-command)
+      (setq l-short-gdb-command (concat "[...]/" (car (last (split-string l-gdb-command "/")))))
+      (setq l-short-gdb-command l-gdb-command))
+    (concat l-short-gdb-command " --annotate=3 " (eide-config-get-project-value p-program))))
+
+;; ----------------------------------------------------------------------------
 ;; Get project relative path from absolute path (remove project absolute path
 ;; from directory).
 ;;
