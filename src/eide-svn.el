@@ -39,7 +39,7 @@
 ;; Update buffers svn status (modified or not).
 ;;
 ;; input  : p-files-list : list of files to update (overrides
-;;              eide-menu-files-list)
+;;              eide-menu-files-list).
 ;;          eide-menu-files-list : list of opened files.
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-update-files-status (&optional p-files-list)
@@ -60,6 +60,20 @@
 (defun eide-svn-diff ()
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (shell-command (concat eide-config-svn-diff-command buffer-file-name))))
+
+;; ----------------------------------------------------------------------------
+;; Execute "svn diff" on a directory.
+;;
+;; input  : p-directory-name : directory name.
+;;          p-files-list-string : string containing files list.
+;; ----------------------------------------------------------------------------
+(defun eide-svn-diff-files-in-directory (p-directory-name p-files-list-string)
+  (if eide-config-show-svn-status-flag
+    (let ((l-full-directory-name nil))
+      (if (string-match "^/" p-directory-name)
+        (setq l-full-directory-name p-directory-name)
+        (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
+      (shell-command (concat "cd " l-full-directory-name " && " eide-config-svn-diff-command p-files-list-string)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn revert" on current buffer.

@@ -220,7 +220,7 @@
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Close all files from this directory" (concat "(eide-menu-directory-close \"" l-directory-name "\")") t)
 
-    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil) (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil) (l-buffer-svn-modified-flag nil))
+    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil) (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil) (l-buffer-svn-modified-flag nil) (l-svn-modified-files-list-string ""))
       ;; Parse list of opened buffers, and find the ones located in this
       ;; directory, to check, for every possible property (read only, REF file,
       ;; ...) if at least one of them matches.
@@ -241,7 +241,9 @@
                   (if (string-equal l-buffer-status "ref")
                     (setq l-buffer-status-ref-flag t)))))
             (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
-              (setq l-buffer-svn-modified-flag t)))))
+              (progn
+                (setq l-buffer-svn-modified-flag t)
+                (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-buffer)))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
       (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
@@ -261,6 +263,7 @@
 
       (if eide-config-show-svn-status-flag
         (progn
+          (eide-i-popup-menu-add-action "svn diff" (concat "(eide-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-close-action-list "svn"))))
 
