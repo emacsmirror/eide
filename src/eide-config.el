@@ -612,9 +612,13 @@
     (setq eide-config-menu-height "half"))
 
   ;; Version control
-  (if (string-equal (eide-i-config-get-option-value "show_svn_status") "yes")
-    (setq eide-config-show-svn-status-flag t)
-    (setq eide-config-show-svn-status-flag nil))
+  (if (string-equal (eide-i-config-get-option-value "show_svn_status") "auto")
+    (if (file-exists-p (concat eide-root-directory ".svn"))
+      (setq eide-config-show-svn-status-flag t)
+      (setq eide-config-show-svn-status-flag nil))
+    (if (string-equal (eide-i-config-get-option-value "show_svn_status") "yes")
+      (setq eide-config-show-svn-status-flag t)
+      (setq eide-config-show-svn-status-flag nil)))
 
   (setq eide-config-svn-diff-command (eide-i-config-get-option-value "svn_diff_command"))
   (if (string-equal eide-config-svn-diff-command "")
@@ -679,7 +683,7 @@
     (eide-i-config-rebuild-update-value "menu_height" "half" "half/full")
 
     (eide-i-config-rebuild-insert-section "Version control")
-    (eide-i-config-rebuild-update-value "show_svn_status" "yes" "yes/no")
+    (eide-i-config-rebuild-update-value "show_svn_status" "auto" "yes/no/auto")
     (eide-i-config-rebuild-update-value "svn_diff_command" "")
 
     (eide-i-config-rebuild-insert-section "Coding rules")
