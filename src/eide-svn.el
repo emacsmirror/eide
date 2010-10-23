@@ -30,7 +30,9 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-is-current-buffer-modified-p ()
   (if eide-config-show-svn-status-flag
-    (not (string-equal (shell-command-to-string (concat "svn st -q " buffer-file-name)) ""))
+    (if (file-exists-p buffer-file-name)
+      (not (string-equal (shell-command-to-string (concat "svn st -q " buffer-file-name)) ""))
+      nil)
     nil))
 
 ;; ----------------------------------------------------------------------------

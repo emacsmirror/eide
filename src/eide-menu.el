@@ -506,7 +506,8 @@
       (save-excursion
         (set-buffer l-buffer-name)
         (if (or (equal major-mode 'dired-mode)
-                (equal major-mode 'Buffer-menu-mode))
+                (equal major-mode 'Buffer-menu-mode)
+                (not (file-exists-p buffer-file-name)))
           (kill-buffer l-buffer-name)
           (if (not (string-equal l-buffer-name eide-project-file))
             (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
