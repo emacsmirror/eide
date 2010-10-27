@@ -26,14 +26,16 @@
 ;; ----------------------------------------------------------------------------
 ;; Get current buffer status (REF, NEW or not edited).
 ;;
-;; return : buffer status ("ref", "new" or "").
+;; return : buffer status ("nofile", "ref", "new" or "").
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-get-buffer-status ()
-  (if (file-exists-p (concat buffer-file-name ".ref"))
-    "new"
-    (if (file-exists-p (concat buffer-file-name ".new"))
-      "ref"
-      "")))
+  (if (not (file-exists-p buffer-file-name))
+    "nofile"
+    (if (file-exists-p (concat buffer-file-name ".ref"))
+      "new"
+      (if (file-exists-p (concat buffer-file-name ".new"))
+        "ref"
+        ""))))
 
 ;; ----------------------------------------------------------------------------
 ;; Update buffers edit status (REF, NEW or not edited).
@@ -231,7 +233,8 @@
         (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
           (save-excursion
             (set-buffer l-buffer-name)
-            (funcall p-function))))
+            (if (file-exists-p buffer-file-name)
+              (funcall p-function)))))
       (eide-menu-directory-update-stop p-directory-name))))
 
 ;;; eide-edit.el ends here

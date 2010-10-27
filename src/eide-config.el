@@ -103,11 +103,12 @@
 (make-face 'eide-config-menu-project-name-face)
 (make-face 'eide-config-menu-directory-face)
 (make-face 'eide-config-menu-directory-out-of-project-face)
-(make-face 'eide-config-menu-file-face)
+(make-face 'eide-config-menu-file-rw-face)
+(make-face 'eide-config-menu-file-ro-face)
+(make-face 'eide-config-menu-file-nofile-face)
 (make-face 'eide-config-menu-file-ref-face)
 (make-face 'eide-config-menu-file-new-face)
 (make-face 'eide-config-menu-file-svn-modified-face)
-(make-face 'eide-config-menu-file-rw-face)
 (make-face 'eide-config-menu-function-face)
 (make-face 'eide-config-menu-function-with-highlight-face)
 (make-face 'eide-config-menu-empty-list-face)
@@ -140,14 +141,14 @@
 (make-face-bold 'eide-config-menu-project-header-face)
 (make-face-bold 'eide-config-menu-project-name-face)
 
-(make-face-bold 'eide-config-menu-file-face)
+(make-face-bold 'eide-config-menu-file-rw-face)
+(make-face-bold 'eide-config-menu-file-ro-face)
 (set-face-foreground 'eide-config-menu-file-ref-face "orange red")
 (make-face-bold 'eide-config-menu-file-ref-face)
 (set-face-foreground 'eide-config-menu-file-new-face "medium sea green")
 (make-face-bold 'eide-config-menu-file-new-face)
 (set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
 (make-face-bold 'eide-config-menu-file-svn-modified-face)
-(make-face-bold 'eide-config-menu-file-rw-face)
 
 (make-face-italic 'eide-config-menu-empty-list-face)
 
@@ -427,7 +428,8 @@
 
         ;; Menu: files
         (set-face-foreground 'eide-config-menu-file-rw-face "gray95")
-        (set-face-foreground 'eide-config-menu-file-face "gray65")
+        (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
+        (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
         (setq eide-config-menu-file-highlight-background-color "brown")
 
         ;; Menu: functions
@@ -491,7 +493,8 @@
 
         ;; Menu: files
         (set-face-foreground 'eide-config-menu-file-rw-face "black")
-        (set-face-foreground 'eide-config-menu-file-face "gray55")
+        (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
+        (set-face-foreground 'eide-config-menu-file-nofile-face "black")
         (setq eide-config-menu-file-highlight-background-color "yellow")
 
         ;; Menu: functions
@@ -549,23 +552,26 @@
     (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
     (set-face-background 'eide-config-menu-project-header-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-project-name-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-face eide-config-menu-background-color)
+    (set-face-background 'eide-config-menu-file-rw-face eide-config-menu-background-color)
+    (set-face-background 'eide-config-menu-file-ro-face eide-config-menu-background-color)
+    (set-face-background 'eide-config-menu-file-nofile-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-file-ref-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-file-new-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-file-svn-modified-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-rw-face eide-config-menu-background-color)
 
     ;; Menu: current file
-    (copy-face 'eide-config-menu-file-face 'eide-config-menu-current-file-face)
+    (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
+    (copy-face 'eide-config-menu-file-ro-face 'eide-config-menu-current-file-ro-face)
+    (copy-face 'eide-config-menu-file-nofile-face 'eide-config-menu-current-file-nofile-face)
     (copy-face 'eide-config-menu-file-ref-face 'eide-config-menu-current-file-ref-face)
     (copy-face 'eide-config-menu-file-new-face 'eide-config-menu-current-file-new-face)
     (copy-face 'eide-config-menu-file-svn-modified-face 'eide-config-menu-current-file-svn-modified-face)
-    (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
-    (set-face-background 'eide-config-menu-current-file-face eide-config-menu-file-highlight-background-color)
+    (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
+    (set-face-background 'eide-config-menu-current-file-ro-face eide-config-menu-file-highlight-background-color)
+    (set-face-background 'eide-config-menu-current-file-nofile-face eide-config-menu-file-highlight-background-color)
     (set-face-background 'eide-config-menu-current-file-ref-face eide-config-menu-file-highlight-background-color)
     (set-face-background 'eide-config-menu-current-file-new-face eide-config-menu-file-highlight-background-color)
     (set-face-background 'eide-config-menu-current-file-svn-modified-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
 
     (set-face-background 'eide-config-menu-function-face eide-config-menu-background-color)
     (set-face-background 'eide-config-menu-empty-list-face eide-config-menu-background-color)

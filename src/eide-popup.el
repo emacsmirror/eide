@@ -229,21 +229,22 @@
           ;; The buffer is located in the directory
           (save-excursion
             (set-buffer l-buffer)
-            ;; Check all properties
-            (if buffer-read-only
-              (setq l-buffer-read-only-flag t)
-              (setq l-buffer-read-write-flag t))
-            (let ((l-buffer-status eide-menu-local-edit-status))
-              (if (string-equal l-buffer-status "")
-                (setq l-buffer-status-none-flag t)
-                (if (string-equal l-buffer-status "new")
-                  (setq l-buffer-status-new-flag t)
-                  (if (string-equal l-buffer-status "ref")
-                    (setq l-buffer-status-ref-flag t)))))
-            (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+            (if (not (string-equal eide-menu-local-edit-status "nofile"))
               (progn
-                (setq l-buffer-svn-modified-flag t)
-                (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-buffer)))))))
+                ;; Check all properties
+                (if buffer-read-only
+                  (setq l-buffer-read-only-flag t)
+                  (setq l-buffer-read-write-flag t))
+                (if (string-equal eide-menu-local-edit-status "")
+                  (setq l-buffer-status-none-flag t)
+                  (if (string-equal eide-menu-local-edit-status "new")
+                    (setq l-buffer-status-new-flag t)
+                    (if (string-equal eide-menu-local-edit-status "ref")
+                      (setq l-buffer-status-ref-flag t))))
+                (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+                  (progn
+                    (setq l-buffer-svn-modified-flag t)
+                    (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-buffer)))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
       (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
@@ -298,55 +299,58 @@
 
   (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
 
-  ;; Option "Set read/write"
-  (if l-buffer-rw-flag
-    (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
-    (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
+  (if (not (string-equal l-buffer-status "nofile"))
+    (progn
 
-  (eide-i-popup-menu-close-action-list "File")
+      ;; Option "Set read/write"
+      (if l-buffer-rw-flag
+        (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
+        (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
 
-  ;; Option for "edit"
-  (if (string-equal l-buffer-status "ref")
-    (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
-    (if (string-equal l-buffer-status "new")
-      (eide-i-popup-menu-add-action "Switch to REF file" (concat "(eide-edit-action-on-file 'eide-edit-use-ref-file \"" l-buffer "\")") t)
-      (eide-i-popup-menu-add-action "Backup original file (REF) to work on a copy (NEW)" (concat "(eide-edit-action-on-file 'eide-edit-make-ref-file \"" l-buffer "\")") t)))
+      ;; Option for "edit"
+      (if (string-equal l-buffer-status "ref")
+        (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
+        (if (string-equal l-buffer-status "new")
+          (eide-i-popup-menu-add-action "Switch to REF file" (concat "(eide-edit-action-on-file 'eide-edit-use-ref-file \"" l-buffer "\")") t)
+          (eide-i-popup-menu-add-action "Backup original file (REF) to work on a copy (NEW)" (concat "(eide-edit-action-on-file 'eide-edit-make-ref-file \"" l-buffer "\")") t)))
 
-  (if (string-equal l-buffer-status "ref")
-    (eide-i-popup-menu-add-action "Discard NEW file" (concat "(eide-edit-action-on-file 'eide-edit-discard-new-file \"" l-buffer "\" \"discard NEW file\")") t)
-    (if (string-equal l-buffer-status "new")
-      (progn
-        (eide-i-popup-menu-add-action "Discard REF file" (concat "(eide-edit-action-on-file 'eide-edit-discard-ref-file \"" l-buffer "\" \"discard REF file\")") t)
-        (eide-i-popup-menu-add-action "Restore REF file" (concat "(eide-edit-action-on-file 'eide-edit-restore-ref-file \"" l-buffer "\" \"restore REF file\")") t))))
+      (if (string-equal l-buffer-status "ref")
+        (eide-i-popup-menu-add-action "Discard NEW file" (concat "(eide-edit-action-on-file 'eide-edit-discard-new-file \"" l-buffer "\" \"discard NEW file\")") t)
+        (if (string-equal l-buffer-status "new")
+          (progn
+            (eide-i-popup-menu-add-action "Discard REF file" (concat "(eide-edit-action-on-file 'eide-edit-discard-ref-file \"" l-buffer "\" \"discard REF file\")") t)
+            (eide-i-popup-menu-add-action "Restore REF file" (concat "(eide-edit-action-on-file 'eide-edit-restore-ref-file \"" l-buffer "\" \"restore REF file\")") t))))))
 
   (eide-i-popup-menu-close-action-list "Edit")
 
-  (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
-  (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
-
-  (eide-i-popup-menu-add-action "Convert end of line: DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
-  (eide-i-popup-menu-add-action "Convert end of line: UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
-
-  (eide-i-popup-menu-close-action-list "Clean")
-
-  ;; Option for "compare"
-  (if (string-equal l-buffer-status "ref")
-    (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-new-file \"" l-buffer "\")") t)
-    (if (string-equal l-buffer-status "new")
-      (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
-
-  (if eide-compare-other-project-name
-    (eide-i-popup-menu-add-action (concat "Compare with file in project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
-
-  (eide-i-popup-menu-close-action-list "Compare")
-
-  ;; Option "svn diff"
-  (if l-buffer-svn-modified-flag
+  (if (not (string-equal l-buffer-status "nofile"))
     (progn
-      (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
-      (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
+      (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
+      (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
 
-  (eide-i-popup-menu-close-action-list "svn")
+      (eide-i-popup-menu-add-action "Convert end of line: DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
+      (eide-i-popup-menu-add-action "Convert end of line: UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
+
+      (eide-i-popup-menu-close-action-list "Clean")
+
+      ;; Option for "compare"
+      (if (string-equal l-buffer-status "ref")
+        (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-new-file \"" l-buffer "\")") t)
+        (if (string-equal l-buffer-status "new")
+          (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
+
+      (if eide-compare-other-project-name
+        (eide-i-popup-menu-add-action (concat "Compare with file in project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
+
+      (eide-i-popup-menu-close-action-list "Compare")
+
+      ;; Option "svn diff"
+      (if l-buffer-svn-modified-flag
+        (progn
+          (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
+          (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
+
+      (eide-i-popup-menu-close-action-list "svn")))
 
   (eide-i-popup-menu-open l-buffer))
 

@@ -92,27 +92,31 @@
     (eide-i-menu-insert-text " ")
     (put-text-property (setq l-begin-point (point)) (progn (insert p-string) (point)) 'keymap file-name-map)
     ;;  (if l-is-current
-    ;;    (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-face)
+    ;;    (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face)
 
     (if l-is-current
-      (if (string-equal l-buffer-status "ref")
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
-        (if (string-equal l-buffer-status "new")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
-          (if l-buffer-svn-modified-flag
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-svn-modified-face)
-            (if l-buffer-rw-flag
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-face)))))
-      (if (string-equal l-buffer-status "ref")
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
-        (if (string-equal l-buffer-status "new")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
-          (if l-buffer-svn-modified-flag
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-svn-modified-face)
-            (if l-buffer-rw-flag
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-face))))))
+      (if (string-equal l-buffer-status "nofile")
+        (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-nofile-face)
+        (if (string-equal l-buffer-status "ref")
+          (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
+          (if (string-equal l-buffer-status "new")
+            (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
+            (if l-buffer-svn-modified-flag
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-svn-modified-face)
+              (if l-buffer-rw-flag
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face))))))
+      (if (string-equal l-buffer-status "nofile")
+        (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-nofile-face)
+        (if (string-equal l-buffer-status "ref")
+          (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
+          (if (string-equal l-buffer-status "new")
+            (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
+            (if l-buffer-svn-modified-flag
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-svn-modified-face)
+              (if l-buffer-rw-flag
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ro-face)))))))
     (put-text-property l-begin-point (point) 'mouse-face 'highlight)
 
     ;; Add a space after filename, because otherwise, with some versions of
@@ -506,8 +510,7 @@
       (save-excursion
         (set-buffer l-buffer-name)
         (if (or (equal major-mode 'dired-mode)
-                (equal major-mode 'Buffer-menu-mode)
-                (not (file-exists-p buffer-file-name)))
+                (equal major-mode 'Buffer-menu-mode))
           (kill-buffer l-buffer-name)
           (if (not (string-equal l-buffer-name eide-project-file))
             (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
@@ -523,27 +526,20 @@
 (defun eide-menu-update-current-buffer-modified-status ()
   (save-excursion
     (setq l-buffer (buffer-name))
-    (setq l-modified-flag (buffer-modified-p))
+    ;; eide-menu-local-edit-status update is useful when a new buffer is saved
+    ;; in file system for the first time (status changes from "nofile" to "")
+    (make-local-variable 'eide-menu-local-edit-status)
+    (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
     (if eide-config-show-svn-status-flag
       (progn
         (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))
-        (setq l-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (setq l-svn-modified-flag nil))
+        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
     (set-buffer eide-menu-buffer-name)
     (save-excursion
-      (if (or (and l-modified-flag
-                   (progn (goto-char (point-min)) (or (search-forward (concat " " l-buffer " \n") nil t)
-                                                      (search-forward (concat " " l-buffer " (M) \n") nil t))))
-              (and (not l-modified-flag)
-                   (progn (goto-char (point-min)) (or (search-forward (concat " " l-buffer " *\n") nil t)
-                                                      (search-forward (concat " " l-buffer " (M) *\n") nil t))))
-              (and l-svn-modified-flag
-                   (progn (goto-char (point-min)) (or (search-forward (concat " " l-buffer " \n") nil t)
-                                                      (search-forward (concat " " l-buffer " *\n") nil t))))
-              (and (not l-svn-modified-flag)
-                   (progn (goto-char (point-min)) (or (search-forward (concat " " l-buffer " (M) \n") nil t)
-                                                      (search-forward (concat " " l-buffer " (M) *\n") nil t)))))
+      (if (or (search-forward (concat " " l-buffer " \n") nil t)
+              (search-forward (concat " " l-buffer " *\n") nil t)
+              (search-forward (concat " " l-buffer " (M) \n") nil t)
+              (search-forward (concat " " l-buffer " (M) *\n") nil t))
         (progn
           (forward-line -1)
           (eide-i-menu-remove-file)
