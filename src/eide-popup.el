@@ -244,7 +244,12 @@
                 (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
                   (progn
                     (setq l-buffer-svn-modified-flag t)
-                    (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-buffer)))))))))
+                    ;; Get file name from buffer name (remove <n> if present)
+                    (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
+                      (if l-index
+                        (setq l-file-name (substring l-buffer 0 l-index))
+                        (setq l-file-name l-buffer))
+                      (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-file-name))))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
       (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
