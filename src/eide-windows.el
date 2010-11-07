@@ -34,6 +34,9 @@
 (defvar eide-execution-buffer nil)
 (defvar eide-shell-buffer nil)
 
+(defvar eide-windows-output-window-height nil)
+(defvar eide-windows-menu-window-width nil)
+
 (defvar eide-windows-update-result-buffer-id nil)
 
 ;;;; ==========================================================================
@@ -608,11 +611,10 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-skip-unwanted-buffers-in-source-window ()
   (eide-windows-select-source-window nil)
-  (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-iteration 0))
+  (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-first-found-buffer-name nil) (l-iteration 0))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
-    (setq l-first-found-buffer-name nil)
     (while (and (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
                 l-should-we-continue
                 (< l-iteration 30))

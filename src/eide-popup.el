@@ -19,6 +19,8 @@
 
 (provide 'eide-popup)
 
+(require 'eide-compare) ; for eide-compare-other-projects-list
+
 (defvar eide-popup-menu nil)
 (defvar eide-popup-menu-actions-list nil)
 (defvar eide-popup-menu-separator-flag nil)
@@ -97,10 +99,10 @@
       (if (not eide-option-menu-buffer-popup-groups-flags)
         (setq eide-popup-menu (list (cons "single group" eide-popup-menu))))
 
-      (setq l-result (x-popup-menu t (cons p-menu-title eide-popup-menu)))
-      (if (bufferp l-result)
-        (switch-to-buffer l-result)
-        (eval (car (read-from-string l-result)))))))
+      (let ((l-result (x-popup-menu t (cons p-menu-title eide-popup-menu))))
+        (if (bufferp l-result)
+          (switch-to-buffer l-result)
+          (eval (car (read-from-string l-result))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Open popup menu with the list of other projects.
@@ -286,78 +288,77 @@
   (eide-windows-select-menu-window)
   (move-to-window-line (cdr (last (mouse-position))))
 
-  (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
-  (eide-i-popup-menu-init)
+  (let ((l-buffer (eide-menu-get-buffer-name-on-current-line))
+        (l-buffer-status nil) (l-buffer-rw-flag t) (l-buffer-svn-modified-flag nil))
+    (eide-i-popup-menu-init)
 
-  (save-excursion
-    (set-buffer l-buffer)
-    (setq l-buffer-status eide-menu-local-edit-status)
+    (save-excursion
+      (set-buffer l-buffer)
+      (setq l-buffer-status eide-menu-local-edit-status)
 
-    ;; Check buffer status (r/w)
-    (if buffer-read-only
-      (setq l-buffer-rw-flag nil)
-      (setq l-buffer-rw-flag t))
-    ;; check version control status
-    (if eide-config-show-svn-status-flag
-      (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)
-      (setq l-buffer-svn-modified-flag nil)))
+      ;; Check buffer status (r/w)
+      (if buffer-read-only
+        (setq l-buffer-rw-flag nil))
+      ;; check version control status
+      (if eide-config-show-svn-status-flag
+        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
 
-  (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
+    (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
 
-  (if (not (string-equal l-buffer-status "nofile"))
-    (progn
+    (if (not (string-equal l-buffer-status "nofile"))
+      (progn
 
-      ;; Option "Set read/write"
-      (if l-buffer-rw-flag
-        (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
-        (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
+        ;; Option "Set read/write"
+        (if l-buffer-rw-flag
+          (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
+          (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
 
-      ;; Option for "edit"
-      (if (string-equal l-buffer-status "ref")
-        (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
-        (if (string-equal l-buffer-status "new")
-          (eide-i-popup-menu-add-action "Switch to REF file" (concat "(eide-edit-action-on-file 'eide-edit-use-ref-file \"" l-buffer "\")") t)
-          (eide-i-popup-menu-add-action "Backup original file (REF) to work on a copy (NEW)" (concat "(eide-edit-action-on-file 'eide-edit-make-ref-file \"" l-buffer "\")") t)))
+        ;; Option for "edit"
+        (if (string-equal l-buffer-status "ref")
+          (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
+          (if (string-equal l-buffer-status "new")
+            (eide-i-popup-menu-add-action "Switch to REF file" (concat "(eide-edit-action-on-file 'eide-edit-use-ref-file \"" l-buffer "\")") t)
+            (eide-i-popup-menu-add-action "Backup original file (REF) to work on a copy (NEW)" (concat "(eide-edit-action-on-file 'eide-edit-make-ref-file \"" l-buffer "\")") t)))
 
-      (if (string-equal l-buffer-status "ref")
-        (eide-i-popup-menu-add-action "Discard NEW file" (concat "(eide-edit-action-on-file 'eide-edit-discard-new-file \"" l-buffer "\" \"discard NEW file\")") t)
-        (if (string-equal l-buffer-status "new")
+        (if (string-equal l-buffer-status "ref")
+          (eide-i-popup-menu-add-action "Discard NEW file" (concat "(eide-edit-action-on-file 'eide-edit-discard-new-file \"" l-buffer "\" \"discard NEW file\")") t)
+          (if (string-equal l-buffer-status "new")
+            (progn
+              (eide-i-popup-menu-add-action "Discard REF file" (concat "(eide-edit-action-on-file 'eide-edit-discard-ref-file \"" l-buffer "\" \"discard REF file\")") t)
+              (eide-i-popup-menu-add-action "Restore REF file" (concat "(eide-edit-action-on-file 'eide-edit-restore-ref-file \"" l-buffer "\" \"restore REF file\")") t))))))
+
+    (eide-i-popup-menu-close-action-list "Edit")
+
+    (if (not (string-equal l-buffer-status "nofile"))
+      (progn
+        (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
+        (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
+
+        (eide-i-popup-menu-add-action "Convert end of line: DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
+        (eide-i-popup-menu-add-action "Convert end of line: UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
+
+        (eide-i-popup-menu-close-action-list "Clean")
+
+        ;; Option for "compare"
+        (if (string-equal l-buffer-status "ref")
+          (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-new-file \"" l-buffer "\")") t)
+          (if (string-equal l-buffer-status "new")
+            (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
+
+        (if eide-compare-other-project-name
+          (eide-i-popup-menu-add-action (concat "Compare with file in project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
+
+        (eide-i-popup-menu-close-action-list "Compare")
+
+        ;; Option "svn diff"
+        (if l-buffer-svn-modified-flag
           (progn
-            (eide-i-popup-menu-add-action "Discard REF file" (concat "(eide-edit-action-on-file 'eide-edit-discard-ref-file \"" l-buffer "\" \"discard REF file\")") t)
-            (eide-i-popup-menu-add-action "Restore REF file" (concat "(eide-edit-action-on-file 'eide-edit-restore-ref-file \"" l-buffer "\" \"restore REF file\")") t))))))
+            (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
+            (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
 
-  (eide-i-popup-menu-close-action-list "Edit")
+        (eide-i-popup-menu-close-action-list "svn")))
 
-  (if (not (string-equal l-buffer-status "nofile"))
-    (progn
-      (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
-      (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
-
-      (eide-i-popup-menu-add-action "Convert end of line: DOS to UNIX" (concat "(eide-edit-action-on-file 'eide-edit-dos-to-unix \"" l-buffer "\" \"convert end of line (DOS to UNIX)\")") l-buffer-rw-flag)
-      (eide-i-popup-menu-add-action "Convert end of line: UNIX to DOS" (concat "(eide-edit-action-on-file 'eide-edit-unix-to-dos \"" l-buffer "\" \"convert end of line (UNIX to DOS)\")") l-buffer-rw-flag)
-
-      (eide-i-popup-menu-close-action-list "Clean")
-
-      ;; Option for "compare"
-      (if (string-equal l-buffer-status "ref")
-        (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-new-file \"" l-buffer "\")") t)
-        (if (string-equal l-buffer-status "new")
-          (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
-
-      (if eide-compare-other-project-name
-        (eide-i-popup-menu-add-action (concat "Compare with file in project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
-
-      (eide-i-popup-menu-close-action-list "Compare")
-
-      ;; Option "svn diff"
-      (if l-buffer-svn-modified-flag
-        (progn
-          (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
-          (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
-
-      (eide-i-popup-menu-close-action-list "svn")))
-
-  (eide-i-popup-menu-open l-buffer))
+    (eide-i-popup-menu-open l-buffer)))
 
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu to select a buffer to display in "output" window.
@@ -374,8 +375,8 @@
     (progn
       (dolist (l-grep-result eide-menu-grep-results-list)
         ;; Protect \ in grep search buffer name
-        (setq l-grep-result-parameter (replace-regexp-in-string "\\\\" "\\\\" l-grep-result t t))
-        (eide-i-popup-menu-add-action l-grep-result (concat "(eide-search-view-result-buffer \"" l-grep-result-parameter "\")") t))
+        (let ((l-grep-result-parameter (replace-regexp-in-string "\\\\" "\\\\" l-grep-result t t)))
+          (eide-i-popup-menu-add-action l-grep-result (concat "(eide-search-view-result-buffer \"" l-grep-result-parameter "\")") t)))
       (eide-i-popup-menu-close-action-list "Grep results")))
   (if eide-menu-cscope-results-list
     (progn
@@ -402,8 +403,8 @@
     (progn
       (dolist (l-grep-result eide-menu-grep-results-list)
         ;; Protect \ in grep search buffer name
-        (setq l-grep-result-parameter (replace-regexp-in-string "\\\\" "\\\\" l-grep-result t t))
-        (eide-i-popup-menu-add-action (concat "Delete " l-grep-result) (concat "(eide-search-close-grep-buffer \"" l-grep-result-parameter "\")") t))
+        (let ((l-grep-result-parameter (replace-regexp-in-string "\\\\" "\\\\" l-grep-result t t)))
+          (eide-i-popup-menu-add-action (concat "Delete " l-grep-result) (concat "(eide-search-close-grep-buffer \"" l-grep-result-parameter "\")") t)))
       (if (> (length eide-menu-grep-results-list) 1)
         (eide-i-popup-menu-add-action "Delete all grep results" "(eide-search-close-all-grep-buffers)" t))
       (eide-i-popup-menu-close-action-list "Grep results")))
@@ -423,15 +424,15 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-search ()
   (eide-i-popup-menu-init)
-  (setq string (buffer-substring-no-properties (region-beginning) (region-end)))
-  (if eide-project-name
-    (progn
-      (eide-i-popup-menu-add-action "Go to definition (tag)" (concat "(eide-search-find-tag \"" string "\")") t)
-      (eide-i-popup-menu-add-action "Find symbol (cscope)" (concat "(eide-search-find-symbol \"" string "\")") t)
-      (eide-i-popup-menu-add-action "Grep in whole project" (concat "(eide-search-grep-global \"" string "\")") t)))
-  (eide-i-popup-menu-add-action "Grep in current directory" (concat "(eide-search-grep-local \"" string "\")") t)
-  (eide-i-popup-menu-close-action-list "Search")
-  (eide-i-popup-menu-open (concat "Search: " string)))
+  (let ((l-string (buffer-substring-no-properties (region-beginning) (region-end))))
+    (if eide-project-name
+      (progn
+        (eide-i-popup-menu-add-action "Go to definition (tag)" (concat "(eide-search-find-tag \"" l-string "\")") t)
+        (eide-i-popup-menu-add-action "Find symbol (cscope)" (concat "(eide-search-find-symbol \"" l-string "\")") t)
+        (eide-i-popup-menu-add-action "Grep in whole project" (concat "(eide-search-grep-global \"" l-string "\")") t)))
+    (eide-i-popup-menu-add-action "Grep in current directory" (concat "(eide-search-grep-local \"" l-string "\")") t)
+    (eide-i-popup-menu-close-action-list "Search")
+    (eide-i-popup-menu-open (concat "Search: " l-string))))
 
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu to clean selected lines.

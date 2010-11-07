@@ -19,10 +19,18 @@
 
 (provide 'eide-menu)
 
+(require 'imenu) ; for imenu--generic-function and imenu-generic-expression
+
+(require 'eide-edit) ; for eide-edit-update-files-status and eide-edit-get-buffer-status
+(require 'eide-svn) ; for eide-svn-update-files-status and eide-svn-is-current-buffer-modified-p
+
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-functions-list nil)
 (setq eide-menu-local-svn-modified-status-flag nil)
 (setq eide-menu-local-edit-status nil)
+
+(defvar eide-current-buffer nil)
+(defvar eide-menu-current-buffer-marker nil)
 
 (defvar eide-menu-buffer-name nil)
 (defvar eide-menu-files-list nil)
@@ -60,9 +68,9 @@
 ;;              buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-file (p-string)
-  (let ((buffer-read-only nil) (l-functions-list nil)
+  (let ((buffer-read-only nil) (l-functions-list nil) (l-highlighted-functions-list nil)
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil) (l-buffer-svn-modified-flag nil)
-        (l-buffer-status nil) (l-functions-unfolded-flag nil))
+        (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
     (save-excursion
       (set-buffer p-string)
       (setq l-buffer-status eide-menu-local-edit-status)
@@ -85,39 +93,40 @@
       (setq l-is-current t)
       (setq l-is-current nil))
 
-    (if l-functions-unfolded-flag
-      (put-text-property (setq l-begin-point (point)) (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
-      (put-text-property (setq l-begin-point (point)) (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
-    (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-    (eide-i-menu-insert-text " ")
-    (put-text-property (setq l-begin-point (point)) (progn (insert p-string) (point)) 'keymap file-name-map)
-    ;;  (if l-is-current
-    ;;    (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face)
+    (let ((l-begin-point (point)))
+      (if l-functions-unfolded-flag
+        (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
+        (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
+      (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+      (eide-i-menu-insert-text " ")
+      (put-text-property (setq l-begin-point (point)) (progn (insert p-string) (point)) 'keymap file-name-map)
+      ;;  (if l-is-current
+      ;;    (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face)
 
-    (if l-is-current
-      (if (string-equal l-buffer-status "nofile")
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-nofile-face)
-        (if (string-equal l-buffer-status "ref")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
-          (if (string-equal l-buffer-status "new")
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
-            (if l-buffer-svn-modified-flag
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-svn-modified-face)
-              (if l-buffer-rw-flag
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face))))))
-      (if (string-equal l-buffer-status "nofile")
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-nofile-face)
-        (if (string-equal l-buffer-status "ref")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
-          (if (string-equal l-buffer-status "new")
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
-            (if l-buffer-svn-modified-flag
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-svn-modified-face)
-              (if l-buffer-rw-flag
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ro-face)))))))
-    (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+      (if l-is-current
+        (if (string-equal l-buffer-status "nofile")
+          (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-nofile-face)
+          (if (string-equal l-buffer-status "ref")
+            (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
+            (if (string-equal l-buffer-status "new")
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
+              (if l-buffer-svn-modified-flag
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-svn-modified-face)
+                (if l-buffer-rw-flag
+                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
+                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face))))))
+        (if (string-equal l-buffer-status "nofile")
+          (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-nofile-face)
+          (if (string-equal l-buffer-status "ref")
+            (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
+            (if (string-equal l-buffer-status "new")
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
+              (if l-buffer-svn-modified-flag
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-svn-modified-face)
+                (if l-buffer-rw-flag
+                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
+                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ro-face)))))))
+      (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
     ;; Add a space after filename, because otherwise, with some versions of
     ;; emacs, property applies on whole line ("\n")
@@ -141,14 +150,15 @@
       (if l-functions-list
         (dolist (l-function l-functions-list)
           (eide-i-menu-insert-text "  ")
-          (put-text-property (setq l-begin-point (point)) (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
-          (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-          (eide-i-menu-insert-text " ")
-          (put-text-property (setq l-begin-point (point)) (progn (insert (car l-function)) (point)) 'keymap function-name-map)
-          (if (member (car l-function) l-highlighted-functions-list)
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-with-highlight-face)
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-face))
-          (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+          (let ((l-begin-point (point)))
+            (put-text-property l-begin-point (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
+            (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+            (eide-i-menu-insert-text " ")
+            (put-text-property (setq l-begin-point (point)) (progn (insert (car l-function)) (point)) 'keymap function-name-map)
+            (if (member (car l-function) l-highlighted-functions-list)
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-with-highlight-face)
+              (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-face))
+            (put-text-property l-begin-point (point) 'mouse-face 'highlight))
           ;; Add a space after function name, because otherwise, property
           ;; applies on whole line ("\n")
           (eide-i-menu-insert-text " \n"))
@@ -184,8 +194,7 @@
 
     ;; Parse buffer list for buffers from this directory to display
     (dolist (l-buffer eide-menu-files-list)
-      (setq l-buffer-directory (file-name-directory (buffer-file-name (get-buffer l-buffer))))
-      (if (string-equal p-directory-name l-buffer-directory)
+      (if (string-equal p-directory-name (file-name-directory (buffer-file-name (get-buffer l-buffer))))
         (eide-i-menu-insert-file l-buffer)))
     ;; Insert an empty line between two directories
     (eide-i-menu-insert-text "\n")))
@@ -198,21 +207,19 @@
 ;;              buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-all-files ()
-  (setq l-directory-list nil)
-
-  ;; First, parse the list of buffers to built the list of directories
-  (dolist (l-buffer eide-menu-files-list)
-    ;; Extract the directory from the buffer file name
-    (setq l-directory (file-name-directory (buffer-file-name (get-buffer l-buffer))))
-    ;; If this is the first buffer from this directory, add the directory to the list
-    (if (not (member l-directory l-directory-list))
-      (setq l-directory-list (cons l-directory l-directory-list))))
-  ;; Sort the list in alphabetical order
-  (setq l-directory-list (sort l-directory-list 'string<))
-
-  ;; For each directory, insert the directory name, and parse the list of buffers to insert those that match
-  (dolist (l-directory l-directory-list)
-    (eide-i-menu-insert-directory l-directory)))
+  (let ((l-directory-list nil))
+    ;; First, parse the list of buffers to built the list of directories
+    (dolist (l-buffer eide-menu-files-list)
+      ;; Extract the directory from the buffer file name
+      (let ((l-directory (file-name-directory (buffer-file-name (get-buffer l-buffer)))))
+        ;; If this is the first buffer from this directory, add the directory to the list
+        (if (not (member l-directory l-directory-list))
+          (setq l-directory-list (cons l-directory l-directory-list)))))
+    ;; Sort the list in alphabetical order
+    (setq l-directory-list (sort l-directory-list 'string<))
+    ;; For each directory, insert the directory name, and parse the list of buffers to insert those that match
+    (dolist (l-directory l-directory-list)
+      (eide-i-menu-insert-directory l-directory))))
 
 ;; ----------------------------------------------------------------------------
 ;; Change current file.
@@ -236,15 +243,14 @@
     ;; equals, and when old file is inserted, new marker remains on beginning
     ;; of line of old file. The problem is fixed if the marker is set on second
     ;; char (new marker will not be separated from the line related to new file)
-    (setq eide-menu-old-current-buffer-marker eide-menu-current-buffer-marker)
-    (setq eide-menu-current-buffer-marker (point-marker))
+    (let ((eide-menu-old-current-buffer-marker eide-menu-current-buffer-marker)
+          (eide-old-current-buffer eide-current-buffer))
+      (setq eide-menu-current-buffer-marker (point-marker))
+      (setq eide-current-buffer p-buffer-name)
 
-    (setq eide-old-current-buffer eide-current-buffer)
-    (setq eide-current-buffer p-buffer-name)
-
-    (goto-char (marker-position eide-menu-old-current-buffer-marker))
-    (eide-i-menu-remove-file)
-    (eide-i-menu-insert-file eide-old-current-buffer)
+      (goto-char (marker-position eide-menu-old-current-buffer-marker))
+      (eide-i-menu-remove-file)
+      (eide-i-menu-insert-file eide-old-current-buffer))
 
     (goto-char (marker-position eide-menu-current-buffer-marker))
     (eide-i-menu-remove-file)
@@ -332,11 +338,11 @@
       (eide-i-menu-insert-all-files))
 
     ;; 80 blank lines, so that "menu" window seems to have specific background
-    (setq l-loop-count 0)
-    (save-excursion
-      (while (< l-loop-count 80)
-        (eide-i-menu-insert-text "\n")
-        (setq l-loop-count (+ l-loop-count 1))))
+    (let ((l-loop-count 0))
+      (save-excursion
+        (while (< l-loop-count 80)
+          (eide-i-menu-insert-text "\n")
+          (setq l-loop-count (+ l-loop-count 1)))))
 
     ;; Move cursor to current buffer
     (if eide-menu-current-buffer-marker
@@ -383,36 +389,33 @@
   (interactive)
   ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
   (save-excursion
-    (setq l-function-index (eide-i-menu-get-index-in-list))
-    (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
+    (let ((l-function-index (eide-i-menu-get-index-in-list))
+          (l-buffer (eide-menu-get-buffer-name-on-current-line)))
+      (save-excursion
+        (set-buffer l-buffer)
+        (let ((l-function (car (nth l-function-index (imenu--generic-function imenu-generic-expression)))))
+          (make-local-variable 'eide-menu-local-highlighted-functions-list)
+          (if (member l-function eide-menu-local-highlighted-functions-list)
+            ;; Already highlighted => remove it
+            (setq eide-menu-local-highlighted-functions-list (remove l-function eide-menu-local-highlighted-functions-list))
+            ;; Not highlighted yet => add it
+            (push l-function eide-menu-local-highlighted-functions-list))))
 
-    (save-excursion
-      (set-buffer l-buffer)
-      (setq l-function (car (nth l-function-index (imenu--generic-function imenu-generic-expression))))
-      (make-local-variable 'eide-menu-local-highlighted-functions-list)
-      (if (member l-function eide-menu-local-highlighted-functions-list)
-        ;; Already highlighted => remove it
-        (setq eide-menu-local-highlighted-functions-list (remove l-function eide-menu-local-highlighted-functions-list))
-        ;; Not highlighted yet => add it
-        (push l-function eide-menu-local-highlighted-functions-list)))
-
-    (eide-i-menu-remove-file)
-    (eide-i-menu-insert-file l-buffer)))
+      (eide-i-menu-remove-file)
+      (eide-i-menu-insert-file l-buffer))))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to selected function.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-goto-function ()
   (interactive)
-  (setq l-function-index (eide-i-menu-get-index-in-list))
-  (setq l-buffer (eide-menu-get-buffer-name-on-current-line))
-
-  (eide-i-menu-update-current-buffer l-buffer)
-  (eide-windows-select-source-window t)
-  (switch-to-buffer l-buffer)
-
-  (goto-char (marker-position (cdr (nth l-function-index (imenu--generic-function imenu-generic-expression)))))
-  (recenter))
+  (let ((l-function-index (eide-i-menu-get-index-in-list))
+        (l-buffer (eide-menu-get-buffer-name-on-current-line)))
+    (eide-i-menu-update-current-buffer l-buffer)
+    (eide-windows-select-source-window t)
+    (switch-to-buffer l-buffer)
+    (goto-char (marker-position (cdr (nth l-function-index (imenu--generic-function imenu-generic-expression)))))
+    (recenter)))
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -454,23 +457,23 @@
         ;; On Emacs 22 GTK: buffer-name does not return current but previous
         ;; buffer!... The bug is fixed if window-buffer is used.
         ;;(setq eide-current-buffer-temp (buffer-name))
-        (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
-        (if p-force-rebuild-flag
-          (progn
-            (eide-windows-select-menu-window)
-            (setq eide-current-buffer eide-current-buffer-temp)
-            (eide-i-menu-rebuild p-force-update-status-flag))
-          (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
+        (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
+          (if p-force-rebuild-flag
             (progn
               (eide-windows-select-menu-window)
-              (goto-char (point-min))
-              (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
-                ;; Old and new files are both present in menu: just update current buffer
-                (eide-i-menu-update-current-buffer eide-current-buffer-temp)
-                ;; File not present in menu: update whole menu
-                (progn
-                  (setq eide-current-buffer eide-current-buffer-temp)
-                  (eide-i-menu-rebuild nil))))))
+              (setq eide-current-buffer eide-current-buffer-temp)
+              (eide-i-menu-rebuild p-force-update-status-flag))
+            (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
+              (progn
+                (eide-windows-select-menu-window)
+                (goto-char (point-min))
+                (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
+                  ;; Old and new files are both present in menu: just update current buffer
+                  (eide-i-menu-update-current-buffer eide-current-buffer-temp)
+                  ;; File not present in menu: update whole menu
+                  (progn
+                    (setq eide-current-buffer eide-current-buffer-temp)
+                    (eide-i-menu-rebuild nil)))))))
         ;; Go back to "current window"
         (select-window l-window)))
     (progn
@@ -479,11 +482,9 @@
       (if (not eide-windows-menu-update-request-pending-force-rebuild-flag)
         (if p-force-rebuild-flag
           (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)
-          (progn
-            (setq eide-current-buffer-temp (buffer-name (window-buffer (selected-window))))
-            (if (or (not (member eide-current-buffer eide-menu-files-list))
-                    (not (member eide-current-buffer-temp eide-menu-files-list)))
-              (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)))))
+          (if (or (not (member eide-current-buffer eide-menu-files-list))
+                  (not (member (buffer-name (window-buffer (selected-window))) eide-menu-files-list)))
+            (setq eide-windows-menu-update-request-pending-force-rebuild-flag t))))
       ;; Force update status flag must not be changed if already set
       (if p-force-update-status-flag
         (setq eide-windows-menu-update-request-pending-force-update-status-flag t)))))
@@ -500,50 +501,50 @@
   (setq eide-menu-grep-results-list nil)
   (setq eide-menu-cscope-results-list nil)
 
-  (setq l-buffer-name-list (mapcar 'buffer-name (buffer-list)))
-  (setq l-buffer-name-list (sort l-buffer-name-list 'string<))
-  (setq l-buffer-name-list (reverse l-buffer-name-list))
+  (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
+    (setq l-buffer-name-list (sort l-buffer-name-list 'string<))
+    (setq l-buffer-name-list (reverse l-buffer-name-list))
 
-  (dolist (l-buffer-name l-buffer-name-list)
-    (if (not (or (string-match "^[ \*]" l-buffer-name) (string-equal "TAGS" l-buffer-name)))
-      ;; This is a "useful" buffer
-      (save-excursion
-        (set-buffer l-buffer-name)
-        (if (or (equal major-mode 'dired-mode)
-                (equal major-mode 'Buffer-menu-mode))
-          (kill-buffer l-buffer-name)
-          (if (not (string-equal l-buffer-name eide-project-file))
-            (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
-      ;; This is a "*..." buffer
-      (if (string-match "^\\*grep.*" l-buffer-name)
-        (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
-        (if (string-match "^\\*cscope\\*.*" l-buffer-name)
-          (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list)))))))
+    (dolist (l-buffer-name l-buffer-name-list)
+      (if (not (or (string-match "^[ \*]" l-buffer-name) (string-equal "TAGS" l-buffer-name)))
+        ;; This is a "useful" buffer
+        (save-excursion
+          (set-buffer l-buffer-name)
+          (if (or (equal major-mode 'dired-mode)
+                  (equal major-mode 'Buffer-menu-mode))
+            (kill-buffer l-buffer-name)
+            (if (not (string-equal l-buffer-name eide-project-file))
+              (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
+        ;; This is a "*..." buffer
+        (if (string-match "^\\*grep.*" l-buffer-name)
+          (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
+          (if (string-match "^\\*cscope\\*.*" l-buffer-name)
+            (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Update current buffer "modified" status (in menu).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-update-current-buffer-modified-status ()
   (save-excursion
-    (setq l-buffer (buffer-name))
-    ;; eide-menu-local-edit-status update is useful when a new buffer is saved
-    ;; in file system for the first time (status changes from "nofile" to "")
-    (make-local-variable 'eide-menu-local-edit-status)
-    (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-    (if eide-config-show-svn-status-flag
-      (progn
-        (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-    (set-buffer eide-menu-buffer-name)
-    (save-excursion
-      (if (or (search-forward (concat " " l-buffer " \n") nil t)
-              (search-forward (concat " " l-buffer " *\n") nil t)
-              (search-forward (concat " " l-buffer " (M) \n") nil t)
-              (search-forward (concat " " l-buffer " (M) *\n") nil t))
+    (let ((l-buffer (buffer-name)))
+      ;; eide-menu-local-edit-status update is useful when a new buffer is saved
+      ;; in file system for the first time (status changes from "nofile" to "")
+      (make-local-variable 'eide-menu-local-edit-status)
+      (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+      (if eide-config-show-svn-status-flag
         (progn
-          (forward-line -1)
-          (eide-i-menu-remove-file)
-          (eide-i-menu-insert-file l-buffer))))))
+          (make-local-variable 'eide-menu-local-svn-modified-status-flag)
+          (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+      (set-buffer eide-menu-buffer-name)
+      (save-excursion
+        (if (or (search-forward (concat " " l-buffer " \n") nil t)
+                (search-forward (concat " " l-buffer " *\n") nil t)
+                (search-forward (concat " " l-buffer " (M) \n") nil t)
+                (search-forward (concat " " l-buffer " (M) *\n") nil t))
+          (progn
+            (forward-line -1)
+            (eide-i-menu-remove-file)
+            (eide-i-menu-insert-file l-buffer)))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Get directory name on current line in "menu" buffer.
@@ -606,17 +607,16 @@
             (eide-menu-update t))
           (progn
             (eide-i-menu-remove-file)
-            (setq l-property (get-text-property (point) 'face))
             (if (string-equal (char-to-string (char-after)) "\n")
               ;; It was the last file of the group
               (progn
                 (forward-line -1)
-                (setq l-property (get-text-property (point) 'face))
-                (if (or (equal l-property 'eide-config-menu-directory-face)
-                        (equal l-property 'eide-config-menu-directory-out-of-project-face))
-                  ;; It was also the only one: we must delete directory line
-                  (let ((buffer-read-only nil))
-                    (delete-region (point) (progn (forward-line 2) (point)))))))))))))
+                (let ((l-property (get-text-property (point) 'face)))
+                  (if (or (equal l-property 'eide-config-menu-directory-face)
+                          (equal l-property 'eide-config-menu-directory-out-of-project-face))
+                    ;; It was also the only one: we must delete directory line
+                    (let ((buffer-read-only nil))
+                      (delete-region (point) (progn (forward-line 2) (point))))))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Close all files in selected directory.

@@ -54,8 +54,7 @@
         (message "Text is selected over several lines: cannot search for it...")
         nil))
     ;; No text is selected
-    (progn
-      (setq l-string (find-tag-default)) ; (cscope-extract-symbol-at-cursor nil)
+    (let ((l-string (find-tag-default))) ; (cscope-extract-symbol-at-cursor nil)
       (if l-string
         l-string
         (progn
@@ -148,15 +147,13 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of a symbol (prompt for it).
-;;
-;; output : eide-search-cscope-string : symbol.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-definition-with-prompt ()
   (interactive)
-  (setq eide-search-cscope-string (find-tag-default))
-  (eide-windows-select-source-window nil)
-  ;; TODO: remplacer find-tag par la bonne commande cscope
-  (call-interactively 'find-tag eide-search-cscope-string)
+  (let ((l-string (find-tag-default)))
+    (eide-windows-select-source-window nil)
+    ;; TODO: remplacer find-tag par la bonne commande cscope
+    (call-interactively 'find-tag l-string))
   (recenter))
 
 ;; ----------------------------------------------------------------------------
@@ -166,8 +163,8 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
   (eide-windows-select-output-window)
-  (let ((l-result-buffer-name (concat "*cscope*: " p-symbol)))
-    (setq l-do-it-flag t)
+  (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
+        (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result) ?")
         ;; Delete existing find-symbol buffer
@@ -185,17 +182,14 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Find a symbol (prompt for it).
-;;
-;; output : eide-search-cscope-string : symbol.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-with-prompt ()
   (interactive)
   (if eide-project-cscope-files-flag
-    (progn
-      (setq eide-search-cscope-string (read-string "Find symbol with cscope: "))
-      (if (string-equal eide-search-cscope-string "")
+    (let ((l-string (read-string "Find symbol with cscope: ")))
+      (if (string-equal l-string "")
         (message "Cannot find empty symbol...")
-        (eide-search-find-symbol eide-search-cscope-string)))
+        (eide-search-find-symbol l-string)))
     (message "Cannot use cscope: there is no C/C++ file in this project...")))
 
 ;; ----------------------------------------------------------------------------
@@ -204,10 +198,9 @@
 (defun eide-search-find-symbol-without-prompt ()
   (interactive)
   (if eide-project-cscope-files-flag
-    (progn
-      (setq eide-search-cscope-string (eide-i-search-get-string-to-search))
-      (if eide-search-cscope-string
-        (eide-search-find-symbol eide-search-cscope-string)))
+    (let ((l-string (eide-i-search-get-string-to-search)))
+      (if l-string
+        (eide-search-find-symbol l-string)))
     (message "Cannot use cscope: there is no C/C++ file in this project...")))
 
 ;; ----------------------------------------------------------------------------
@@ -217,9 +210,9 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local (p-string)
   (eide-windows-select-source-window t)
-  (setq l-buffer-directory (file-name-directory (buffer-file-name)))
-  (let ((l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")")))
-    (setq l-do-it-flag t)
+  (let ((l-buffer-directory (file-name-directory (buffer-file-name)))
+        (l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")"))
+        (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
         ;; Delete existing grep buffer
@@ -267,8 +260,8 @@
   ;; On Emacs 22 GTK: it is necessary to select "source" window, otherwise
   ;; current output buffer will be reused if "output" window is selected.
   (eide-windows-select-source-window t)
-  (let ((l-result-buffer-name (concat "*grep (global)*: " p-string)))
-    (setq l-do-it-flag t)
+  (let ((l-result-buffer-name (concat "*grep (global)*: " p-string))
+        (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
         ;; Delete existing grep buffer

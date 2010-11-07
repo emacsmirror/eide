@@ -19,19 +19,30 @@
 
 (provide 'eide-config)
 
+(require 'eide-popup) ; for eide-popup-message
+
 (defvar eide-options-file       ".emacs-ide.options")
 (defvar eide-project-file       ".emacs-ide.project")
 (defvar eide-project-notes-file ".emacs-ide.project_notes")
 
 (defvar eide-config-use-color-theme-for-source-flag nil)
 (defvar eide-config-show-trailing-spaces-flag nil)
-(defvar eide-config-show-svn-status-flag nil)
-(defvar eide-config-svn-diff-command nil)
 (defvar eide-config-menu-position nil)
 (defvar eide-config-menu-height nil)
+(defvar eide-config-show-svn-status-flag nil)
+(defvar eide-config-svn-diff-command nil)
+(defvar eide-config-c-indent-offset nil)
 
+(defvar eide-config-background-color nil)
+(defvar eide-config-foreground-color nil)
+(defvar eide-config-menu-background-color nil)
+(defvar eide-config-menu-foreground-color nil)
 (defvar eide-config-user-background-color nil)
 (defvar eide-config-user-foreground-color nil)
+(defvar eide-config-menu-file-highlight-background-color nil)
+(defvar eide-config-config-background-color nil)
+(defvar eide-config-config-foreground-color nil)
+
 (defvar eide-config-user-keyword-foreground-color nil)
 (defvar eide-config-user-type-foreground-color nil)
 (defvar eide-config-user-function-foreground-color nil)
@@ -45,6 +56,9 @@
 (defvar eide-config-user-comment-foreground-color nil)
 (defvar eide-config-user-selection-background-color nil)
 (defvar eide-config-user-selection-foreground-color nil)
+
+(defvar eide-config-source-buffer nil)
+(defvar eide-config-target-buffer nil)
 
 ;;;; ==========================================================================
 ;;;; OPTIONS
@@ -256,19 +270,17 @@
 ;;
 ;; input  : p-path : path of config file.
 ;;          p-file : name of config file.
-;; output : eide-config-path : path of config file.
-;;          eide-config-source-buffer : name of config file.
+;; output : eide-config-source-buffer : name of config file.
 ;;          eide-config-target-buffer : temporary buffer for update.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-start (p-path p-file)
   ;; Define source and target config files
-  (setq eide-config-path p-path)
   (setq eide-config-source-buffer p-file)
   (setq eide-config-target-buffer (concat p-file "_temp"))
 
   ;; Open these config files
   (if (not (get-buffer eide-config-source-buffer))
-    (find-file-noselect (concat eide-config-path eide-config-source-buffer)))
+    (find-file-noselect (concat p-path eide-config-source-buffer)))
   (get-buffer-create eide-config-target-buffer)
   (set-buffer eide-config-target-buffer)
   (erase-buffer))
@@ -584,7 +596,7 @@
 ;;
 ;; output : eide-config-menu-position : menu position (windows layout).
 ;;          eide-config-menu-height : menu height (windows layout).
-;;          eide-c-indent-offset : indentation offset for C files.
+;;          eide-config-c-indent-offset : indentation offset for C files.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-apply-options ()
   ;; Size of characters for X system
@@ -633,7 +645,7 @@
 
   ;; Coding rules
   ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
-  (setq eide-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
+  (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS

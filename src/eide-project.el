@@ -19,6 +19,10 @@
 
 (provide 'eide-project)
 
+(require 'desktop) ; for all desktop-* functions
+
+(defvar eide-root-directory nil)
+
 ;; Test if xcscope is available
 (defvar eide-option-use-cscope-flag nil)
 (if (locate-library "xcscope")

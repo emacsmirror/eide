@@ -24,12 +24,6 @@
     (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
     (kill-emacs)))
 
-(defvar eide-version "1.4+")
-(defvar eide-release-date "2010-11")
-
-(defvar eide-root-directory nil)
-(defvar eide-current-buffer nil)
-
 ;; Project directory
 ;; On Windows: it is necessary to open a temporary file for the directory path
 ;; to be correct (Windows standard vs Unix)
@@ -49,6 +43,7 @@
 (require 'imenu)
 (require 'mwheel)
 (require 'ediff)
+(require 'gdb-ui)
 
 ;; Emacs-IDE modules
 (require 'eide-compare)
@@ -62,6 +57,14 @@
 (require 'eide-search)
 (require 'eide-svn)
 (require 'eide-windows)
+
+(defvar eide-cc-imenu-c-generic-expression nil)
+(defvar eide-cc-imenu-c-macro nil)
+(defvar eide-cc-imenu-c-struct nil)
+(defvar eide-cc-imenu-c-enum nil)
+(defvar eide-cc-imenu-c-define nil)
+(defvar eide-cc-imenu-c-function nil)
+(defvar eide-cc-imenu-c-interrupt nil)
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -180,110 +183,108 @@
   ;; beaucoup d'erreurs : du code est parfois interprété à tort comme une
   ;; définition de fonction)
 
-  (setq eide-regex-word              "[a-zA-Z_][a-zA-Z0-9_:<>~]*")
-  (setq eide-regex-word-no-underscore "[a-zA-Z][a-zA-Z0-9_:<>~]*")
-  (setq eide-regex-space "[ \t]+")
-  (setq eide-regex-space-or-crlf "[ \t\n\r]+")
-  (setq eide-regex-space-or-crlf-or-nothing "[ \t\n\r]*")
-  (setq eide-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[ \t\n\r]*")
-  ;;(setq eide-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[\n\r][ \t\n\r]*")
-  (setq eide-regex-space-or-nothing "[ \t]*")
+  (let ((l-regex-word "[a-zA-Z_][a-zA-Z0-9_:<>~]*")
+        (l-regex-word-no-underscore "[a-zA-Z][a-zA-Z0-9_:<>~]*")
+        (l-regex-space "[ \t]+")
+        ;;(l-regex-space-or-crlf "[ \t\n\r]+")
+        (l-regex-space-or-crlf-or-nothing "[ \t\n\r]*")
+        (l-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[ \t\n\r]*")
+        ;;(l-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[\n\r][ \t\n\r]*")
+        (l-regex-space-or-nothing "[ \t]*"))
 
-  (setq eide-cc-imenu-c-macro
-        (concat
-         "^#define" eide-regex-space
-         "\\(" eide-regex-word "\\)("
-         )
-        )
+    (setq eide-cc-imenu-c-macro
+          (concat
+           "^#define" l-regex-space
+           "\\(" l-regex-word "\\)(" ))
 
-  (setq eide-cc-imenu-c-struct
-        (concat
-         "^typedef"  eide-regex-space "struct" eide-regex-space-or-crlf-or-nothing
-         "{[^{]+}" eide-regex-space-or-nothing
-         "\\(" eide-regex-word "\\)" ))
+    (setq eide-cc-imenu-c-struct
+          (concat
+           "^typedef"  l-regex-space "struct" l-regex-space-or-crlf-or-nothing
+           "{[^{]+}" l-regex-space-or-nothing
+           "\\(" l-regex-word "\\)" ))
 
-  (setq eide-cc-imenu-c-enum
-        (concat
-         "^typedef" eide-regex-space "enum" eide-regex-space-or-crlf-or-nothing
-         "{[^{]+}" eide-regex-space-or-nothing
-         "\\(" eide-regex-word "\\)" ))
+    (setq eide-cc-imenu-c-enum
+          (concat
+           "^typedef" l-regex-space "enum" l-regex-space-or-crlf-or-nothing
+           "{[^{]+}" l-regex-space-or-nothing
+           "\\(" l-regex-word "\\)" ))
 
-  (setq eide-cc-imenu-c-define
-        (concat
-         "^#define" eide-regex-space
-         "\\(" eide-regex-word "\\)" eide-regex-space ))
+    (setq eide-cc-imenu-c-define
+          (concat
+           "^#define" l-regex-space
+           "\\(" l-regex-word "\\)" l-regex-space ))
 
-  (setq eide-cc-imenu-c-function
-        (concat
-         "^\\(?:" eide-regex-word-no-underscore "\\*?" eide-regex-space "\\)*" ; void* my_function(void)
-         "\\*?" ; function may return a pointer, e.g. void *my_function(void)
-         "\\(" eide-regex-word "\\)"
-         eide-regex-space-or-crlf-or-nothing "("
-         eide-regex-space-or-crlf-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
-         ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
-         eide-regex-space-or-crlf-or-comment-or-nothing "{" ))
+    (setq eide-cc-imenu-c-function
+          (concat
+           "^\\(?:" l-regex-word-no-underscore "\\*?" l-regex-space "\\)*" ; void* my_function(void)
+           "\\*?" ; function may return a pointer, e.g. void *my_function(void)
+           "\\(" l-regex-word "\\)"
+           l-regex-space-or-crlf-or-nothing "("
+           l-regex-space-or-crlf-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
+           ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
+           l-regex-space-or-crlf-or-comment-or-nothing "{" ))
 
-  (if nil
-    (progn
-      ;; temp: remplace la définition au-dessus
-      (setq eide-cc-imenu-c-function
-            (concat
-             "^\\(?:" eide-regex-word eide-regex-space "\\)*"
-             "\\(" eide-regex-word "\\)"
-             eide-regex-space-or-nothing "("
-             "\\(" eide-regex-space-or-crlf-or-nothing eide-regex-word "\\)*)"
-             ;;eide-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)"   ; the arg list must not start
-             ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
-             eide-regex-space-or-crlf-or-nothing "{" ))
-      ))
+    (if nil
+      (progn
+        ;; temp: remplace la définition au-dessus
+        (setq eide-cc-imenu-c-function
+              (concat
+               "^\\(?:" l-regex-word l-regex-space "\\)*"
+               "\\(" l-regex-word "\\)"
+               l-regex-space-or-nothing "("
+               "\\(" l-regex-space-or-crlf-or-nothing l-regex-word "\\)*)"
+               ;;l-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)"   ; the arg list must not start
+               ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
+               l-regex-space-or-crlf-or-nothing "{" ))
+        ))
 
-  ;;cc-imenu-c-generic-expression's value is
-  ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
-  ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-  ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-  ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
-  ;;cc-imenu-c++-generic-expression's value is
-  ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
-  ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-  ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-  ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
+    ;;cc-imenu-c-generic-expression's value is
+    ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
+    ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
+    ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
+    ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
+    ;;cc-imenu-c++-generic-expression's value is
+    ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
+    ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
+    ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
+    ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
 
-  (setq eide-cc-imenu-c-interrupt
-        (concat
-         "\\(__interrupt"  eide-regex-space
-         "\\(" eide-regex-word eide-regex-space "\\)*"
-         eide-regex-word "\\)"
-         eide-regex-space-or-nothing "("
-         eide-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
-         "[ \t]*[^ \t;(]"            ; with an asterisk or parentheses
-         ))
+    (setq eide-cc-imenu-c-interrupt
+          (concat
+           "\\(__interrupt"  l-regex-space
+           "\\(" l-regex-word l-regex-space "\\)*"
+           l-regex-word "\\)"
+           l-regex-space-or-nothing "("
+           l-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
+           "[ \t]*[^ \t;(]"            ; with an asterisk or parentheses
+           ))
 
-  (setq eide-cc-imenu-c-generic-expression
-        `(
-          ;; General functions
-          (nil          , eide-cc-imenu-c-function 1)
+    (setq eide-cc-imenu-c-generic-expression
+          `(
+            ;; General functions
+            (nil          , eide-cc-imenu-c-function 1)
 
-          ;; Interrupts
-          ;;("--function" , eide-cc-imenu-c-interrupt 1)
-          ;;("Interrupts" , eide-cc-imenu-c-interrupt 1)
-          ;;(nil          , eide-cc-imenu-c-interrupt 1)
+            ;; Interrupts
+            ;;("--function" , eide-cc-imenu-c-interrupt 1)
+            ;;("Interrupts" , eide-cc-imenu-c-interrupt 1)
+            ;;(nil          , eide-cc-imenu-c-interrupt 1)
 
-          ;; Macros
-          ;;("--function" , eide-cc-imenu-c-macro 1)
-          ;;("Macros"     , eide-cc-imenu-c-macro 1)
+            ;; Macros
+            ;;("--function" , eide-cc-imenu-c-macro 1)
+            ;;("Macros"     , eide-cc-imenu-c-macro 1)
 
-          ;; struct
-          ;;("--var"      , eide-cc-imenu-c-struct 1)
-          ;;("struct"     , eide-cc-imenu-c-struct 1)
+            ;; struct
+            ;;("--var"      , eide-cc-imenu-c-struct 1)
+            ;;("struct"     , eide-cc-imenu-c-struct 1)
 
-          ;; enum
-          ;;("--var"      , eide-cc-imenu-c-enum 1)
-          ;;("enum"       , eide-cc-imenu-c-enum 1)
+            ;; enum
+            ;;("--var"      , eide-cc-imenu-c-enum 1)
+            ;;("enum"       , eide-cc-imenu-c-enum 1)
 
-          ;; Defines
-          ;;("--var"      , eide-cc-imenu-c-define 1)
-          ;;("#define"    , eide-cc-imenu-c-define 1)
-          ))
+            ;; Defines
+            ;;("--var"      , eide-cc-imenu-c-define 1)
+            ;;("#define"    , eide-cc-imenu-c-define 1)
+            )))
 
   ;; Default indentation: insert spaces instead of tabs
   (setq-default indent-tabs-mode nil)
@@ -298,9 +299,9 @@
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
-      (setq tab-width eide-c-indent-offset) ; Number of spaces for one tab
-      (c-set-style "K&R")                   ; Indentation style
-      (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
+      (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
+      (c-set-style "K&R") ; Indentation style
+      (setq c-basic-offset eide-config-c-indent-offset) ; Indentation offset (default value: 5)
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Autofill minor mode
@@ -341,9 +342,9 @@
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
-      (setq tab-width eide-c-indent-offset) ; Number of spaces for one tab
-      (c-set-style "K&R")                   ; Indentation style
-      (setq c-basic-offset eide-c-indent-offset) ; Indentation offset (default value: 5)
+      (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
+      (c-set-style "K&R") ; Indentation style
+      (setq c-basic-offset eide-config-c-indent-offset) ; Indentation offset (default value: 5)
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Autofill minor mode
