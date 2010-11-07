@@ -25,7 +25,7 @@
     (kill-emacs)))
 
 (defvar eide-version "1.4+")
-(defvar eide-release-date "2010-10")
+(defvar eide-release-date "2010-11")
 
 (defvar eide-root-directory nil)
 (defvar eide-current-buffer nil)
@@ -424,7 +424,16 @@
   ;; Shell Script major mode
 
   ;; Enable colors
-  (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  ;;(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  ;; Shell color mode is disabled because it disturbs shell-command (run
+  ;; command), and I have no solution for that!...
+  ;; - ansi-term: Does not work correctly ("error in process filter").
+  ;; - eshell: Uses specific aliases.
+  ;; - ansi-color-for-comint-mode-on: Does not apply to shell-command and
+  ;;   disturb it ("Marker does not point anywhere"). Moreover, it is not
+  ;;   buffer local (this would partly solve the issue).
+  ;; - Using shell for shell-command: previous run command is not killed, even
+  ;;   if process and buffer are killed.
 
   (add-hook
    'shell-mode-hook
