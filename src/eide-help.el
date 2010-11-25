@@ -19,7 +19,7 @@
 
 (provide 'eide-help)
 
-(defvar eide-version "1.4+")
+(defvar eide-version "1.5")
 (defvar eide-release-date "2010-11")
 
 ;;;; ==========================================================================
@@ -115,7 +115,6 @@ In 'menu' window:
     - project commands (compile, run, debug)
     - options
     - help (this page)
-    - Emacs-IDE update checking (if Emacs-IDE is under svn)
 
 In 'menu' window, over a file name:
     Open file popup menu (see 'Actions on files' below).
