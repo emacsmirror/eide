@@ -61,7 +61,14 @@ if [ $compilation_ok = 0 ]; then
 fi
 
 printf "\n\033[1mInstall Emacs-IDE\033[0m\n"
-sudo cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
+if [ -d /usr/local/share/emacs/site-lisp ]; then
+  sudo cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
+elif [ -d /usr/share/emacs/site-lisp ]; then
+  sudo cp -vf src/*.elc /usr/share/emacs/site-lisp/
+else
+  printf "\033[1;31mERROR: Neither /usr/local/share/emacs/site-lisp nor /usr/share/emacs/site-lisp exists\033[0m\n"
+  exit 1
+fi
 
 printf "\n\033[1mRemove .elc files\033[0m\n"
 rm -vf src/*.elc
