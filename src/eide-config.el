@@ -1,6 +1,6 @@
 ;;; eide-config.el --- Emacs-IDE, config
 
-;; Copyright (C) 2008-2010 Cédric Marie
+;; Copyright (C) 2008-2011 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -601,10 +601,7 @@
 (defun eide-i-config-apply-options ()
   ;; Size of characters for X system
   (if window-system
-    ;;(if (eq system-type 'windows-nt)
-    ;;  (set-default-font (concat "-*-fixed-medium-r-*-*-" (eide-i-config-get-option-value "font_size_for_windows") "-*-*-*-c-*-iso8859-1"))
-    (let ((l-string (concat "-*-fixed-medium-r-*-*-" (eide-i-config-get-option-value "font_size") "-*-*-*-c-*-iso8859-1")))
-      (set-default-font l-string)))
+    (set-face-attribute 'default nil :height (string-to-number (eide-i-config-get-option-value "font_height"))))
 
   (if (string-equal (eide-i-config-get-option-value "use_color_theme_for_source") "yes")
     (setq eide-config-use-color-theme-for-source-flag t)
@@ -691,7 +688,7 @@
     (eide-i-config-rebuild-insert-info "options")
 
     (eide-i-config-rebuild-insert-section "Display")
-    (eide-i-config-rebuild-update-value "font_size" "18")
+    (eide-i-config-rebuild-update-value "font_height" "105")
     (eide-i-config-rebuild-update-value "color_theme" "light" "dark/light")
     (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes" "yes/no")
     (eide-i-config-rebuild-update-value "show_trailing_spaces" "no" "yes/no")

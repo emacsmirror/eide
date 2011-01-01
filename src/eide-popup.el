@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE, popup
 
-;; Copyright (C) 2008-2010 Cédric Marie
+;; Copyright (C) 2008-2011 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
