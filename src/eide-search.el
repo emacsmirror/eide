@@ -166,7 +166,7 @@
   (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
         (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result) ?")
+      (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result)?")
         ;; Delete existing find-symbol buffer
         (kill-buffer l-result-buffer-name)
         (setq l-do-it-flag nil)))
@@ -214,7 +214,7 @@
         (l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")"))
         (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
+      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
         (kill-buffer l-result-buffer-name)
         (setq l-do-it-flag nil)))
@@ -263,7 +263,7 @@
   (let ((l-result-buffer-name (concat "*grep (global)*: " p-string))
         (l-do-it-flag t))
     (if (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result) ?")
+      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
         (kill-buffer l-result-buffer-name)
         (setq l-do-it-flag nil)))

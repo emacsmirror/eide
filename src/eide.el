@@ -123,7 +123,7 @@
   ;; (default value: right for Windows, left for Linux)
   (set-scroll-bar-mode 'right)
   ;; Ignore invisible lines when moving cursor in project configuration
-  ;; TODO: not used anymore in project configuration => still necessary ?
+  ;; TODO: not used anymore in project configuration => still necessary?
   (setq line-move-ignore-invisible t)
   ;; Display current function (relating to cursor position) in info line
   ;; (if possible with current major mode)

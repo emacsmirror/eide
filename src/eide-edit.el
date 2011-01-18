@@ -207,7 +207,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
   (if (or (not p-confirmation-message)
-          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message " ?")))
+          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn
       (eide-menu-buffer-update-start p-buffer-name)
       (save-excursion
@@ -226,7 +226,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)
   (if (or (not p-confirmation-message)
-          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message " ?")))
+          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn
       (eide-menu-directory-update-start p-directory-name)
       (dolist (l-buffer-name eide-menu-files-list)
