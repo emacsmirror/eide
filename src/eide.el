@@ -299,9 +299,11 @@
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
-      (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
       (c-set-style "K&R") ; Indentation style
-      (setq c-basic-offset eide-config-c-indent-offset) ; Indentation offset (default value: 5)
+      (if eide-config-c-indent-offset
+        (progn
+          (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
+          (setq c-basic-offset eide-config-c-indent-offset))) ; Indentation offset (default value: 5)
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Autofill minor mode
@@ -342,9 +344,11 @@
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
-      (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
       (c-set-style "K&R") ; Indentation style
-      (setq c-basic-offset eide-config-c-indent-offset) ; Indentation offset (default value: 5)
+      (if eide-config-c-indent-offset
+        (progn
+          (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
+          (setq c-basic-offset eide-config-c-indent-offset))) ; Indentation offset (default value: 5)
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Autofill minor mode
@@ -478,27 +482,35 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
   (eide-config-init)
+  ;; Migration from Emacs-IDE 1.5
+  (if (and (not (file-exists-p (concat "~/" eide-config-file)))
+           (file-exists-p "~/.emacs-ide.options"))
+    (shell-command (concat "mv ~/.emacs-ide.options ~/" eide-config-file)))
   ;; Load options file (it will be closed at the end of "rebuild", so that
   ;; current buffer - from .emacs.desktop - is not changed)
-  (find-file-noselect (concat "~/" eide-options-file))
+  (find-file-noselect (concat "~/" eide-config-file))
   ;; Options file must be rebuilt before calling eide-project-start-with-project
   ;; (which may read this file to create current project config file)
-  (eide-config-rebuild-options-file)
+  (eide-config-rebuild-config-file)
+  ;; Migration from Emacs-IDE 1.5
+  (if (and (not (file-exists-p eide-project-config-file))
+           (file-exists-p ".emacs-ide.project"))
+    (shell-command (concat "mv .emacs-ide.project " eide-project-config-file)))
   ;; Check if a project is defined, and start it.
   ;; NB: It is important to read desktop after mode-hooks have been defined,
   ;; otherwise mode-hooks may not apply.
-  (if (file-exists-p eide-project-file)
+  (if (file-exists-p eide-project-config-file)
     (progn
-      (find-file-noselect eide-project-file)
+      (find-file-noselect eide-project-config-file)
       (eide-project-start-with-project)))
   ;; Update frame title and menu
   (eide-project-update-frame-title)
   ;; Start with "editor" mode
   (eide-keys-configure-for-editor)
-  ;; eide-options-file might be present in desktop (in case emacs was closed
+  ;; eide-config-file might be present in desktop (in case emacs was closed
   ;; while editing options): we must close it again.
-  (if (get-buffer eide-options-file)
-    (kill-buffer eide-options-file))
+  (if (get-buffer eide-config-file)
+    (kill-buffer eide-config-file))
   ;; Close temporary buffers from ediff sessions (if emacs has been closed during
   ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
   ;; files) and they have been loaded in this new emacs session).

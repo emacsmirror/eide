@@ -21,16 +21,18 @@
 
 (require 'eide-popup) ; for eide-popup-message
 
-(defvar eide-options-file       ".emacs-ide.options")
-(defvar eide-project-file       ".emacs-ide.project")
-(defvar eide-project-notes-file ".emacs-ide.project_notes")
+(defvar eide-config-file         ".emacs-ide.cfg")
+(defvar eide-project-config-file ".emacs-ide-project.cfg")
+(defvar eide-project-notes-file  ".emacs-ide-project.txt")
 
-(defvar eide-config-use-color-theme-for-source-flag nil)
 (defvar eide-config-show-trailing-spaces-flag nil)
 (defvar eide-config-menu-position nil)
 (defvar eide-config-menu-height nil)
 (defvar eide-config-show-svn-status-flag nil)
 (defvar eide-config-svn-diff-command nil)
+
+(defvar eide-config-use-emacs-options-flag nil)
+(defvar eide-config-use-color-theme-for-source-flag nil)
 (defvar eide-config-c-indent-offset nil)
 
 (defvar eide-config-background-color nil)
@@ -86,14 +88,14 @@
 ;;;; ==========================================================================
 
 (define-derived-mode emacs-ide-config-mode fundamental-mode "Emacs-IDE config"
-  (setq font-lock-defaults '('(("\\(.*\\)(.*):" 1 'eide-config-config-parameter-face) ; parameter (with possibilities)
-                               ("\\(.*\\):"     1 'eide-config-config-parameter-face) ; parameter
-                               ("\\((.*)\\):"   1 'eide-config-config-possibilities-face) ; "(possibilities)"
-                               (":"             . 'eide-config-config-separator-face) ; ":"
-                               (":\\(.*\\)"     1 'eide-config-config-value-face))))) ; value
+  (setq font-lock-defaults '('(("\\(#.*\\)"      1 'eide-config-config-comment-face) ; comment
+                               ("\\[\\(.*\\)\\]" 1 'eide-config-config-section-face) ; section
+                               ("\\(.*\\) = "    1 'eide-config-config-parameter-face) ; parameter
+                               (" = "            . 'eide-config-config-separator-face) ; " = "
+                               (" = \\(.*\\)"    1 'eide-config-config-value-face))))) ; value
 
-(setq auto-mode-alist (append '(("\\.emacs-ide.options\\'" . emacs-ide-config-mode)
-                                ("\\.emacs-ide.project\\'" . emacs-ide-config-mode)) auto-mode-alist))
+(setq auto-mode-alist (append '(("\\.emacs-ide.cfg\\'" . emacs-ide-config-mode)
+                                ("\\.emacs-ide-project.cfg\\'" . emacs-ide-config-mode)) auto-mode-alist))
 
 ;;;; ==========================================================================
 ;;;; SYNTAX HIGHLIGHTING
@@ -133,11 +135,14 @@
 (make-face 'eide-config-help-chapter2-face)
 
 ;; Config files
+(make-face 'eide-config-config-comment-face)
+(make-face 'eide-config-config-section-face)
 (make-face 'eide-config-config-parameter-face)
 (make-face 'eide-config-config-possibilities-face)
 (make-face 'eide-config-config-separator-face)
 (make-face 'eide-config-config-value-face)
 
+(make-face-bold 'eide-config-config-section-face)
 (make-face-bold 'eide-config-config-parameter-face)
 
 ;; Parenthese matching (requires show-paren-mode)
@@ -232,11 +237,13 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-get-value-if-defined (p-parameter)
   (goto-char (point-min))
-  (if (re-search-forward (concat "^" p-parameter ":") nil t)
+  (if (re-search-forward (concat "^" p-parameter " = ") nil t)
     (buffer-substring-no-properties (point) (line-end-position))
+    ;; Migration from Emacs-IDE 1.5
+    ;; Compatibility with old syntax (":")
     (progn
       (goto-char (point-min))
-      (if (and (re-search-forward (concat "^" p-parameter "(") nil t) (search-forward "):" nil t))
+      (if (re-search-forward (concat "^" p-parameter ":") nil t)
         (buffer-substring-no-properties (point) (line-end-position))
         nil))))
 
@@ -253,16 +260,16 @@
       "")))
 
 ;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in options file.
+;; Get the value of a parameter in config file.
 ;;
 ;; input  : p-parameter : config parameter.
 ;; return : config value.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-get-option-value (p-parameter)
   (save-excursion
-    (if (not (get-buffer eide-options-file))
-      (find-file-noselect (concat "~/" eide-options-file)))
-    (set-buffer eide-options-file)
+    (if (not (get-buffer eide-config-file))
+      (find-file-noselect (concat "~/" eide-config-file)))
+    (set-buffer eide-config-file)
     (eide-i-config-get-value p-parameter)))
 
 ;; ----------------------------------------------------------------------------
@@ -323,14 +330,26 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-insert-info (p-config-file)
   (set-buffer eide-config-target-buffer)
-  (insert "\n*******************************************************************************\n")
-  (insert (concat "Emacs-IDE " p-config-file))
-  (insert "\n*******************************************************************************\n\n")
-  (insert "--> Click right to exit this page.\n")
-  (if (string-equal p-config-file "options")
-    (insert "--> Press shift + click right to show/hide the list of available colors.\n"))
-  (insert "--> To restore the default value of a parameter, delete the line\n")
-  (insert (concat "    (" p-config-file " file is rebuilt when you exit this page).\n\n")))
+  (insert "\n# *****************************************************************************\n")
+  (insert (concat "# Emacs-IDE " p-config-file))
+  (insert "\n# *****************************************************************************\n\n")
+  (insert "# --> Click right to exit this page.\n")
+  (if (string-equal p-config-file "configuration")
+    (insert "# --> Press shift + click right to show/hide the list of available colors.\n"))
+  (insert "# --> To restore the default value of a parameter, delete the line\n")
+  (insert (concat "#     (" p-config-file " file is rebuilt when you exit this page).\n\n")))
+
+;; ----------------------------------------------------------------------------
+;; Insert dotted line in config file.
+;;
+;; input  : p-add-empty-line-before-flag : t = add an empty line before.
+;;          eide-config-target-buffer : temporary config buffer.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-rebuild-insert-dotted-line (p-add-empty-line-before-flag)
+  (set-buffer eide-config-target-buffer)
+  (if p-add-empty-line-before-flag
+    (insert "\n"))
+  (insert "# -----------------------------------------------------------------------------\n"))
 
 ;; ----------------------------------------------------------------------------
 ;; Insert section header in config file.
@@ -340,27 +359,29 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-insert-section (p-section)
   (set-buffer eide-config-target-buffer)
-  (insert "\n-------------------------------------------------------------------------------\n")
-  (insert p-section)
-  (insert "\n-------------------------------------------------------------------------------\n\n"))
+  (insert (concat "\n[" p-section "]\n")))
+
+;; ----------------------------------------------------------------------------
+;; Insert comment in config file.
+;;
+;; input  : p-comment : comment (string).
+;;          eide-config-target-buffer : temporary config buffer.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-rebuild-insert-comment (p-comment)
+  (set-buffer eide-config-target-buffer)
+  (insert (concat "# " p-comment "\n")))
 
 ;; ----------------------------------------------------------------------------
 ;; Insert a line with a parameter and its value in config file.
 ;;
 ;; input  : p-parameter : config parameter.
 ;;          p-value : config value.
-;;          p-possibilities : possible values.
 ;;          eide-config-target-buffer : temporary config buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-insert-parameter (p-parameter p-value &optional p-possibilities)
+(defun eide-i-config-rebuild-insert-parameter (p-parameter p-value)
   (set-buffer eide-config-target-buffer)
   (insert p-parameter)
-  (if p-possibilities
-    (progn
-      (insert "(")
-      (insert p-possibilities)
-      (insert ")")))
-  (insert ":")
+  (insert " = ")
   (insert p-value)
   (insert "\n"))
 
@@ -369,9 +390,8 @@
 ;;
 ;; input  : p-parameter : config parameter.
 ;;          p-default-value : config default value.
-;;          p-possibilities : possible values.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-update-value (p-parameter p-default-value &optional p-possibilities)
+(defun eide-i-config-rebuild-update-value (p-parameter p-default-value)
   (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
     ;; If the parameter is not present, or it is a color and the value is not
     ;; correct, we use default value.
@@ -383,19 +403,19 @@
       (progn
         (eide-popup-message (concat "Warning: " p-parameter " value \"" l-value "\" is not correct,\nusing default value \"" p-default-value "\" instead."))
         (setq l-value p-default-value)))
-    (eide-i-config-rebuild-insert-parameter p-parameter l-value p-possibilities)))
+    (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
 
 ;; ----------------------------------------------------------------------------
-;; Update a line with a parameter and its value (default from options if not
+;; Update a line with a parameter and its value (default from config if not
 ;; found).
 ;;
 ;; input  : p-parameter : config parameter.
-;;          p-options-parameter : related parameter in options.
+;;          p-config-parameter : related parameter in config.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-update-value-from-options (p-parameter p-options-parameter)
+(defun eide-i-config-rebuild-update-value-from-config (p-parameter p-config-parameter)
   (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
     (if (not l-value)
-      (setq l-value (eide-i-config-get-option-value p-options-parameter)))
+      (setq l-value (eide-i-config-get-option-value p-config-parameter)))
     (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
 
 ;; ----------------------------------------------------------------------------
@@ -460,6 +480,8 @@
         ;; Config files
         (setq eide-config-config-background-color "gray20")
         (setq eide-config-config-foreground-color "white")
+        (set-face-foreground 'eide-config-config-comment-face "deep sky blue")
+        (set-face-foreground 'eide-config-config-section-face "orange")
         (set-face-foreground 'eide-config-config-parameter-face "salmon")
         (set-face-foreground 'eide-config-config-possibilities-face "medium sea green")
         (set-face-foreground 'eide-config-config-separator-face "orange red")
@@ -525,6 +547,8 @@
         ;; Config files
         (setq eide-config-config-background-color "gray90")
         (setq eide-config-config-foreground-color "black")
+        (set-face-foreground 'eide-config-config-comment-face "slate blue")
+        (set-face-foreground 'eide-config-config-section-face "red")
         (set-face-foreground 'eide-config-config-parameter-face "brown")
         (set-face-foreground 'eide-config-config-possibilities-face "sea green")
         (set-face-foreground 'eide-config-config-separator-face "red")
@@ -592,26 +616,13 @@
     (eide-config-set-colors-for-files)))
 
 ;; ----------------------------------------------------------------------------
-;; Apply options.
+;; Apply config.
 ;;
 ;; output : eide-config-menu-position : menu position (windows layout).
 ;;          eide-config-menu-height : menu height (windows layout).
 ;;          eide-config-c-indent-offset : indentation offset for C files.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-apply-options ()
-  ;; Size of characters for X system
-  (if window-system
-    (set-face-attribute 'default nil :height (string-to-number (eide-i-config-get-option-value "font_height"))))
-
-  (if (string-equal (eide-i-config-get-option-value "use_color_theme_for_source") "yes")
-    (setq eide-config-use-color-theme-for-source-flag t)
-    (setq eide-config-use-color-theme-for-source-flag nil))
-
-  (eide-i-config-apply-color-theme)
-  (if (string-equal (eide-i-config-get-option-value "show_trailing_spaces") "yes")
-    (setq eide-config-show-trailing-spaces-flag t)
-    (setq eide-config-show-trailing-spaces-flag nil))
-
+(defun eide-i-config-apply-config ()
   ;; Windows layout: menu position
   (setq eide-config-menu-position (eide-i-config-get-option-value "menu_position"))
   ;; If menu position is not correct, set default value
@@ -640,9 +651,35 @@
     (setq eide-config-svn-diff-command "svn diff ")
     (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
 
-  ;; Coding rules
-  ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
-  (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
+  (if (string-equal (eide-i-config-get-option-value "use_emacs_options") "yes")
+    (setq eide-config-use-emacs-options-flag t)
+    (setq eide-config-use-emacs-options-flag nil))
+
+  (if eide-config-use-emacs-options-flag
+    (progn
+
+      ;; Size of characters for X system
+      (if window-system
+        (set-face-attribute 'default nil :height (string-to-number (eide-i-config-get-option-value "font_height"))))
+
+      (if (string-equal (eide-i-config-get-option-value "use_color_theme_for_source") "yes")
+        (setq eide-config-use-color-theme-for-source-flag t)
+        (setq eide-config-use-color-theme-for-source-flag nil))
+
+      (if (string-equal (eide-i-config-get-option-value "show_trailing_spaces") "yes")
+        (setq eide-config-show-trailing-spaces-flag t)
+        (setq eide-config-show-trailing-spaces-flag nil))
+
+      ;; Coding rules
+      ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
+      (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
+
+    (progn
+      (setq eide-config-use-color-theme-for-source-flag nil)
+      (setq eide-config-show-trailing-spaces-flag nil)
+      (setq eide-config-c-indent-offset nil)))
+
+  (eide-i-config-apply-color-theme))
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
@@ -670,9 +707,9 @@
   (setq eide-config-user-selection-foreground-color (face-foreground 'region)))
 
 ;; ----------------------------------------------------------------------------
-;; Update options file.
+;; Update config file.
 ;; ----------------------------------------------------------------------------
-(defun eide-config-rebuild-options-file ()
+(defun eide-config-rebuild-config-file ()
   ;; Configuration values are read from source file (current config file) and
   ;; wrote into target file (which will replace config file in the end).
   ;; - If a parameter is not set in source file - a new parameter for example -
@@ -683,28 +720,36 @@
   ;; Therefore, config file is always compliant with current version.
 
   (save-excursion
-    (eide-i-config-rebuild-start "~/" eide-options-file)
+    (eide-i-config-rebuild-start "~/" eide-config-file)
 
-    (eide-i-config-rebuild-insert-info "options")
+    (eide-i-config-rebuild-insert-info "configuration")
 
-    (eide-i-config-rebuild-insert-section "Display")
-    (eide-i-config-rebuild-update-value "font_height" "105")
-    (eide-i-config-rebuild-update-value "color_theme" "light" "dark/light")
-    (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes" "yes/no")
-    (eide-i-config-rebuild-update-value "show_trailing_spaces" "no" "yes/no")
+    (eide-i-config-rebuild-insert-dotted-line t)
+    (eide-i-config-rebuild-insert-comment "Following options are specific to Emacs-IDE.")
+    (eide-i-config-rebuild-insert-dotted-line nil)
 
-    (eide-i-config-rebuild-insert-section "Windows layout")
-    (eide-i-config-rebuild-update-value "menu_position" "right" "left/right")
-    (eide-i-config-rebuild-update-value "menu_height" "half" "half/full")
+    (eide-i-config-rebuild-insert-section "display")
+    (eide-i-config-rebuild-insert-comment "Color theme applies to 'menu' window. It may also apply to all other windows if 'use_color_theme_for_source' is set (see below).")
+    (eide-i-config-rebuild-insert-comment "Possible values: dark or light.")
+    (eide-i-config-rebuild-update-value "color_theme" "light")
 
-    (eide-i-config-rebuild-insert-section "Version control")
-    (eide-i-config-rebuild-update-value "show_svn_status" "auto" "yes/no/auto")
+    (eide-i-config-rebuild-insert-section "windows_layout")
+    (eide-i-config-rebuild-insert-comment "Possible values: left or right.")
+    (eide-i-config-rebuild-update-value "menu_position" "right")
+    (eide-i-config-rebuild-insert-comment "Possible values: half or full.")
+    (eide-i-config-rebuild-update-value "menu_height" "half")
+
+    (eide-i-config-rebuild-insert-section "version_control")
+    (eide-i-config-rebuild-insert-comment "Possible values:")
+    (eide-i-config-rebuild-insert-comment "- yes: always check svn status,")
+    (eide-i-config-rebuild-insert-comment "- no: never check svn status,")
+    (eide-i-config-rebuild-insert-comment "- auto: check svn status if root directory is versioned by svn.")
+    (eide-i-config-rebuild-update-value "show_svn_status" "auto")
     (eide-i-config-rebuild-update-value "svn_diff_command" "")
 
-    (eide-i-config-rebuild-insert-section "Coding rules")
-    (eide-i-config-rebuild-update-value "c_indent_offset" "2")
-
-    (eide-i-config-rebuild-insert-section "Compilation / run / debug commands (default for new project)")
+    (eide-i-config-rebuild-insert-section "default_project_commands")
+    (eide-i-config-rebuild-insert-comment "All default commands are set in project configuration when project is created.")
+    (eide-i-config-rebuild-insert-comment "Init command is called before all 'compile' and 'run' commands.")
     (eide-i-config-rebuild-update-value "default_init_command"      "")
     (eide-i-config-rebuild-update-value "default_compile_command_1" "make")
     (eide-i-config-rebuild-update-value "default_compile_command_2" "")
@@ -716,7 +761,37 @@
     (eide-i-config-rebuild-update-value "default_debug_program_1"   "")
     (eide-i-config-rebuild-update-value "default_debug_program_2"   "")
 
-    (eide-i-config-rebuild-insert-section "Dark color theme - colors for source")
+    (eide-i-config-rebuild-insert-section "dark_color_theme_colors_for_menu")
+    (eide-i-config-rebuild-update-value "dark_color_theme_menu_background" "black")
+
+    (eide-i-config-rebuild-insert-section "light_color_theme_colors_for_menu")
+    (eide-i-config-rebuild-update-value "light_color_theme_menu_background" "white")
+
+    (eide-i-config-rebuild-insert-dotted-line t)
+    (eide-i-config-rebuild-insert-comment "Following options are not specific to Emacs-IDE. You can disable them (see")
+    (eide-i-config-rebuild-insert-comment "'use_emacs_options' below) and configure them in your own way, in your")
+    (eide-i-config-rebuild-insert-comment "~/.emacs file.")
+    (eide-i-config-rebuild-insert-dotted-line nil)
+    (eide-i-config-rebuild-insert-section "emacs_options")
+    (eide-i-config-rebuild-insert-comment "If this flag is not set ('no'), all following options will be ignored.")
+    (eide-i-config-rebuild-insert-comment "Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "use_emacs_options" "yes")
+
+    (eide-i-config-rebuild-insert-section "display")
+    (eide-i-config-rebuild-insert-comment "Font height: an integer in units of 1/10 point.")
+    (eide-i-config-rebuild-update-value "font_height" "105")
+    (eide-i-config-rebuild-insert-comment "Possible values:")
+    (eide-i-config-rebuild-insert-comment "- yes: use color theme for all windows,")
+    (eide-i-config-rebuild-insert-comment "- no: do not override user colors, apply color theme on 'menu' window only.")
+    (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes")
+    (eide-i-config-rebuild-insert-comment "Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "show_trailing_spaces" "no")
+
+    (eide-i-config-rebuild-insert-section "coding_rules")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for C language.")
+    (eide-i-config-rebuild-update-value "c_indent_offset" "2")
+
+    (eide-i-config-rebuild-insert-section "dark_color_theme_colors_for_source")
     (eide-i-config-rebuild-update-value "dark_color_theme_background" "gray15")
     (eide-i-config-rebuild-update-value "dark_color_theme_foreground" "gray90")
     (eide-i-config-rebuild-update-value "dark_color_theme_keyword_foreground" "salmon")
@@ -731,10 +806,7 @@
     (eide-i-config-rebuild-update-value "dark_color_theme_comment_foreground" "deep sky blue")
     (eide-i-config-rebuild-update-value "dark_color_theme_selection_background" "gray50")
 
-    (eide-i-config-rebuild-insert-section "Dark color theme - colors for menu")
-    (eide-i-config-rebuild-update-value "dark_color_theme_menu_background" "black")
-
-    (eide-i-config-rebuild-insert-section "Light color theme - colors for source")
+    (eide-i-config-rebuild-insert-section "light_color_theme_colors_for_source")
     (eide-i-config-rebuild-update-value "light_color_theme_background" "old lace")
     (eide-i-config-rebuild-update-value "light_color_theme_foreground" "black")
     (eide-i-config-rebuild-update-value "light_color_theme_keyword_foreground" "brown")
@@ -749,13 +821,10 @@
     (eide-i-config-rebuild-update-value "light_color_theme_comment_foreground" "light slate blue")
     (eide-i-config-rebuild-update-value "light_color_theme_selection_background" "bisque")
 
-    (eide-i-config-rebuild-insert-section "Light color theme - colors for menu")
-    (eide-i-config-rebuild-update-value "light_color_theme_menu_background" "white")
-
     (eide-i-config-rebuild-stop)
-    (eide-i-config-apply-options)
-    ;; Close options file
-    (kill-buffer eide-options-file)))
+    (eide-i-config-apply-config)
+    ;; Close config file
+    (kill-buffer eide-config-file)))
 
 ;; ----------------------------------------------------------------------------
 ;; Update project file.
@@ -764,26 +833,27 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-config-rebuild-project-file ()
   (save-excursion
-    (eide-i-config-rebuild-start eide-root-directory eide-project-file)
-    ;; Temporarily open options file (to get default values for project)
-    (find-file-noselect (concat "~/" eide-options-file))
+    (eide-i-config-rebuild-start eide-root-directory eide-project-config-file)
+    ;; Temporarily open config file (to get default values for project)
+    (find-file-noselect (concat "~/" eide-config-file))
 
     (eide-i-config-rebuild-insert-info "project configuration")
 
-    (eide-i-config-rebuild-insert-section "Compilation / run /debug commands")
-    (eide-i-config-rebuild-update-value-from-options "init_command"      "default_init_command")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_1" "default_compile_command_1")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_2" "default_compile_command_2")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_3" "default_compile_command_3")
-    (eide-i-config-rebuild-update-value-from-options "compile_command_4" "default_compile_command_4")
-    (eide-i-config-rebuild-update-value-from-options "run_command_1"     "default_run_command_1")
-    (eide-i-config-rebuild-update-value-from-options "run_command_2"     "default_run_command_2")
-    (eide-i-config-rebuild-update-value-from-options "debug_command"     "default_debug_command")
-    (eide-i-config-rebuild-update-value-from-options "debug_program_1"   "default_debug_program_1")
-    (eide-i-config-rebuild-update-value-from-options "debug_program_2"   "default_debug_program_2")
+    (eide-i-config-rebuild-insert-section "project_commands")
+    (eide-i-config-rebuild-insert-comment "Init command is called before all 'compile' and 'run' commands.")
+    (eide-i-config-rebuild-update-value-from-config "init_command"      "default_init_command")
+    (eide-i-config-rebuild-update-value-from-config "compile_command_1" "default_compile_command_1")
+    (eide-i-config-rebuild-update-value-from-config "compile_command_2" "default_compile_command_2")
+    (eide-i-config-rebuild-update-value-from-config "compile_command_3" "default_compile_command_3")
+    (eide-i-config-rebuild-update-value-from-config "compile_command_4" "default_compile_command_4")
+    (eide-i-config-rebuild-update-value-from-config "run_command_1"     "default_run_command_1")
+    (eide-i-config-rebuild-update-value-from-config "run_command_2"     "default_run_command_2")
+    (eide-i-config-rebuild-update-value-from-config "debug_command"     "default_debug_command")
+    (eide-i-config-rebuild-update-value-from-config "debug_program_1"   "default_debug_program_1")
+    (eide-i-config-rebuild-update-value-from-config "debug_program_2"   "default_debug_program_2")
 
-    ;; Close options files
-    (kill-buffer eide-options-file)
+    ;; Close config files
+    (kill-buffer eide-config-file)
     (eide-i-config-rebuild-stop)))
 
 ;; ----------------------------------------------------------------------------
@@ -795,19 +865,19 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-config-get-project-value (p-parameter)
   (save-excursion
-    (if (not (get-buffer eide-project-file))
-      (find-file-noselect (concat eide-root-directory eide-project-file)))
-    (set-buffer eide-project-file)
+    (if (not (get-buffer eide-project-config-file))
+      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
+    (set-buffer eide-project-config-file)
     (eide-i-config-get-value p-parameter)))
 
 ;; ----------------------------------------------------------------------------
-;; Display options file (full frame).
+;; Display config file (full frame).
 ;; ----------------------------------------------------------------------------
-(defun eide-config-open-options-file ()
+(defun eide-config-open-config-file ()
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
-  (eide-windows-find-file-without-advice (concat "~/" eide-options-file)))
+  (eide-windows-find-file-without-advice (concat "~/" eide-config-file)))
 
 ;; ----------------------------------------------------------------------------
 ;; Display project file (full frame).
@@ -818,7 +888,7 @@
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
-  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-file))
+  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
   (goto-char (point-min)))
 
 ;; ----------------------------------------------------------------------------

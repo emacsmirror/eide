@@ -157,7 +157,7 @@
     (progn
       (eide-windows-select-source-window t)
       ;; Create empty project file
-      (shell-command (concat "touch " eide-root-directory eide-project-file))
+      (shell-command (concat "touch " eide-root-directory eide-project-config-file))
       (eide-project-start-with-project)
       ;; Update frame title and menu (project is active now)
       (eide-project-update-frame-title)
@@ -175,7 +175,7 @@
   (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
     (progn
       (setq eide-project-name nil)
-      (kill-buffer eide-project-file)
+      (kill-buffer eide-project-config-file)
       (if (get-buffer "TAGS")
         (kill-buffer "TAGS"))
       (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide.*"))
@@ -229,6 +229,10 @@
           (message "Creating cscope list of files... done")))
       (eide-i-project-update-cscope-status)))
 
+  ;; Migration from Emacs-IDE 1.5
+  (if (and (not (file-exists-p eide-project-notes-file))
+           (file-exists-p ".emacs-ide.project_notes"))
+    (shell-command (concat "mv .emacs-ide.project_notes " eide-project-notes-file)))
   (if (not (file-exists-p (concat eide-root-directory eide-project-notes-file)))
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))

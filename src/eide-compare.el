@@ -22,7 +22,7 @@
 (require 'ediff)
 (require 'hideshow) ; for hs-minor-mode
 
-(require 'eide-config) ; for eide-project-file
+(require 'eide-config) ; for eide-project-config-file
 (require 'eide-keys) ; for eide-keys-configure-for-ediff and eide-keys-configure-for-editor
 (require 'eide-menu) ; for eide-current-buffer
 (require 'eide-project) ; for eide-root-directory
@@ -160,7 +160,7 @@
   ;; file-name-as-directory adds "/":                     <...>/another_project/
   (dolist (l-dir (mapcar 'file-name-as-directory (directory-files (file-name-directory (directory-file-name eide-root-directory)) t)))
     (if (and (not (string-equal l-dir eide-root-directory))
-             (file-exists-p (concat l-dir eide-project-file)))
+             (file-exists-p (concat l-dir eide-project-config-file)))
       ;; Another project has been defined in this directory, retrieve project name
       ;; l-dir:                                                                   <...>/another_project/
       ;; directory-file-name removes last "/":                                    <...>/another_project

@@ -197,7 +197,7 @@
         (eide-i-popup-menu-close-action-list "Create")
         (setq popup-header (concat "Root directory: " eide-root-directory))))
 
-    (eide-i-popup-menu-add-action "Options" "(eide-config-open-options-file)" t)
+    (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-config-file)" t)
     (eide-i-popup-menu-close-action-list "User config")
 
     (eide-i-popup-menu-add-action "Help" "(eide-help-open)" t)

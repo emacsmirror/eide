@@ -64,8 +64,8 @@
                 (equal major-mode 'Buffer-menu-mode))
           nil
           (if (or (string-equal "TAGS" p-buffer-name)
-                  (string-equal eide-options-file p-buffer-name)
-                  (string-equal eide-project-file p-buffer-name)
+                  (string-equal eide-config-file p-buffer-name)
+                  (string-equal eide-project-config-file p-buffer-name)
                   (string-equal eide-project-notes-file p-buffer-name))
             nil
             eide-windows-source-window))))
@@ -216,7 +216,7 @@
             p-buffer)
           (progn
             ;; Do not display TAGS file, and configuration files
-            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-file) (string-equal l-buffer-name eide-project-notes-file))
+            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-config-file) (string-equal l-buffer-name eide-project-config-file) (string-equal l-buffer-name eide-project-notes-file))
               (setq l-do-it-flag nil))
             (if l-do-it-flag
               (progn
@@ -247,7 +247,7 @@
                 p-buffer)
               (progn
                 ;; Close unwanted files (except TAGS and project configuration)
-                (if (or (string-equal l-buffer-name eide-options-file) (string-equal l-buffer-name eide-project-notes-file))
+                (if (or (string-equal l-buffer-name eide-config-file) (string-equal l-buffer-name eide-project-notes-file))
                   (progn
                     (kill-buffer l-buffer-name)
                     ;; Return the current buffer
@@ -661,7 +661,7 @@
           ;; Close colors buffer and window
           (kill-this-buffer)
           (select-window (next-window))
-          (if (string-equal (buffer-name) eide-options-file)
+          (if (string-equal (buffer-name) eide-config-file)
             (delete-other-windows))))
       (if (string-equal (buffer-name) "* Help *")
         ;; Close "help"
@@ -670,18 +670,18 @@
           (eide-config-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
-        (if (string-equal (buffer-name) eide-options-file)
+        (if (string-equal (buffer-name) eide-config-file)
           ;; Close ".emacs-ide.options"
           (progn
             (save-buffer)
-            (eide-config-rebuild-options-file)
+            (eide-config-rebuild-config-file)
             (eide-config-set-colors-for-files)
             (eide-keys-configure-for-editor)
             (eide-windows-layout-build)
             ;; Close colors buffer if opened
             (if (get-buffer "*Colors*")
               (kill-buffer "*Colors*")))
-          (if (string-equal (buffer-name) eide-project-file)
+          (if (string-equal (buffer-name) eide-project-config-file)
             ;; Display another buffer (other than ".emacs-ide.project")
             (progn
               (save-buffer)
@@ -760,7 +760,7 @@
     ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)
     ;; In options, show/hide list of colors
-    (if (string-equal (buffer-name) eide-options-file)
+    (if (string-equal (buffer-name) eide-config-file)
       (if (get-buffer "*Colors*")
         ;; Close colors buffer and window
         (progn
@@ -773,7 +773,7 @@
         (progn
           (kill-this-buffer)
           (select-window (next-window))
-          (if (string-equal (buffer-name) eide-options-file)
+          (if (string-equal (buffer-name) eide-config-file)
             (delete-other-windows)))))))
 
 ;; ----------------------------------------------------------------------------

@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.5+")
-(defvar eide-release-date "2011-01")
+(defvar eide-release-date "2011-02")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -74,7 +74,7 @@
   (eide-i-help-insert-header-2 "Overview")
 
   (insert "
-With default options, windows layout should look like this:
+With default configuration, windows layout should look like this:
 
   -----------------------------------------------------------
   |                                         |               |
@@ -95,7 +95,7 @@ With default options, windows layout should look like this:
   -----------------------------------------------------------
 
 You can resize all windows.
-You can modify the layout in options.
+You can modify the layout in configuration.
 
 ")
 
@@ -113,7 +113,7 @@ In 'menu' window:
     Open project popup menu:
     - project creation/configuration
     - project commands (compile, run, debug)
-    - options
+    - configuration
     - help (this page)
 
 In 'menu' window, over a file name:
@@ -170,15 +170,15 @@ In other windows:
 Shift + mouse wheel up/down scrolls right/left.
 ")
 
-  (eide-i-help-insert-header-1 "Options")
+  (eide-i-help-insert-header-1 "Configuration")
 
   (insert "
-Options are saved in a file, '.emacs-ide.options', in your home directory. This
-file is created as soon as you launch emacs. To edit options, open project
-popup menu and select 'Options'.
+Configuration is saved in a file, '.emacs-ide.cfg', in your home directory.
+This file is created as soon as you launch emacs. To edit configuration, open
+project popup menu and select 'Configuration'.
 
-Options cover topics such as display, coding rules, and default parameters for
-new projects (see '.emacs-ide.project' below).
+Configuration covers topics such as display, coding rules, and default
+parameters for new projects (see '.emacs-ide-project.cfg' below).
 
 If you delete this file, it will be created again with default values.
 If you delete any parameter in this file, it will be restored with default
@@ -201,18 +201,18 @@ In your workset root directory, several files are created:
 - cscope.files:
   Cscope list of files (C/C++ files).
 
-- .emacs-ide.project:
+- .emacs-ide-project.cfg:
   It defines parameters for this project.
-  It is created with default values from '~/.emacs-ide.options'.
+  It is created with default values from '~/.emacs-ide.cfg'.
 
-- .emacs-ide.project_notes:
+- .emacs-ide-project.txt:
   It can be used to write notes about the project, it is not used by emacs.
   It is created empty.
 
-To edit project configuration ('.emacs-ide.project'), open project popup menu
-and select 'Project configuration'.
+To edit project configuration ('.emacs-ide-project.cfg'), open project popup
+menu and select 'Project configuration'.
 
-To edit project notes ('.emacs-ide.project_notes'), open project popup menu and
+To edit project notes ('.emacs-ide-project.txt'), open project popup menu and
 select 'Project notes'.
 ")
 

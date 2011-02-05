@@ -625,7 +625,7 @@
           (if (or (equal major-mode 'dired-mode)
                   (equal major-mode 'Buffer-menu-mode))
             (kill-buffer l-buffer-name)
-            (if (not (string-equal l-buffer-name eide-project-file))
+            (if (not (string-equal l-buffer-name eide-project-config-file))
               (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
         ;; This is a "*..." buffer
         (if (string-match "^\\*grep.*" l-buffer-name)
