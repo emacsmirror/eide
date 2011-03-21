@@ -21,6 +21,8 @@
 
 (require 'desktop) ; for all desktop-* functions
 
+(require 'eide-search) ; for eide-search-tags-available-flag, eide-search-cscope-available-flag, eide-search-create-tags, eide-search-update-cscope-status, and eide-search-create-cscope-list-of-files
+
 (defvar eide-root-directory nil)
 
 ;; Test if xcscope is available
@@ -30,22 +32,7 @@
     (require 'xcscope)
     (setq eide-option-use-cscope-flag t)))
 
-(defvar eide-project-cscope-files-flag nil)
-
 (defvar eide-project-name nil)
-
-;; Shell command for creating tags
-(defvar eide-create-tags-command "rm -f TAGS ; ctags -eR --links=no")
-
-;; Shell command for creating cscope.files
-;; -type f: excludes links
-;; cscope.out will be generated on next search
-(defvar eide-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" \\) > cscope.files")
-
-;; eide-project-start-shell-alias is necessary for bash but not csh (.cshrc is run automatically)
-(if (string-equal shell-file-name "/bin/bash")
-  (setq eide-project-start-shell-alias ". ~/.bashrc") ; for bash
-  (setq eide-project-start-shell-alias "")) ; for csh
 
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
@@ -53,34 +40,6 @@
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
-
-;; ----------------------------------------------------------------------------
-;; Create tags.
-;;
-;; input  : eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
-(defun eide-i-project-create-tags ()
-  (shell-command (concat "cd " eide-root-directory " ; " eide-create-tags-command)))
-
-;; ----------------------------------------------------------------------------
-;; Create cscope list of files.
-;;
-;; input  : eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
-(defun eide-i-project-create-cscope-list-of-files ()
-  (shell-command (concat "cd " eide-root-directory " ; " eide-create-cscope-command)))
-;; (cscope-index-files nil))
-
-;; ----------------------------------------------------------------------------
-;; Set cscope status (disabled if list of files is empty).
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-project-cscope-files-flag : t = cscope.files is not empty.
-;; ----------------------------------------------------------------------------
-(defun eide-i-project-update-cscope-status ()
-  (setq eide-project-cscope-files-flag nil)
-  (if (not (equal (nth 7 (file-attributes (concat eide-root-directory "cscope.files"))) 0))
-    (setq eide-project-cscope-files-flag t)))
 
 ;; ----------------------------------------------------------------------------
 ;; Compile project.
@@ -192,6 +151,9 @@
 ;; Start with current project.
 ;;
 ;; input  : eide-root-directory : project root directory.
+;; output : eide-search-tags-available-flag : t if tags are already available.
+;;          eide-search-cscope-available-flag : t if cscope is already
+;;              available.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-start-with-project ()
   ;; Get project name from directory
@@ -206,28 +168,20 @@
   ;; Rebuild project file
   (eide-config-rebuild-project-file)
 
-  (if (or (not eide-option-use-cscope-flag) eide-option-use-cscope-and-tags-flag)
-    (progn
-      ;; Create tags if necessary
-      (if (not (file-exists-p (concat eide-root-directory "TAGS")))
-        (progn
-          (message "Creating tags...")
-          (eide-i-project-create-tags)
-          (message "Creating tags... done")))
-      ;; Load tags now, otherwise first tag search will take some time...
-      ;;(find-file-noselect (concat eide-root-directory "TAGS"))
-))
+  ;; Create tags if necessary
+  (if (file-exists-p (concat eide-root-directory "TAGS"))
+    (setq eide-search-tags-available-flag t)
+    (eide-search-create-tags))
+  ;; Load tags now, otherwise first tag search will take some time...
+  ;;(find-file-noselect (concat eide-root-directory "TAGS"))
 
   (if eide-option-use-cscope-flag
-    (progn
-      ;; Create cscope database if necessary
-      (if (not (file-exists-p (concat eide-root-directory "cscope.files")))
-        (progn
-          (message "Creating cscope list of files...")
-          ;;(shell-command (concat "cd " eide-root-directory " ; cscope -bR"))
-          (eide-i-project-create-cscope-list-of-files)
-          (message "Creating cscope list of files... done")))
-      (eide-i-project-update-cscope-status)))
+    ;; Create cscope database if necessary
+    (if (file-exists-p (concat eide-root-directory "cscope.files"))
+      (progn
+        (eide-search-update-cscope-status)
+        (setq eide-search-cscope-available-flag t))
+      (eide-search-create-cscope-list-of-files)))
 
   ;; Migration from Emacs-IDE 1.5
   (if (and (not (file-exists-p eide-project-notes-file))
@@ -247,25 +201,6 @@
   (setq desktop-save t)
   ;; Set desktop directory (set to nil when desktop save mode is disabled)
   (setq desktop-dirname eide-root-directory))
-
-;; ----------------------------------------------------------------------------
-;; Update tags.
-;; ----------------------------------------------------------------------------
-(defun eide-project-update-tags ()
-  (message "Updating tags...")
-  (eide-i-project-create-tags)
-  (message "Updating tags... done"))
-
-;; ----------------------------------------------------------------------------
-;; Update cscope list of files.
-;; ----------------------------------------------------------------------------
-(defun eide-project-update-cscope-list-of-files ()
-  (message "Updating cscope list of files...")
-  ;;(shell-command (concat "cd " eide-root-directory " ; rm -f cscope.files cscope.out"))
-  (eide-i-project-create-cscope-list-of-files)
-  (eide-i-project-update-cscope-status)
-  ;;(shell-command (concat "cd " eide-root-directory " ; cscope -bR"))
-  (message "Updating cscope list of files... done"))
 
 ;; ----------------------------------------------------------------------------
 ;; Update frame title with project name (or root directory if no project)

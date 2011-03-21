@@ -176,10 +176,9 @@
         (if (not (string-equal (eide-config-get-project-value "debug_program_2") ""))
           (eide-i-popup-menu-add-action (concat "Debug (2): " (eide-project-get-short-gdb-command "debug_program_2")) "(eide-project-debug-2)" t))
         (eide-i-popup-menu-close-action-list "Execute")
-        (if (or (not eide-option-use-cscope-flag) eide-option-use-cscope-and-tags-flag)
-          (eide-i-popup-menu-add-action "Update tags" "(eide-project-update-tags)" t))
+        (eide-i-popup-menu-add-action "Update tags" "(eide-search-create-tags)" t)
         (if eide-option-use-cscope-flag
-          (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-project-update-cscope-list-of-files)" t))
+          (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t))
         (eide-i-popup-menu-close-action-list "Update")
         (if eide-compare-other-project-name
           (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)

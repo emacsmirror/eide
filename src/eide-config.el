@@ -71,9 +71,6 @@
 ;; Exclude "_" from word delimiters (when selecting by double-click)
 (defvar eide-option-select-whole-symbol-flag t)
 
-;; Use tags instead of cscope for symbol definition
-(defvar eide-option-use-cscope-and-tags-flag t)
-
 ;; Options for Menu Buffer
 ;; -----------------------
 

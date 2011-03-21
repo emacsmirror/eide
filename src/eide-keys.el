@@ -106,16 +106,10 @@
 ;; Set key bindings for project.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-keys-enable-keys-for-project ()
-  (if (and eide-option-use-cscope-flag (not eide-option-use-cscope-and-tags-flag))
-    (progn
-      (global-set-key [f1] 'eide-search-back-from-symbol-definition)
-      (global-set-key [f2] 'eide-search-find-symbol-definition-without-prompt)
-      (global-set-key [S-f2] 'eide-search-find-symbol-definition-with-prompt))
-    (progn
-      (global-set-key [f1] 'eide-search-back-from-tag)
-      (global-set-key [f2] 'eide-search-find-tag-without-prompt)
-      (global-set-key [S-f2] 'eide-search-find-tag-with-prompt)
-      (global-set-key [S-f1] 'eide-search-find-alternate-tag)))
+  (global-set-key [f1] 'eide-search-back-from-tag)
+  (global-set-key [f2] 'eide-search-find-tag-without-prompt)
+  (global-set-key [S-f2] 'eide-search-find-tag-with-prompt)
+  (global-set-key [S-f1] 'eide-search-find-alternate-tag)
 
   (if eide-option-use-cscope-flag
     (progn

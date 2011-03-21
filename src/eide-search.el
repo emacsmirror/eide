@@ -36,6 +36,24 @@
 
 (defvar eide-search-tag-string nil)
 
+;; Shell command for creating tags
+(defvar eide-search-create-tags-command "rm -f TAGS ; ctags -eR --links=no")
+
+;; Shell command for creating cscope.files
+;; -type f: excludes links
+;; cscope.out will be generated on next search
+(defvar eide-search-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" \\) > cscope.files")
+;; cscope -bR
+
+(defvar eide-search-cscope-files-flag nil)
+
+(defvar eide-search-tags-available-flag nil)
+(defvar eide-search-cscope-available-flag nil)
+
+(defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
+(defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
+(defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
+
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
@@ -61,9 +79,44 @@
           (message "No text to search at cursor position...")
           nil)))))
 
+;; ----------------------------------------------------------------------------
+;; Sentinel for "create tags" process.
+;;
+;; input  : p-process : process.
+;;          p-event : event.
+;; output : eide-search-tags-available-flag : t.
+;; ----------------------------------------------------------------------------
+(defun eide-i-search-tags-sentinel (p-process p-event)
+  (setq eide-search-tags-available-flag t)
+  (message "Creating tags... done"))
+
+;; ----------------------------------------------------------------------------
+;; Sentinel for "create cscope" process.
+;;
+;; input  : p-process : process.
+;;          p-event : event.
+;; output : eide-search-cscope-available-flag : t.
+;; ----------------------------------------------------------------------------
+(defun eide-i-search-cscope-sentinel (p-process p-event)
+  (eide-search-update-cscope-status)
+  (setq eide-search-cscope-available-flag t)
+  (message "Creating cscope list of files... done"))
+
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
+
+;; ----------------------------------------------------------------------------
+;; Create tags.
+;;
+;; input  : eide-root-directory : project root directory.
+;; output : eide-search-tags-available-flag : nil.
+;; ----------------------------------------------------------------------------
+(defun eide-search-create-tags ()
+  (message "Creating tags...")
+  (setq eide-search-tags-available-flag nil)
+  (let ((l-process (start-process-shell-command "create-tags" "*create-tags*" (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
+    (set-process-sentinel l-process 'eide-i-search-tags-sentinel)))
 
 ;; ----------------------------------------------------------------------------
 ;; Go back from definition.
@@ -78,11 +131,15 @@
 ;; Go to definition of a symbol.
 ;;
 ;; input  : p-string : symbol.
+;;          eide-search-tags-available-flag : t if tags are available.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag (p-string)
-  (eide-windows-select-source-window nil)
-  (find-tag p-string)
-  (recenter))
+  (if eide-search-tags-available-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (find-tag p-string)
+      (recenter))
+    (message eide-search-tags-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of symbol at cursor position.
@@ -97,111 +154,126 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Go to definition of a symbol (prompt for it).
+;;
+;; input  : eide-search-tags-available-flag : t if tags are available.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag-with-prompt ()
   (interactive)
-  (eide-windows-select-source-window nil)
-  (call-interactively 'find-tag)
-  ;; Saving string is necessary for calling eide-search-find-alternate-tag
-  ;; later on... but there is no completion !
-  ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
-  ;;(if (string-equal eide-search-tag-string "")
-  ;;  (message "Cannot find empty symbol...")
-  ;;  (eide-search-find-tag eide-search-tag-string))
-  (recenter))
+  (if eide-search-tags-available-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (call-interactively 'find-tag)
+      ;; Saving string is necessary for calling eide-search-find-alternate-tag
+      ;; later on... but there is no completion !
+      ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
+      ;;(if (string-equal eide-search-tag-string "")
+      ;;  (message "Cannot find empty symbol...")
+      ;;  (eide-search-find-tag eide-search-tag-string))
+      (recenter))
+    (message eide-search-tags-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Go to alternate definition of previously searched symbol.
 ;;
-;; input  : eide-search-tag-string : symbol.
+;; input  : eide-search-tags-available-flag : t if tags are available.
+;;          eide-search-tag-string : symbol.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-alternate-tag ()
   (interactive)
-  (eide-windows-select-source-window nil)
-  (call-interactively 'pop-tag-mark)
-  (find-tag eide-search-tag-string t)
-  (recenter))
+  (if eide-search-tags-available-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (call-interactively 'pop-tag-mark)
+      (find-tag eide-search-tag-string t)
+      (recenter))
+    (message eide-search-tags-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
-;; Go back from definition.
-;; ----------------------------------------------------------------------------
-(defun eide-search-back-from-symbol-definition ()
-  (interactive)
-  (eide-windows-select-source-window nil)
-  (cscope-pop-mark)
-  (eide-menu-update nil))
-
-;; ----------------------------------------------------------------------------
-;; Go to definition of symbol at cursor position.
+;; Set cscope status (disabled if list of files is empty).
 ;;
-;; output : eide-search-find-symbol-definition-flag : t = pending display
-;;              update in switch-to-buffer advice.
+;; input  : eide-root-directory : project root directory.
+;; output : eide-search-cscope-files-flag : t if cscope.files is not empty.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-find-symbol-definition-without-prompt ()
-  (interactive)
-  (setq eide-search-find-symbol-definition-flag t)
-  (cscope-find-global-definition-no-prompting)
-  ;; Update menu because a new file may have been opened
-  (eide-menu-update nil)
-  (eide-windows-select-source-window nil))
+(defun eide-search-update-cscope-status ()
+  (setq eide-search-cscope-files-flag nil)
+  (if (not (equal (nth 7 (file-attributes (concat eide-root-directory "cscope.files"))) 0))
+    (setq eide-search-cscope-files-flag t)))
 
 ;; ----------------------------------------------------------------------------
-;; Go to definition of a symbol (prompt for it).
+;; Create cscope list of files.
+;;
+;; input  : eide-root-directory : project root directory.
+;; output : eide-search-cscope-available-flag : nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-find-symbol-definition-with-prompt ()
-  (interactive)
-  (let ((l-string (find-tag-default)))
-    (eide-windows-select-source-window nil)
-    ;; TODO: remplacer find-tag par la bonne commande cscope
-    (call-interactively 'find-tag l-string))
-  (recenter))
+(defun eide-search-create-cscope-list-of-files ()
+  (message "Creating cscope list of files...")
+  (setq eide-search-cscope-available-flag nil)
+  (let ((l-process (start-process-shell-command "create-cscope" "*create-cscope*" (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command))))
+    (set-process-sentinel l-process 'eide-i-search-cscope-sentinel)))
+;; (cscope-index-files nil))
 
 ;; ----------------------------------------------------------------------------
 ;; Find a symbol.
 ;;
 ;; input  : p-symbol : symbol.
+;;          eide-search-cscope-available-flag : t if cscope is available.
+;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
-  (eide-windows-select-output-window)
-  (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
-        (l-do-it-flag t))
-    (if (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result)?")
-        ;; Delete existing find-symbol buffer
-        (kill-buffer l-result-buffer-name)
-        (setq l-do-it-flag nil)))
-    (if l-do-it-flag
-      (progn
-        (cscope-find-this-symbol p-symbol)
-        (save-excursion
-          (set-buffer "*cscope*")
-          (rename-buffer l-result-buffer-name t))
-        (eide-menu-build-files-lists))
-      (eide-search-view-result-buffer l-result-buffer-name))
-    (eide-windows-select-source-window t)))
+  (if eide-search-cscope-available-flag
+    (if eide-search-cscope-files-flag
+      (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
+            (l-do-it-flag t))
+        (eide-windows-select-output-window)
+        (if (get-buffer l-result-buffer-name)
+          (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result)?")
+            ;; Delete existing find-symbol buffer
+            (kill-buffer l-result-buffer-name)
+            (setq l-do-it-flag nil)))
+        (if l-do-it-flag
+          (progn
+            (cscope-find-this-symbol p-symbol)
+            (save-excursion
+              (set-buffer "*cscope*")
+              (rename-buffer l-result-buffer-name t))
+            (eide-menu-build-files-lists))
+          (eide-search-view-result-buffer l-result-buffer-name))
+        (eide-windows-select-source-window t))
+      (message eide-search-cscope-no-file-string))
+    (message eide-search-cscope-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Find a symbol (prompt for it).
+;;
+;; input  : eide-search-cscope-available-flag : t if cscope is available.
+;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-with-prompt ()
   (interactive)
-  (if eide-project-cscope-files-flag
-    (let ((l-string (read-string "Find symbol with cscope: ")))
-      (if (string-equal l-string "")
-        (message "Cannot find empty symbol...")
-        (eide-search-find-symbol l-string)))
-    (message "Cannot use cscope: there is no C/C++ file in this project...")))
+  (if eide-search-cscope-available-flag
+    (if eide-search-cscope-files-flag
+      (let ((l-string (read-string "Find symbol with cscope: ")))
+        (if (string-equal l-string "")
+          (message "Cannot find empty symbol...")
+          (eide-search-find-symbol l-string)))
+      (message eide-search-cscope-no-file-string))
+    (message eide-search-cscope-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Find symbol at cursor position.
+;;
+;; input  : eide-search-cscope-available-flag : t if cscope is available.
+;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-without-prompt ()
   (interactive)
-  (if eide-project-cscope-files-flag
-    (let ((l-string (eide-i-search-get-string-to-search)))
-      (if l-string
-        (eide-search-find-symbol l-string)))
-    (message "Cannot use cscope: there is no C/C++ file in this project...")))
+  (if eide-search-cscope-available-flag
+    (if eide-search-cscope-files-flag
+      (let ((l-string (eide-i-search-get-string-to-search)))
+        (if l-string
+          (eide-search-find-symbol l-string)))
+      (message eide-search-cscope-no-file-string))
+    (message eide-search-cscope-not-ready-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Grep a string in current directory.
