@@ -51,8 +51,8 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-compile (p-parameter)
   (eide-windows-select-output-window)
-  ;; sometimes does not compile when a grep buffer is displayed
-  ;; "compilation finished" is displayed in grep buffer !
+  ;; Sometimes does not compile when a grep buffer is displayed
+  ;; "compilation finished" is displayed in grep buffer!
   (switch-to-buffer "*results*")
   ;; Change current directory (of unused buffer "*results*")
   (setq default-directory eide-root-directory)
@@ -73,8 +73,8 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-run (p-parameter)
   (eide-windows-select-output-window)
-  ;; sometimes does not compile when a grep buffer is displayed
-  ;; "compilation finished" is displayed in grep buffer !
+  ;; Sometimes does not compile when a grep buffer is displayed
+  ;; "compilation finished" is displayed in grep buffer!
   (switch-to-buffer "*results*")
   ;; Changing current directory has no effect with shell-command
   ;; Instead, we must change current directory in the command itself
@@ -93,8 +93,8 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-debug (p-program)
   (eide-windows-select-output-window)
-  ;; sometimes does not compile when a grep buffer is displayed
-  ;; "compilation finished" is displayed in grep buffer !
+  ;; Sometimes does not compile when a grep buffer is displayed
+  ;; "compilation finished" is displayed in grep buffer!
   (switch-to-buffer "*results*")
   ;; Change current directory (of unused buffer "*results*")
   (setq default-directory eide-root-directory)

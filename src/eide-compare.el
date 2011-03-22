@@ -71,7 +71,7 @@
   (eide-i-compare-ediff-mode-stop)
   ;; Delete other windows, otherwise current line is not restored in
   ;; eide-compare-buffer-name, unless it is the same as eide-current-buffer
-  ;; (and I don't know why !!)
+  ;; (and I don't know why!)
   ;;(delete-other-windows)
   ;; Restore cursor position in the buffer that has been compared
   ;; TODO: Restoring cursor position does not work anymore

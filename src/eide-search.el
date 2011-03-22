@@ -116,6 +116,7 @@
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
   (let ((l-process (start-process-shell-command "create-tags" "*create-tags*" (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
+    ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-tags-sentinel)))
 
 ;; ----------------------------------------------------------------------------
@@ -164,7 +165,7 @@
       (eide-windows-select-source-window nil)
       (call-interactively 'find-tag)
       ;; Saving string is necessary for calling eide-search-find-alternate-tag
-      ;; later on... but there is no completion !
+      ;; later on... but there is no completion!
       ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
       ;;(if (string-equal eide-search-tag-string "")
       ;;  (message "Cannot find empty symbol...")
@@ -209,6 +210,7 @@
   (message "Creating cscope list of files...")
   (setq eide-search-cscope-available-flag nil)
   (let ((l-process (start-process-shell-command "create-cscope" "*create-cscope*" (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command))))
+    ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-cscope-sentinel)))
 ;; (cscope-index-files nil))
 

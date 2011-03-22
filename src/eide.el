@@ -30,7 +30,7 @@
 ;; On Linux: it is also useful to expand path (~ => /home/xxx/).
 ;; NB: "temp" was first used as a temporary filename, but it causes the project
 ;; directory to be changed to "temp" if "temp" already exists and is a
-;; directory !... Hence a filename that can not exist !! :-)
+;; directory!... Hence a filename that can not exist! :-)
 
 (let ((l-temp-file "this-is-a-temporary-file-for-emacs-ide"))
   (find-file l-temp-file)

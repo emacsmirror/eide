@@ -579,7 +579,9 @@
               (progn
                 (eide-windows-select-menu-window)
                 (goto-char (point-min))
-                (if (and (search-forward (concat " " eide-current-buffer-temp " ") nil t) (get-buffer eide-current-buffer))
+                ;; Case sensitive search is necessary for buffer name
+                (if (and (let ((case-fold-search nil)) (search-forward (concat " " eide-current-buffer-temp " ") nil t))
+                         (get-buffer eide-current-buffer))
                   ;; Old and new files are both present in menu: just update current buffer
                   (eide-i-menu-update-current-buffer eide-current-buffer-temp)
                   ;; File not present in menu: update whole menu
@@ -649,10 +651,12 @@
           (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
       (set-buffer eide-menu-buffer-name)
       (save-excursion
-        (if (or (search-forward (concat " " l-buffer " \n") nil t)
-                (search-forward (concat " " l-buffer " *\n") nil t)
-                (search-forward (concat " " l-buffer " (M) \n") nil t)
-                (search-forward (concat " " l-buffer " (M) *\n") nil t))
+        ;; Case sensitive search is necessary for buffer name
+        (if (let ((case-fold-search nil))
+              (or (search-forward (concat " " l-buffer " \n") nil t)
+                  (search-forward (concat " " l-buffer " *\n") nil t)
+                  (search-forward (concat " " l-buffer " (M) \n") nil t)
+                  (search-forward (concat " " l-buffer " (M) *\n") nil t)))
           (progn
             (forward-line -1)
             (eide-i-menu-remove-file)
