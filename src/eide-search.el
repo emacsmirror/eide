@@ -404,6 +404,15 @@
   (eide-windows-select-source-window nil))
 
 ;; ----------------------------------------------------------------------------
+;; Read man page.
+;;
+;; input  : p-args : man arguments (including section number or "-a").
+;; ----------------------------------------------------------------------------
+(defun eide-search-read-man (p-args)
+  (eide-windows-select-source-window t)
+  (man p-args))
+
+;; ----------------------------------------------------------------------------
 ;; Display a result buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-view-result-buffer (p-result-buffer-name)

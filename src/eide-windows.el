@@ -55,7 +55,10 @@
       (if eide-windows-is-layout-visible-flag
         (if (string-equal eide-menu-buffer-name p-buffer-name)
           eide-windows-menu-window
-          eide-windows-output-window)
+          ;; Let WoMan display in a frame
+          (if (string-match "^\*WoMan.*" p-buffer-name)
+            nil
+            eide-windows-output-window))
         ;; Layout is not built => "menu" and "output" windows don't exist
         nil)
       (save-excursion

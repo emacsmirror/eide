@@ -431,6 +431,16 @@
         (eide-i-popup-menu-add-action "Grep in whole project" (concat "(eide-search-grep-global \"" l-string "\")") t)))
     (eide-i-popup-menu-add-action "Grep in current directory" (concat "(eide-search-grep-local \"" l-string "\")") t)
     (eide-i-popup-menu-close-action-list "Search")
+    (eide-i-popup-menu-add-action "Read manual (man 1: Executable programs or shell commands)" (concat "(eide-search-read-man \"1 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 2: System calls)" (concat "(eide-search-read-man \"2 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 3: Library calls)" (concat "(eide-search-read-man \"3 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 4: Special files)" (concat "(eide-search-read-man \"4 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 5: File formats and conventions)" (concat "(eide-search-read-man \"5 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 6: Games)" (concat "(eide-search-read-man \"6 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 7: Miscellaneous)" (concat "(eide-search-read-man \"7 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man 8: System administration commands)" (concat "(eide-search-read-man \"8 " l-string "\")") t)
+    (eide-i-popup-menu-add-action "Read manual (man -a: All)" (concat "(eide-search-read-man \"-a " l-string "\")") t)
+    (eide-i-popup-menu-close-action-list "Man")
     (eide-i-popup-menu-open (concat "Search: " l-string))))
 
 ;; ----------------------------------------------------------------------------
