@@ -21,6 +21,8 @@
 
 (require 'etags)
 
+(require 'eide-menu) ; for eide-menu-update, eide-menu-build-files-lists, eide-menu-grep-results-list, eide-menu-cscope-results-list, and eide-menu-man-pages-list
+
 (defvar eide-search-find-symbol-definition-flag nil)
 
 ;; grep commands should exclude following files:
@@ -424,6 +426,8 @@
 ;;
 ;; input  : p-grep-buffer-name : grep result buffer name.
 ;;          eide-menu-grep-results-list : grep results list.
+;;          eide-menu-cscope-results-list : cscope results list.
+;;          eide-menu-man-pages-list : man pages list.
 ;; output : eide-menu-grep-results-list : updated grep results list.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-grep-buffer (p-grep-buffer-name)
@@ -433,7 +437,7 @@
     (setq eide-menu-grep-results-list (remove p-grep-buffer-name eide-menu-grep-results-list))
 
     (if (string-equal p-grep-buffer-name l-buffer)
-      ;; It was current result buffer: display another one
+      ;; Current result buffer was closed: display another one
       (progn
         (setq l-buffer (car eide-menu-grep-results-list))
         (if l-buffer
@@ -442,13 +446,18 @@
             (setq l-buffer (car eide-menu-cscope-results-list))
             (if l-buffer
               (switch-to-buffer l-buffer)
-              (switch-to-buffer "*results*"))))))))
+              (progn
+                (setq l-buffer (car eide-menu-man-pages-list))
+                (if l-buffer
+                  (switch-to-buffer l-buffer)
+                  (switch-to-buffer "*results*"))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Close all grep result buffers.
 ;;
 ;; input  : eide-menu-grep-results-list : grep results list.
 ;;          eide-menu-cscope-results-list : cscope results list.
+;;          eide-menu-man-pages-list : man pages list.
 ;; output : eide-menu-grep-results-list : updated grep results list (nil).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-grep-buffers ()
@@ -459,18 +468,24 @@
     (setq eide-menu-grep-results-list nil)
 
     (if (not (string-equal (buffer-name) l-buffer))
-      ;; It was a grep result buffer: display another search buffer
+      ;; Current result buffer was closed: display another one
       (progn
         (setq l-buffer (car eide-menu-cscope-results-list))
         (if l-buffer
           (switch-to-buffer l-buffer)
-          (switch-to-buffer "*results*"))))))
+          (progn
+            (setq l-buffer (car eide-menu-man-pages-list))
+            (if l-buffer
+              (switch-to-buffer l-buffer)
+              (switch-to-buffer "*results*"))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Close a cscope result buffer.
 ;;
 ;; input  : p-cscope-buffer-name : cscope result buffer name.
 ;;          eide-menu-cscope-results-list : cscope results list.
+;;          eide-menu-grep-results-list : grep results list.
+;;          eide-menu-man-pages-list : man pages list.
 ;; output : eide-menu-cscope-results-list : updated cscope results list.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-cscope-buffer (p-cscope-buffer-name)
@@ -480,7 +495,7 @@
     (setq eide-menu-cscope-results-list (remove p-cscope-buffer-name eide-menu-cscope-results-list))
 
     (if (string-equal p-cscope-buffer-name l-buffer)
-      ;; It was current result buffer: display another one
+      ;; Current result buffer was closed: display another one
       (progn
         (setq l-buffer (car eide-menu-cscope-results-list))
         (if l-buffer
@@ -489,13 +504,18 @@
             (setq l-buffer (car eide-menu-grep-results-list))
             (if l-buffer
               (switch-to-buffer l-buffer)
-              (switch-to-buffer "*results*"))))))))
+              (progn
+                (setq l-buffer (car eide-menu-man-pages-list))
+                (if l-buffer
+                  (switch-to-buffer l-buffer)
+                  (switch-to-buffer "*results*"))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Close all cscope result buffers.
 ;;
 ;; input  : eide-menu-cscope-results-list : cscope results list.
 ;;          eide-menu-grep-results-list : grep results list.
+;;          eide-menu-man-pages-list : man pages list.
 ;; output : eide-menu-cscope-results-list : updated cscope results list (nil).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-cscope-buffers ()
@@ -506,11 +526,73 @@
     (setq eide-menu-cscope-results-list nil)
 
     (if (not (string-equal (buffer-name) l-buffer))
-      ;; It was a grep result buffer: display another search buffer
+      ;; Current result buffer was closed: display another one
       (progn
         (setq l-buffer (car eide-menu-grep-results-list))
         (if l-buffer
           (switch-to-buffer l-buffer)
-          (switch-to-buffer "*results*"))))))
+          (progn
+            (setq l-buffer (car eide-menu-man-pages-list))
+            (if l-buffer
+              (switch-to-buffer l-buffer)
+              (switch-to-buffer "*results*"))))))))
+
+;; ----------------------------------------------------------------------------
+;; Close a man page buffer.
+;;
+;; input  : p-man-buffer-name : man page buffer name.
+;;          eide-menu-man-pages-list : man pages list.
+;;          eide-menu-grep-results-list : grep results list.
+;;          eide-menu-cscope-results-list : cscope results list.
+;; output : eide-menu-man-pages-list : updated man pages list.
+;; ----------------------------------------------------------------------------
+(defun eide-search-close-man-buffer (p-man-buffer-name)
+  (eide-windows-select-output-window)
+  (let ((l-buffer (buffer-name)))
+    (kill-buffer p-man-buffer-name)
+    (setq eide-menu-man-pages-list (remove p-man-buffer-name eide-menu-man-pages-list))
+
+    (if (string-equal p-man-buffer-name l-buffer)
+      ;; Current result buffer was closed: display another one
+      (progn
+        (setq l-buffer (car eide-menu-man-pages-list))
+        (if l-buffer
+          (switch-to-buffer l-buffer)
+          (progn
+            (setq l-buffer (car eide-menu-grep-results-list))
+            (if l-buffer
+              (switch-to-buffer l-buffer)
+              (progn
+                (setq l-buffer (car eide-menu-cscope-results-list))
+                (if l-buffer
+                  (switch-to-buffer l-buffer)
+                  (switch-to-buffer "*results*"))))))))))
+
+;; ----------------------------------------------------------------------------
+;; Close all man page buffers.
+;;
+;; input  : eide-menu-man-pages-list : man pages list.
+;;          eide-menu-grep-results-list : grep results list.
+;;          eide-menu-cscope-results-list : cscope results list.
+;; output : eide-menu-man-pages-list : updated man pages list (nil).
+;; ----------------------------------------------------------------------------
+(defun eide-search-close-all-man-buffers ()
+  (eide-windows-select-output-window)
+  (let ((l-buffer (buffer-name)))
+    (dolist (l-man-buffer-name eide-menu-man-pages-list)
+      (kill-buffer l-man-buffer-name))
+    (setq eide-menu-man-pages-list nil)
+
+    (if (not (string-equal (buffer-name) l-buffer))
+      ;; Current result buffer was closed: display another one
+      (progn
+        (setq l-buffer (car eide-menu-grep-results-list))
+        (if l-buffer
+          (switch-to-buffer l-buffer)
+          (progn
+            (setq l-buffer (car eide-menu-cscope-results-list))
+            (if l-buffer
+              (switch-to-buffer l-buffer)
+              (switch-to-buffer "*results*"))))))))
 
 ;;; eide-search.el ends here

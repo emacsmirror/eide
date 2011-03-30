@@ -37,6 +37,7 @@
 (defvar eide-menu-files-list nil)
 (defvar eide-menu-grep-results-list nil)
 (defvar eide-menu-cscope-results-list nil)
+(defvar eide-menu-man-pages-list nil)
 
 (defvar eide-menu-local-functions-unfolded-flag-backup nil)
 (defvar eide-menu-local-functions-unfolded-flags-list nil)
@@ -609,11 +610,13 @@
 ;; output : eide-menu-files-list : list of opened files.
 ;;          eide-menu-grep-results-list : list of grep results buffers.
 ;;          eide-menu-cscope-results-list : list of cscope results buffers.
+;;          eide-menu-man-pages-list : list of man pages buffers.
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-build-files-lists ()
   (setq eide-menu-files-list nil)
   (setq eide-menu-grep-results-list nil)
   (setq eide-menu-cscope-results-list nil)
+  (setq eide-menu-man-pages-list nil)
 
   (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
     (setq l-buffer-name-list (sort l-buffer-name-list 'string<))
@@ -630,10 +633,12 @@
             (if (not (string-equal l-buffer-name eide-project-config-file))
               (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
         ;; This is a "*..." buffer
-        (if (string-match "^\\*grep.*" l-buffer-name)
+        (if (string-match "^\*grep.*" l-buffer-name)
           (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
-          (if (string-match "^\\*cscope\\*.*" l-buffer-name)
-            (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))))))))
+          (if (string-match "^\*cscope\*.*" l-buffer-name)
+            (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))
+            (if (string-match "^\*Man .*" l-buffer-name)
+              (setq eide-menu-man-pages-list (cons l-buffer-name eide-menu-man-pages-list)))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Update current buffer "modified" status (in menu).

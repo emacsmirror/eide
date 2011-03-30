@@ -364,6 +364,7 @@
 ;;
 ;; input  : eide-menu-grep-results-list : list of grep results.
 ;;          eide-menu-cscope-results-list : list of cscope results.
+;;          eide-menu-man-pages-list : list of man pages.
 ;;          eide-compilation-buffer : compilation buffer name.
 ;;          eide-execution-buffer : execution buffer name.
 ;;          eide-shell-buffer : shell buffer name.
@@ -379,9 +380,14 @@
       (eide-i-popup-menu-close-action-list "Grep results")))
   (if eide-menu-cscope-results-list
     (progn
-      (dolist (l-grep-result eide-menu-cscope-results-list)
-        (eide-i-popup-menu-add-action l-grep-result (concat "(eide-search-view-result-buffer \"" l-grep-result "\")") t))
+      (dolist (l-csope-result eide-menu-cscope-results-list)
+        (eide-i-popup-menu-add-action l-csope-result (concat "(eide-search-view-result-buffer \"" l-csope-result "\")") t))
       (eide-i-popup-menu-close-action-list "Cscope results")))
+  (if eide-menu-man-pages-list
+    (progn
+      (dolist (l-man-page eide-menu-man-pages-list)
+        (eide-i-popup-menu-add-action l-man-page (concat "(eide-search-view-result-buffer \"" l-man-page "\")") t))
+      (eide-i-popup-menu-close-action-list "Man pages")))
   (eide-i-popup-menu-add-action "Compilation" (concat "(eide-search-view-result-buffer \"" eide-compilation-buffer "\")") eide-compilation-buffer)
   (eide-i-popup-menu-add-action "Execution" (concat "(eide-search-view-result-buffer \"" eide-execution-buffer "\")") eide-execution-buffer)
   (eide-i-popup-menu-add-action "Shell" (concat "(eide-search-view-result-buffer \"" eide-shell-buffer "\")") eide-shell-buffer)
@@ -409,11 +415,18 @@
       (eide-i-popup-menu-close-action-list "Grep results")))
   (if eide-menu-cscope-results-list
     (progn
-      (dolist (l-grep-result eide-menu-cscope-results-list)
-        (eide-i-popup-menu-add-action (concat "Delete " l-grep-result) (concat "(eide-search-close-cscope-buffer \"" l-grep-result "\")") t))
+      (dolist (l-cscope-result eide-menu-cscope-results-list)
+        (eide-i-popup-menu-add-action (concat "Delete " l-cscope-result) (concat "(eide-search-close-cscope-buffer \"" l-cscope-result "\")") t))
       (if (> (length eide-menu-cscope-results-list) 1)
         (eide-i-popup-menu-add-action "Delete all cscope results" "(eide-search-close-all-cscope-buffers)" t))
       (eide-i-popup-menu-close-action-list "Cscope results")))
+  (if eide-menu-man-pages-list
+    (progn
+      (dolist (l-man-page eide-menu-man-pages-list)
+        (eide-i-popup-menu-add-action (concat "Delete " l-man-page) (concat "(eide-search-close-man-buffer \"" l-man-page "\")") t))
+      (if (> (length eide-menu-man-pages-list) 1)
+        (eide-i-popup-menu-add-action "Delete all man pages" "(eide-search-close-all-man-buffers)" t))
+      (eide-i-popup-menu-close-action-list "Man pages")))
   (eide-i-popup-menu-open "*** DELETE *** search results"))
 
 ;; ----------------------------------------------------------------------------

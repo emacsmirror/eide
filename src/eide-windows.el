@@ -19,6 +19,8 @@
 
 (provide 'eide-windows)
 
+(require 'eide-menu) ; for eide-menu-buffer-name, eide-menu-browsing-mode-flag, eide-menu-browsing-mode-start, eide-menu-browsing-mode-stop, eide-menu-update, eide-menu-build-files-lists, eide-menu-update-current-buffer-modified-status, and eide-menu-dired-open
+
 (defvar eide-windows-source-window nil)
 (defvar eide-windows-menu-window nil)
 (defvar eide-windows-output-window nil)
@@ -76,8 +78,9 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Display a buffer in appropriate window.
-;; Called:
-;; - when launching compile, run or shell.
+;; Called for:
+;; - compile, run, and shell buffers
+;; - man pages
 ;;
 ;; input  : p-buffer : buffer.
 ;;          eide-windows-update-result-buffer-id : ID of result buffer to be
@@ -150,7 +153,9 @@
             (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
               (if (> l-completion-height (/ (frame-height) 2))
                 (setq l-completion-height (/ (* (frame-height) 2) 3)))
-              (enlarge-window (- l-completion-height (window-height))))))))
+              (enlarge-window (- l-completion-height (window-height))))))
+        (if (string-match "^\*Man .*" l-buffer-name)
+          (eide-menu-build-files-lists))))
     ;; Restore selected window
     (select-window l-selected-window)
     ;; Return buffer window
