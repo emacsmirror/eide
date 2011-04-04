@@ -241,7 +241,7 @@
               (set-buffer "*cscope*")
               (rename-buffer l-result-buffer-name t))
             (eide-menu-build-files-lists))
-          (eide-search-view-result-buffer l-result-buffer-name))
+          (eide-search-view-output-buffer l-result-buffer-name))
         (eide-windows-select-source-window t))
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
@@ -304,7 +304,7 @@
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
-      (eide-search-view-result-buffer l-result-buffer-name))
+      (eide-search-view-output-buffer l-result-buffer-name))
     (eide-windows-select-source-window t)))
 
 ;; ----------------------------------------------------------------------------
@@ -355,7 +355,7 @@
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
-      (eide-search-view-result-buffer l-result-buffer-name))
+      (eide-search-view-output-buffer l-result-buffer-name))
     (eide-windows-select-source-window t)))
 
 ;; ----------------------------------------------------------------------------
@@ -417,7 +417,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Display a result buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-search-view-result-buffer (p-result-buffer-name)
+(defun eide-search-view-output-buffer (p-result-buffer-name)
   (eide-windows-select-output-window)
   (switch-to-buffer p-result-buffer-name))
 

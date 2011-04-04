@@ -39,7 +39,7 @@
 (defvar eide-windows-output-window-height nil)
 (defvar eide-windows-menu-window-width nil)
 
-(defvar eide-windows-update-result-buffer-id nil)
+(defvar eide-windows-update-output-buffer-id nil)
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -83,9 +83,9 @@
 ;; - man pages
 ;;
 ;; input  : p-buffer : buffer.
-;;          eide-windows-update-result-buffer-id : ID of result buffer to be
+;;          eide-windows-update-output-buffer-id : ID of result buffer to be
 ;;              displayed (or nil).
-;; output : eide-windows-update-result-buffer-id : nil.
+;; output : eide-windows-update-output-buffer-id : nil.
 ;; return : buffer window.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
@@ -128,15 +128,15 @@
               (setq l-window l-selected-window))))
         (set-window-buffer l-window p-buffer)
         ;; Result buffer name is updated asynchronously
-        (if eide-windows-update-result-buffer-id
+        (if eide-windows-update-output-buffer-id
           (progn
-            (if (string-equal eide-windows-update-result-buffer-id "c")
+            (if (string-equal eide-windows-update-output-buffer-id "c")
               (setq eide-compilation-buffer l-buffer-name)
-              (if (string-equal eide-windows-update-result-buffer-id "r")
+              (if (string-equal eide-windows-update-output-buffer-id "r")
                 (setq eide-execution-buffer l-buffer-name)
-                (if (string-equal eide-windows-update-result-buffer-id "s")
+                (if (string-equal eide-windows-update-output-buffer-id "s")
                   (setq eide-shell-buffer l-buffer-name))))
-            (setq eide-windows-update-result-buffer-id nil)))
+            (setq eide-windows-update-output-buffer-id nil)))
         (if (equal l-window eide-windows-source-window)
           (progn
             (if (and eide-menu-browsing-mode-flag

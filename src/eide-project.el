@@ -47,7 +47,7 @@
 ;; input  : p-parameter : option parameter in project configuration for
 ;;              compile command.
 ;;          eide-root-directory : project root directory.
-;; output : eide-windows-update-result-buffer-id : "c" for "compile".
+;; output : eide-windows-update-output-buffer-id : "c" for "compile".
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-compile (p-parameter)
   (eide-windows-select-output-window)
@@ -58,7 +58,7 @@
   (setq default-directory eide-root-directory)
   (let ((l-compile-command (eide-project-get-full-command p-parameter)))
     ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
-    (setq eide-windows-update-result-buffer-id "c")
+    (setq eide-windows-update-output-buffer-id "c")
     (compile l-compile-command))
   (end-of-buffer)
   (eide-windows-select-source-window t))
@@ -69,7 +69,7 @@
 ;; input  : p-parameter : option parameter in project configuration for
 ;;              run command.
 ;;          eide-root-directory : project root directory.
-;; output : eide-windows-update-result-buffer-id : "r" for "run".
+;; output : eide-windows-update-output-buffer-id : "r" for "run".
 ;; ----------------------------------------------------------------------------
 (defun eide-i-project-run (p-parameter)
   (eide-windows-select-output-window)
@@ -81,7 +81,7 @@
   ;; Command ends with "&" otherwise emacs gets frozen until gdb is closed
   (let ((l-run-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-parameter) " &")))
     ;; Run buffer name will be updated in eide-i-windows-display-buffer-function
-    (setq eide-windows-update-result-buffer-id "r")
+    (setq eide-windows-update-output-buffer-id "r")
     (shell-command l-run-command)))
 
 ;; ----------------------------------------------------------------------------

@@ -70,9 +70,27 @@ Version 1.4 (2010-07, Gna)
 - Use gdb graphical interface.
 
 -------------------------------------------------------------------------------
+Creation of git repository (2010-08)
+-------------------------------------------------------------------------------
+Create git repository for local work (commit all release versions).
+From now on, all developments are commited both in local git repository, and
+svn repository on Gna.
+Git repository should be used as the reference in the future, when git is
+supported on hosting server.
+
+-------------------------------------------------------------------------------
 Version 1.5 (2010-11, Gna)
 -------------------------------------------------------------------------------
 - Support of several "source" windows (split).
 - Provide Emacs-IDE as a package to install.
 - Remove Emacs-IDE update in menu (impossible with installed package).
 - Option to keep user colors.
+
+-------------------------------------------------------------------------------
+Version 1.6 (2011-04, Gna)
+-------------------------------------------------------------------------------
+- Keep default font (change size only).
+- Support of imenu folders in menu.
+- Distinguish Emacs options from Emacs-IDE options.
+- Create tags and cscope list of files in subprocesses.
+- Add search for man pages.

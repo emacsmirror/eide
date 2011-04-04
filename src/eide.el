@@ -531,7 +531,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Open shell.
 ;;
-;; output : eide-windows-update-result-buffer-id : "s" for "shell".
+;; output : eide-windows-update-output-buffer-id : "s" for "shell".
 ;; ----------------------------------------------------------------------------
 (defun eide-shell-open ()
   (interactive)
@@ -540,7 +540,7 @@
     (kill-buffer eide-shell-buffer))
   (eide-windows-select-source-window t)
   ;; Shell buffer name will be updated in eide-i-windows-display-buffer-function
-  (setq eide-windows-update-result-buffer-id "s")
+  (setq eide-windows-update-output-buffer-id "s")
   (shell))
 
 ;; ----------------------------------------------------------------------------

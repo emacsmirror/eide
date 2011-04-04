@@ -19,8 +19,8 @@
 
 (provide 'eide-help)
 
-(defvar eide-version "1.5+")
-(defvar eide-release-date "2011-02")
+(defvar eide-version "1.6")
+(defvar eide-release-date "2011-04")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -123,20 +123,22 @@ In 'menu' window, over a directory name:
     Open directory popup menu (see 'Actions on directories' below).
 
 In 'output' window:
-    Open results popup menu (to display existing 'grep' or 'cscope' result).
+    Open output popup menu (to display existing grep result, cscope result, man
+    page, compilation buffer, execution buffer, shell, or debug session).
 
 Shift + right click behaviour depends on mouse position:
 
 In 'output' window:
-    Open results deletion popup menu (to delete existing 'grep' or 'cscope'
-    result).
+    Open results deletion popup menu (to delete existing grep result, cscope
+    result, or man page).
 ")
 
   (eide-i-help-insert-header-2 "Right click (when text is selected)")
 
   (insert "
 If text is selected on a single line:
-    Open search popup menu, for selected string.
+    Open search popup menu, for selected string (tag, cscope, grep, or man
+    page).
 
 If text is selected over several lines:
     Open cleaning popup menu (to untabify or indent selection).
@@ -149,7 +151,7 @@ On 'source' window mode-line:
     Switch to previous / next file.
 
 On 'output' window mode-line:
-    Switch to previous / next result buffer.
+    Switch to previous / next output buffer.
 ")
 
   (eide-i-help-insert-header-2 "Middle click")
