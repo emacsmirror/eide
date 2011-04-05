@@ -242,7 +242,11 @@
       (goto-char (point-min))
       (if (re-search-forward (concat "^" p-parameter ":") nil t)
         (buffer-substring-no-properties (point) (line-end-position))
-        nil))))
+        (progn
+          (goto-char (point-min))
+          (if (and (re-search-forward (concat "^" p-parameter "(") nil t) (search-forward "):" nil t))
+            (buffer-substring-no-properties (point) (line-end-position))
+            nil))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Get the value of a parameter in a config (current buffer).
