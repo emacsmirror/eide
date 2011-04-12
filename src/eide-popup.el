@@ -178,7 +178,11 @@
         (eide-i-popup-menu-close-action-list "Execute")
         (eide-i-popup-menu-add-action "Update tags" "(eide-search-create-tags)" t)
         (if eide-option-use-cscope-flag
-          (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t))
+          (progn
+            (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
+            (if eide-config-cscope-always-update-database
+              (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" nil)
+              (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
         (eide-i-popup-menu-close-action-list "Update")
         (if eide-compare-other-project-name
           (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)

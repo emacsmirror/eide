@@ -157,10 +157,8 @@
   ;;(modify-frame-parameters nil '((fullscreen . fullboth)))
   ;;(set-frame-parameter nil 'fullscreen 'fullboth)
   (if eide-option-use-cscope-flag
-    (progn
-      (cscope-set-initial-directory eide-root-directory)
-      ;;(setq cscope-do-not-update-database t)
-      ))
+    (cscope-set-initial-directory eide-root-directory))
+
   ;; ediff: Highlight current diff only
   ;;(setq ediff-highlight-all-diffs nil)
   ;; ediff: Control panel in the same frame

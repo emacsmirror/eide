@@ -30,6 +30,7 @@
 (defvar eide-config-menu-height nil)
 (defvar eide-config-show-svn-status-flag nil)
 (defvar eide-config-svn-diff-command nil)
+(defvar eide-config-cscope-always-update-database nil)
 
 (defvar eide-config-use-emacs-options-flag nil)
 (defvar eide-config-use-color-theme-for-source-flag nil)
@@ -652,6 +653,10 @@
     (setq eide-config-svn-diff-command "svn diff ")
     (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
 
+  (if (string-equal (eide-i-config-get-option-value "cscope_always_update_database") "yes")
+    (setq eide-config-cscope-always-update-database t)
+    (setq eide-config-cscope-always-update-database nil))
+
   (if (string-equal (eide-i-config-get-option-value "use_emacs_options") "yes")
     (setq eide-config-use-emacs-options-flag t)
     (setq eide-config-use-emacs-options-flag nil))
@@ -747,6 +752,13 @@
     (eide-i-config-rebuild-insert-comment "- auto: check svn status if root directory is versioned by svn.")
     (eide-i-config-rebuild-update-value "show_svn_status" "auto")
     (eide-i-config-rebuild-update-value "svn_diff_command" "")
+
+    (eide-i-config-rebuild-insert-section "search")
+    (eide-i-config-rebuild-insert-comment "Possible values:")
+    (eide-i-config-rebuild-insert-comment "- yes: update cscope database on every search,")
+    (eide-i-config-rebuild-insert-comment "- no: update only on user request.")
+    (eide-i-config-rebuild-insert-comment "cscope default behaviour is 'yes', but Emacs-IDE default value is 'no'.")
+    (eide-i-config-rebuild-update-value "cscope_always_update_database" "no")
 
     (eide-i-config-rebuild-insert-section "default_project_commands")
     (eide-i-config-rebuild-insert-comment "All default commands are set in project configuration when project is created.")

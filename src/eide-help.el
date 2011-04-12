@@ -230,8 +230,8 @@ Files opened during last session are opened again automatically.
   (insert "
 When code is changed:
 - Tags database ('TAGS') needs to be updated.
-- Cscope database ('cscope.out') doesn't need to be updated (it is done
-  automatically each time you search).
+- Cscope database ('cscope.out') needs to be updated (unless
+  cscope_always_update_database option is set).
 
 When a file is added or deleted:
 - Tags database ('TAGS') needs to be updated.

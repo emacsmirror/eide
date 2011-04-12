@@ -21,6 +21,7 @@
 
 (require 'etags)
 
+(require 'eide-config) ; for eide-config-cscope-always-update-database
 (require 'eide-menu) ; for eide-menu-update, eide-menu-build-files-lists, eide-menu-grep-results-list, eide-menu-cscope-results-list, and eide-menu-man-pages-list
 
 (defvar eide-search-find-symbol-definition-flag nil)
@@ -51,6 +52,7 @@
 
 (defvar eide-search-tags-available-flag nil)
 (defvar eide-search-cscope-available-flag nil)
+(defvar eide-search-cscope-update-database-request-pending-flag nil)
 
 (defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
@@ -211,10 +213,18 @@
 (defun eide-search-create-cscope-list-of-files ()
   (message "Creating cscope list of files...")
   (setq eide-search-cscope-available-flag nil)
+  (setq eide-search-cscope-update-database-request-pending-flag t)
   (let ((l-process (start-process-shell-command "create-cscope" "*create-cscope*" (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command))))
     ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-cscope-sentinel)))
 ;; (cscope-index-files nil))
+
+;; ----------------------------------------------------------------------------
+;; Update cscope database (on next search).
+;; ----------------------------------------------------------------------------
+(defun eide-search-update-cscope-database ()
+  (setq eide-search-cscope-update-database-request-pending-flag t)
+  (message "On next cscope search, database will be updated"))
 
 ;; ----------------------------------------------------------------------------
 ;; Find a symbol.
@@ -236,6 +246,11 @@
             (setq l-do-it-flag nil)))
         (if l-do-it-flag
           (progn
+            (if (or eide-config-cscope-always-update-database eide-search-cscope-update-database-request-pending-flag)
+              (progn
+                (setq cscope-do-not-update-database nil)
+                (setq eide-search-cscope-update-database-request-pending-flag nil))
+              (setq cscope-do-not-update-database t))
             (cscope-find-this-symbol p-symbol)
             (save-excursion
               (set-buffer "*cscope*")

@@ -21,7 +21,7 @@
 
 (require 'desktop) ; for all desktop-* functions
 
-(require 'eide-search) ; for eide-search-tags-available-flag, eide-search-cscope-available-flag, eide-search-create-tags, eide-search-update-cscope-status, and eide-search-create-cscope-list-of-files
+(require 'eide-search) ; for eide-search-tags-available-flag, eide-search-cscope-available-flag, eide-search-cscope-update-database-request-pending-flag, eide-search-create-tags, eide-search-update-cscope-status, and eide-search-create-cscope-list-of-files
 
 (defvar eide-root-directory nil)
 
@@ -180,7 +180,9 @@
     (if (file-exists-p (concat eide-root-directory "cscope.files"))
       (progn
         (eide-search-update-cscope-status)
-        (setq eide-search-cscope-available-flag t))
+        (setq eide-search-cscope-available-flag t)
+        (if (not (file-exists-p (concat eide-root-directory "cscope.out")))
+          (setq eide-search-cscope-update-database-request-pending-flag t)))
       (eide-search-create-cscope-list-of-files)))
 
   ;; Migration from Emacs-IDE 1.5
