@@ -19,22 +19,29 @@
 
 (provide 'eide-config)
 
-(require 'eide-popup) ; for eide-popup-message
+(require 'eide-popup)
 
 (defvar eide-config-file         ".emacs-ide.cfg")
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
 
-(defvar eide-config-show-trailing-spaces-flag nil)
 (defvar eide-config-menu-position nil)
 (defvar eide-config-menu-height nil)
 (defvar eide-config-show-svn-status-flag nil)
 (defvar eide-config-svn-diff-command nil)
-(defvar eide-config-cscope-always-update-database nil)
+(defvar eide-config-cscope-always-update-database-flag nil)
 
 (defvar eide-config-use-emacs-options-flag nil)
 (defvar eide-config-use-color-theme-for-source-flag nil)
+(defvar eide-config-use-show-trailing-spaces-flag nil)
+(defvar eide-config-show-trailing-spaces-flag nil)
+(defvar eide-config-use-indent-offsets-flag nil)
 (defvar eide-config-c-indent-offset nil)
+(defvar eide-config-sh-indent-offset nil)
+(defvar eide-config-lisp-indent-offset nil)
+(defvar eide-config-perl-indent-offset nil)
+(defvar eide-config-python-indent-offset nil)
+(defvar eide-config-sgml-indent-offset nil)
 
 (defvar eide-config-background-color nil)
 (defvar eide-config-foreground-color nil)
@@ -164,7 +171,6 @@
 (make-face-bold 'eide-config-menu-file-ref-face)
 (set-face-foreground 'eide-config-menu-file-new-face "medium sea green")
 (make-face-bold 'eide-config-menu-file-new-face)
-(set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
 (make-face-bold 'eide-config-menu-file-svn-modified-face)
 
 (make-face-italic 'eide-config-menu-empty-list-face)
@@ -455,8 +461,8 @@
         (set-face-foreground 'eide-config-menu-project-name-face "orange")
 
         ;; Menu: directories
-        (set-face-background 'eide-config-menu-directory-face "dim gray")
-        (set-face-foreground 'eide-config-menu-directory-face "white")
+        (set-face-background 'eide-config-menu-directory-face "#200020")
+        (set-face-foreground 'eide-config-menu-directory-face "thistle")
         (set-face-background 'eide-config-menu-directory-out-of-project-face "saddle brown")
         (set-face-foreground 'eide-config-menu-directory-out-of-project-face "peach puff")
 
@@ -464,7 +470,8 @@
         (set-face-foreground 'eide-config-menu-file-rw-face "gray95")
         (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
         (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
-        (setq eide-config-menu-file-highlight-background-color "brown")
+        (setq eide-config-menu-file-highlight-background-color "dark red")
+        (set-face-foreground 'eide-config-menu-file-svn-modified-face "deep sky blue")
 
         ;; Menu: functions
         (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
@@ -532,6 +539,7 @@
         (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
         (set-face-foreground 'eide-config-menu-file-nofile-face "black")
         (setq eide-config-menu-file-highlight-background-color "yellow")
+        (set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
 
         ;; Menu: functions
         (set-face-foreground 'eide-config-menu-function-face "blue")
@@ -622,7 +630,23 @@
 ;;
 ;; output : eide-config-menu-position : menu position (windows layout).
 ;;          eide-config-menu-height : menu height (windows layout).
-;;          eide-config-c-indent-offset : indentation offset for C files.
+;;          eide-config-show-svn-status-flag : show svn status flag.
+;;          eide-config-svn-diff-command : svn diff command.
+;;          eide-config-cscope-always-update-database-flag : cscope database
+;;              update flag.
+;;          eide-config-use-emacs-options-flag : use emacs options flag.
+;;          eide-config-use-color-theme-for-source-flag : use color theme for
+;;              source flag.
+;;          eide-config-use-show-trailing-spaces-flag : use show trailing
+;;              spaces flag.
+;;          eide-config-show-trailing-spaces-flag : show trailing spaces flag.
+;;          eide-config-use-indent-offsets-flag : use indent offsets.
+;;          eide-config-c-indent-offset : indent offset for C/C++.
+;;          eide-config-sh-indent-offset : indent offset for shell scripts.
+;;          eide-config-lisp-indent-offset : indent offset for Emacs Lisp.
+;;          eide-config-perl-indent-offset : indent offset for Perl.
+;;          eide-config-python-indent-offset : indent offset for Python.
+;;          eide-config-sgml-indent-offset : indent offset for SGML.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-apply-config ()
   ;; Windows layout: menu position
@@ -654,8 +678,8 @@
     (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
 
   (if (string-equal (eide-i-config-get-option-value "cscope_always_update_database") "yes")
-    (setq eide-config-cscope-always-update-database t)
-    (setq eide-config-cscope-always-update-database nil))
+    (setq eide-config-cscope-always-update-database-flag t)
+    (setq eide-config-cscope-always-update-database-flag nil))
 
   (if (string-equal (eide-i-config-get-option-value "use_emacs_options") "yes")
     (setq eide-config-use-emacs-options-flag t)
@@ -663,6 +687,14 @@
 
   (if eide-config-use-emacs-options-flag
     (progn
+      (if window-system
+        (progn
+          (if (string-equal (eide-i-config-get-option-value "show_menu_bar") "yes")
+            (menu-bar-mode 1)
+            (menu-bar-mode -1))
+          (if (string-equal (eide-i-config-get-option-value "show_tool_bar") "yes")
+            (tool-bar-mode 1)
+            (tool-bar-mode -1))))
 
       ;; Size of characters for X system
       (if window-system
@@ -672,18 +704,31 @@
         (setq eide-config-use-color-theme-for-source-flag t)
         (setq eide-config-use-color-theme-for-source-flag nil))
 
+      (if (string-equal (eide-i-config-get-option-value "use_show_trailing_spaces") "yes")
+        (setq eide-config-use-show-trailing-spaces-flag t)
+        (setq eide-config-use-show-trailing-spaces-flag nil))
+
       (if (string-equal (eide-i-config-get-option-value "show_trailing_spaces") "yes")
         (setq eide-config-show-trailing-spaces-flag t)
         (setq eide-config-show-trailing-spaces-flag nil))
 
+      (if (string-equal (eide-i-config-get-option-value "use_indent_offsets") "yes")
+        (setq eide-config-use-indent-offsets-flag t)
+        (setq eide-config-use-indent-offsets-flag nil))
+
       ;; Coding rules
       ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
-      (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset"))))
+      (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset")))
+      (setq eide-config-sh-indent-offset (string-to-number (eide-i-config-get-option-value "sh_indent_offset")))
+      (setq eide-config-lisp-indent-offset (string-to-number (eide-i-config-get-option-value "lisp_indent_offset")))
+      (setq eide-config-perl-indent-offset (string-to-number (eide-i-config-get-option-value "perl_indent_offset")))
+      (setq eide-config-python-indent-offset (string-to-number (eide-i-config-get-option-value "python_indent_offset")))
+      (setq eide-config-sgml-indent-offset (string-to-number (eide-i-config-get-option-value "sgml_indent_offset"))))
 
     (progn
       (setq eide-config-use-color-theme-for-source-flag nil)
-      (setq eide-config-show-trailing-spaces-flag nil)
-      (setq eide-config-c-indent-offset nil)))
+      (setq eide-config-use-show-trailing-spaces-flag nil)
+      (setq eide-config-use-indent-offsets-flag nil)))
 
   (eide-i-config-apply-color-theme))
 
@@ -782,30 +827,55 @@
 
     (eide-i-config-rebuild-insert-dotted-line t)
     (eide-i-config-rebuild-insert-comment "Following options are not specific to Emacs-IDE. You can disable them (see")
-    (eide-i-config-rebuild-insert-comment "'use_emacs_options' below) and configure them in your own way, in your")
-    (eide-i-config-rebuild-insert-comment "~/.emacs file.")
+    (eide-i-config-rebuild-insert-comment "'use_emacs_options' and other 'use' flags below) and configure them in your")
+    (eide-i-config-rebuild-insert-comment "own way, in your ~/.emacs file.")
     (eide-i-config-rebuild-insert-dotted-line nil)
     (eide-i-config-rebuild-insert-section "emacs_options")
-    (eide-i-config-rebuild-insert-comment "If this flag is not set ('no'), all following options will be ignored.")
+    (eide-i-config-rebuild-insert-comment "If use_emacs_options = no, all following options will be ignored.")
+    (eide-i-config-rebuild-insert-comment "It is also possible to select them individually with appropriate 'use' flag.")
     (eide-i-config-rebuild-insert-comment "Possible values: yes or no.")
     (eide-i-config-rebuild-update-value "use_emacs_options" "yes")
 
     (eide-i-config-rebuild-insert-section "display")
+    (eide-i-config-rebuild-insert-comment "Show menu bar. Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "show_menu_bar" "no")
+    (eide-i-config-rebuild-insert-comment "Show tool bar. Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "show_tool_bar" "no")
+
+    (eide-i-config-rebuild-insert-comment "Use font_height option. Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "use_font_height" "yes")
     (eide-i-config-rebuild-insert-comment "Font height: an integer in units of 1/10 point.")
     (eide-i-config-rebuild-update-value "font_height" "105")
     (eide-i-config-rebuild-insert-comment "Possible values:")
     (eide-i-config-rebuild-insert-comment "- yes: use color theme for all windows,")
     (eide-i-config-rebuild-insert-comment "- no: do not override user colors, apply color theme on 'menu' window only.")
     (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes")
-    (eide-i-config-rebuild-insert-comment "Possible values: yes or no.")
+    (eide-i-config-rebuild-insert-comment "Use show_trailing_spaces option. Possible values:")
+    (eide-i-config-rebuild-insert-comment "- yes: option applies on every buffer displayed in 'source' window.")
+    (eide-i-config-rebuild-insert-comment "- no: do not override buffer-local show-trailing-whitespace variable.")
+    (eide-i-config-rebuild-update-value "use_show_trailing_spaces" "yes")
+    (eide-i-config-rebuild-insert-comment "Force value of buffer-local show-trailing-whitespace variable, for every buffer displayed in 'source' window.")
+    (eide-i-config-rebuild-insert-comment "Possible values: yes (t) or no (nil).")
     (eide-i-config-rebuild-update-value "show_trailing_spaces" "no")
 
     (eide-i-config-rebuild-insert-section "coding_rules")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for C language.")
+    (eide-i-config-rebuild-insert-comment "Use indent offsets. Possible values: yes or no.")
+    (eide-i-config-rebuild-update-value "use_indent_offsets" "yes")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for C/C++.")
     (eide-i-config-rebuild-update-value "c_indent_offset" "2")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for shell scripts.")
+    (eide-i-config-rebuild-update-value "sh_indent_offset" "2")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for Emacs Lisp.")
+    (eide-i-config-rebuild-update-value "lisp_indent_offset" "2")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for Perl.")
+    (eide-i-config-rebuild-update-value "perl_indent_offset" "2")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for Python.")
+    (eide-i-config-rebuild-update-value "python_indent_offset" "4")
+    (eide-i-config-rebuild-insert-comment "Indentation offset for SGML (HTML, XML...).")
+    (eide-i-config-rebuild-update-value "sgml_indent_offset" "2")
 
     (eide-i-config-rebuild-insert-section "dark_color_theme_colors_for_source")
-    (eide-i-config-rebuild-update-value "dark_color_theme_background" "gray15")
+    (eide-i-config-rebuild-update-value "dark_color_theme_background" "black")
     (eide-i-config-rebuild-update-value "dark_color_theme_foreground" "gray90")
     (eide-i-config-rebuild-update-value "dark_color_theme_keyword_foreground" "salmon")
     (eide-i-config-rebuild-update-value "dark_color_theme_type_foreground" "medium sea green")
@@ -815,7 +885,7 @@
     (eide-i-config-rebuild-update-value "dark_color_theme_constant_foreground" "misty rose")
     (eide-i-config-rebuild-update-value "dark_color_theme_builtin_background" "brown")
     (eide-i-config-rebuild-update-value "dark_color_theme_builtin_foreground" "yellow")
-    (eide-i-config-rebuild-update-value "dark_color_theme_string_background" "gray30")
+    (eide-i-config-rebuild-update-value "dark_color_theme_string_background" "gray15")
     (eide-i-config-rebuild-update-value "dark_color_theme_comment_foreground" "deep sky blue")
     (eide-i-config-rebuild-update-value "dark_color_theme_selection_background" "gray50")
 

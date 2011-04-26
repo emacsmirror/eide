@@ -21,8 +21,8 @@
 
 (require 'imenu) ; for imenu--generic-function and imenu-generic-expression
 
-(require 'eide-edit) ; for eide-edit-update-files-status and eide-edit-get-buffer-status
-(require 'eide-svn) ; for eide-svn-update-files-status and eide-svn-is-current-buffer-modified-p
+(require 'eide-edit)
+(require 'eide-svn)
 
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-symbols-list nil)

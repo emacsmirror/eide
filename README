@@ -46,6 +46,9 @@ Installation
 -------------------------------------------------------------------------------
 
 Execute ./install in a terminal.
+Add these two lines in your ~/.emacs:
+(require 'eide)
+(eide-start)
 
 -------------------------------------------------------------------------------
 Instructions
@@ -74,8 +77,8 @@ When you launch Emacs, it should look like this:
 If you click on right button over "source" window, all other windows are
 closed. Click again to get them back.
 
-Instructions are available in "Help" page, in Emacs.
-Click on right button over "menu" window, and select "Help" in popup menu.
+Instructions are available in "Help" page: click on right button over "menu"
+window, and select "Help" in popup menu.
 
 -------------------------------------------------------------------------------
 Quick start
@@ -89,3 +92,21 @@ always run emacs from the root directory of your project.
 
 When you first run emacs for a project, click on right button over "menu"
 window, and select "Create project".
+
+-------------------------------------------------------------------------------
+Hosting history
+-------------------------------------------------------------------------------
+
+2008-04: First publication on Sourceforge: http://emacs-ide.sourceforge.net/
+  Initial commit in svn repository.
+
+2010-07: Change of project hosting service: http://home.gna.org/emacs-ide/
+  Import all release versions (from 1.0 to 1.3) in svn repository and download
+  area.
+
+2010-08: Creation of local git repository
+  Create git repository for local work (commit all release versions, from 1.0
+  to 1.4). All developments after version 1.4 are commited both in local git
+  repository, and svn repository on Gna.
+  Git repository should be used as the reference in the future, when git is
+  supported on hosting server.

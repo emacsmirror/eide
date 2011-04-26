@@ -100,19 +100,10 @@
   (setq mouse-wheel-progressive-speed nil)
   ;; Keep cursor position when moving page up/down
   (setq scroll-preserve-screen-position t)
-  ;; Paper type for printing
-  (setq ps-paper-type 'a4)
   ;; Show end of buffer
   ;;(setq-default indicate-empty-lines t)
-  ;; No menu bar
-  (if window-system
-    (progn
-      (menu-bar-mode -1)
-      (tool-bar-mode -1)))
   ;; "One line at a time" scrolling
   (setq-default scroll-conservatively 1)
-  ;; Four line margin for scrolling
-  (setq scroll-margin 4)
   ;; Display line and column numbers
   (setq line-number-mode t)
   (setq column-number-mode t)
@@ -132,16 +123,6 @@
   ;;(global-cwarn-mode)
   ;; Do not prompt for updating tag file if necessary
   (setq tags-revert-without-query t)
-  ;; Augmenter le nombre de fonctions dans le menu pop up "liste des fonctions"
-  ;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
-  ;; (default: 25)
-  ;; no longer used (personal popup menu)
-  ;;(setq imenu-max-items 40)
-  ;; Augmenter le nombre de buffers dans le menu pop up "liste des buffers"
-  ;; (sinon, elles sont parfois inutilement regroupées dans des sous-menus)
-  ;; (default: 20)
-  ;; no longer used (personal popup menu)
-  ;;(setq mouse-buffer-menu-maxlen 40)
   ;; Highlight matching parentheses (when cursor on "(" or just after ")")
   (show-paren-mode 1)
   ;; Frame size and position
@@ -286,7 +267,7 @@
 
   ;; Default indentation: insert spaces instead of tabs
   (setq-default indent-tabs-mode nil)
-  (setq-default tab-width 4)
+  (setq-default tab-width 4) ; Number of spaces for one tab
 
   ;; C major mode
   (add-hook
@@ -298,20 +279,11 @@
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if eide-config-c-indent-offset
+      (if eide-config-use-indent-offsets-flag
         (progn
-          (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
-          (setq c-basic-offset eide-config-c-indent-offset))) ; Indentation offset (default value: 5)
+          (setq tab-width eide-config-c-indent-offset)
+          (setq c-basic-offset eide-config-c-indent-offset)))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Autofill minor mode
-      ;; (automatic line feed beyond 80th column)
-      ;;(auto-fill-mode 1)
-      ;;(set-fill-column 80)
-
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))
 
       ;; Turn hide/show mode on
       (if (not hs-minor-mode)
@@ -321,10 +293,6 @@
 
       ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
       (hide-ifdef-mode 1)
-
-      ;; Add Imenu in the menu ("Index")
-      ;; (useless here because menu-bar is hidden)
-      ;;(imenu-add-menubar-index)
 
       ;; Imenu regex
       (setq cc-imenu-c++-generic-expression eide-cc-imenu-c-generic-expression)
@@ -343,20 +311,11 @@
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if eide-config-c-indent-offset
+      (if eide-config-use-indent-offsets-flag
         (progn
-          (setq tab-width eide-config-c-indent-offset) ; Number of spaces for one tab
-          (setq c-basic-offset eide-config-c-indent-offset))) ; Indentation offset (default value: 5)
+          (setq tab-width eide-config-c-indent-offset)
+          (setq c-basic-offset eide-config-c-indent-offset)))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Autofill minor mode
-      ;; (automatic line feed beyond 80th column)
-      ;;(auto-fill-mode 1)
-      ;;(set-fill-column 80)
-
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))
 
       ;; Turn hide/show mode on
       (if (not hs-minor-mode)
@@ -367,62 +326,12 @@
       ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
       (hide-ifdef-mode 1)
 
-      ;; Add Imenu in the menu ("Index")
-      ;; (useless here because menu-bar is hidden)
-      ;;(imenu-add-menubar-index)
-
       ;; Imenu regex
       (setq cc-imenu-c++-generic-expression eide-cc-imenu-c-generic-expression)
       (setq cc-imenu-c-generic-expression   eide-cc-imenu-c-generic-expression)
 
       ;; Pour savoir si du texte est sélectionné ou non
       (setq mark-even-if-inactive nil)))
-
-  (font-lock-add-keywords
-   'c-mode
-   '( ;;("__interrupt" . font-lock-keyword-face)
-     ("uint8" . font-lock-type-face)
-     ("uint16" . font-lock-type-face)
-     ("uint32" . font-lock-type-face)
-     ("int8" . font-lock-type-face)
-     ("int16" . font-lock-type-face)
-     ("int32" . font-lock-type-face)
-     ("TODO" . font-lock-warning-face)))
-
-  ;; Emacs Lisp major mode
-  (add-hook
-   'emacs-lisp-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "-" should not be a word delimiter
-        (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
-
-      ;; Indentation
-      (setq tab-width 2)
-      (setq lisp-body-indent 2)
-      ;; Indentation after "if" (with default behaviour, the "then" statement is
-      ;; more indented than the "else" statement)
-      (put 'if 'lisp-indent-function 1)
-
-      ;; Autofill minor mode
-      ;; (pour ne pas dépasser la 80ème colonne)
-      ;;(auto-fill-mode 1)
-      ;;(set-fill-column 80)
-
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))))
-
-  ;; SGML (HTML, XML...) major mode
-  (add-hook
-   'sgml-mode-hook
-   '(lambda()
-      ;; Indentation
-      (setq tab-width 2)
-
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))))
 
   ;; Shell Script major mode
 
@@ -439,25 +348,43 @@
   ;;   if process and buffer are killed.
 
   (add-hook
-   'shell-mode-hook
+   'sh-mode-hook
    '(lambda()
+      (if eide-option-select-whole-symbol-flag
+        ;; "_" should not be a word delimiter
+        (modify-syntax-entry ?_ "w" sh-mode-syntax-table))
       ;; Indentation
-      (setq tab-width 2)
+      (if eide-config-use-indent-offsets-flag
+        (progn
+          (setq tab-width eide-config-sh-indent-offset)
+          (setq sh-basic-offset eide-config-sh-indent-offset)))))
 
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))))
+  ;; Emacs Lisp major mode
+  (add-hook
+   'emacs-lisp-mode-hook
+   '(lambda()
+      (if eide-option-select-whole-symbol-flag
+        ;; "-" should not be a word delimiter
+        (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
+
+      ;; Indentation
+      (if eide-config-use-indent-offsets-flag
+        (progn
+          (setq tab-width eide-config-lisp-indent-offset)
+          (setq lisp-body-indent eide-config-lisp-indent-offset)
+          ;; Indentation after "if" (with default behaviour, the "then" statement is
+          ;; more indented than the "else" statement)
+          (put 'if 'lisp-indent-function 1)))))
 
   ;; Perl major mode
   (add-hook
    'perl-mode-hook
    '(lambda()
       ;; Indentation
-      (setq tab-width 2)
-
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t))))
+      (if eide-config-use-indent-offsets-flag
+        (progn
+          (setq tab-width eide-config-perl-indent-offset)
+          (setq perl-indent-level eide-config-perl-indent-offset)))))
 
   ;; Python major mode
   (add-hook
@@ -468,12 +395,20 @@
         (modify-syntax-entry ?_ "w" python-mode-syntax-table))
 
       ;; Indentation
-      (setq tab-width 4)
-      (setq python-indent 4)
+      (if eide-config-use-indent-offsets-flag
+        (progn
+          (setq tab-width eide-config-python-indent-offset)
+          (setq python-indent eide-config-python-indent-offset))))))
 
-      ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
-        (setq show-trailing-whitespace t)))))
+  ;; SGML (HTML, XML...) major mode
+  (add-hook
+   'sgml-mode-hook
+   '(lambda()
+      ;; Indentation
+      (if eide-config-use-indent-offsets-flag
+        (progn
+          (setq tab-width eide-config-sgml-indent-offset)
+          (setq sgml-basic-offset eide-config-sgml-indent-offset)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Initialization.

@@ -73,19 +73,7 @@ fi
 printf "\n\033[1mRemove .elc files\033[0m\n"
 rm -vf src/*.elc
 
-printf "\n\033[1mEnable Emacs-IDE\033[0m\n"
-if [ ! -e $HOME/.emacs ]; then
-  printf "(require 'eide)\n" > $HOME/.emacs
-  printf "(eide-start)\n" >> $HOME/.emacs
-  printf "$HOME/.emacs did not exist, it has just been created with this content:\n"
-  printf "\033[0;34m(require 'eide)\n"
-  printf "(eide-start)\033[0m\n"
-  printf "\033[0;32mEmacs-IDE is now automatically enabled when you launch Emacs\033[0m\n"
-elif grep -q "(require 'eide)" $HOME/.emacs && grep -q "(eide-start)" $HOME/.emacs ; then
-  printf "\033[0;32mEmacs-IDE is already enabled in $HOME/.emacs\033[0m\n"
-else
-  printf "\033[0;31mEmacs-IDE is not enabled in $HOME/.emacs\033[0m\n"
-  printf "You must add these two lines in $HOME/.emacs:\n"
-  printf "\033[0;34m(require 'eide)\n"
-  printf "(eide-start)\033[0m\n"
-fi
+printf "\n\033[1mInstructions for enabling Emacs-IDE\033[0m\n"
+printf "You must add these two lines in your ~/.emacs:\n"
+printf "(require 'eide)\n"
+printf "(eide-start)\n"

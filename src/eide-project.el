@@ -21,7 +21,8 @@
 
 (require 'desktop) ; for all desktop-* functions
 
-(require 'eide-search) ; for eide-search-tags-available-flag, eide-search-cscope-available-flag, eide-search-cscope-update-database-request-pending-flag, eide-search-create-tags, eide-search-update-cscope-status, and eide-search-create-cscope-list-of-files
+(require 'eide-config)
+(require 'eide-search)
 
 (defvar eide-root-directory nil)
 
@@ -34,6 +35,7 @@
 
 (defvar eide-project-name nil)
 
+(defvar eide-project-tool-bar-mode-before-debug nil)
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
 
@@ -309,28 +311,39 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Start debug mode.
+;;
+;; output : eide-project-tool-bar-mode-before-debug : tool-bar-mode previous
+;;              state.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-mode-start ()
   ;; Restore colors (in case user was reading help or config)
   (eide-config-set-colors-for-files)
   (eide-keys-configure-for-gdb)
   (eide-windows-layout-unbuild)
-  ;; Show gdb toolbar
   (if window-system
-    (tool-bar-mode 1))
+    (progn
+      ;; Show gdb toolbar
+      ;; NB: eide-project-debug-mode-start may be called twice: do not overwrite
+      ;; eide-project-tool-bar-mode-before-debug on second call
+      (if (not eide-project-is-gdb-session-visible-flag)
+        (setq eide-project-tool-bar-mode-before-debug tool-bar-mode))
+      (tool-bar-mode 1)))
   (setq display-buffer-function nil)
   (setq eide-project-is-gdb-session-visible-flag t)
   (setq eide-project-is-gdb-session-running-flag t))
 
 ;; ----------------------------------------------------------------------------
 ;; Stop debug mode.
+;;
+;; input  : eide-project-tool-bar-mode-before-debug : tool-bar-mode state to
+;;              restore.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-debug-mode-stop ()
   (eide-keys-configure-for-editor)
   (eide-windows-layout-build)
-  ;; Hide gdb toolbar
   (if window-system
-    (tool-bar-mode -1))
+    ;; Hide tool bar if necessary (restore previous state)
+    (tool-bar-mode (if eide-project-tool-bar-mode-before-debug 1 -1)))
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)
   (setq eide-project-is-gdb-session-visible-flag nil))
 

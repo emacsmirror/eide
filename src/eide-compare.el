@@ -23,10 +23,10 @@
 (require 'hideshow) ; for hs-minor-mode
 
 (require 'eide-config) ; for eide-project-config-file
-(require 'eide-keys) ; for eide-keys-configure-for-ediff and eide-keys-configure-for-editor
+(require 'eide-keys)
 (require 'eide-menu) ; for eide-current-buffer
 (require 'eide-project) ; for eide-root-directory
-(require 'eide-windows) ; for eide-windows-layout-build, eide-windows-layout-unbuild, and eide-windows-find-file-without-advice
+(require 'eide-windows)
 
 (defvar eide-compare-other-projects-list nil)
 (defvar eide-compare-other-project-name nil)

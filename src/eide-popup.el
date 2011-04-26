@@ -19,7 +19,7 @@
 
 (provide 'eide-popup)
 
-(require 'eide-compare) ; for eide-compare-other-projects-list
+(require 'eide-compare)
 
 (defvar eide-popup-menu nil)
 (defvar eide-popup-menu-actions-list nil)
@@ -180,7 +180,7 @@
         (if eide-option-use-cscope-flag
           (progn
             (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
-            (if eide-config-cscope-always-update-database
+            (if eide-config-cscope-always-update-database-flag
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" nil)
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
         (eide-i-popup-menu-close-action-list "Update")

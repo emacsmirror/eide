@@ -21,8 +21,8 @@
 
 (require 'etags)
 
-(require 'eide-config) ; for eide-config-cscope-always-update-database
-(require 'eide-menu) ; for eide-menu-update, eide-menu-build-files-lists, eide-menu-grep-results-list, eide-menu-cscope-results-list, and eide-menu-man-pages-list
+(require 'eide-config)
+(require 'eide-menu)
 
 (defvar eide-search-find-symbol-definition-flag nil)
 
@@ -246,7 +246,7 @@
             (setq l-do-it-flag nil)))
         (if l-do-it-flag
           (progn
-            (if (or eide-config-cscope-always-update-database eide-search-cscope-update-database-request-pending-flag)
+            (if (or eide-config-cscope-always-update-database-flag eide-search-cscope-update-database-request-pending-flag)
               (progn
                 (setq cscope-do-not-update-database nil)
                 (setq eide-search-cscope-update-database-request-pending-flag nil))

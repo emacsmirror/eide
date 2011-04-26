@@ -19,7 +19,7 @@
 
 (provide 'eide-windows)
 
-(require 'eide-menu) ; for eide-menu-buffer-name, eide-menu-browsing-mode-flag, eide-menu-browsing-mode-start, eide-menu-browsing-mode-stop, eide-menu-update, eide-menu-build-files-lists, eide-menu-update-current-buffer-modified-status, and eide-menu-dired-open
+(require 'eide-menu)
 
 (defvar eide-windows-source-window nil)
 (defvar eide-windows-menu-window nil)
@@ -169,7 +169,7 @@
 ;;          p-norecord : norecord flag
 ;; output : eide-windows-source-window : updated "source" window.
 ;; ----------------------------------------------------------------------------
-(defadvice select-window (after eide-select-window-advice-around (p-window &optional p-norecord))
+(defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
   (if (not (or (equal p-window eide-windows-source-window)
                (equal p-window eide-windows-menu-window)
                (equal p-window eide-windows-output-window)
@@ -234,6 +234,12 @@
                   (setq l-window (selected-window)))
                 ad-do-it
                 (set-buffer l-buffer-name)
+                (if (and eide-config-use-show-trailing-spaces-flag
+                         (equal l-window eide-windows-source-window))
+                  ;; Show trailing spaces if enabled in options
+                  (if eide-config-show-trailing-spaces-flag
+                    (setq show-trailing-whitespace t)
+                    (setq show-trailing-whitespace nil)))
                 (if eide-project-is-gdb-session-visible-flag
                   (eide-menu-update nil)
                   (progn
@@ -646,6 +652,11 @@
               (switch-to-buffer "*scratch*"))))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
+    (if eide-config-use-show-trailing-spaces-flag
+      ;; Show trailing spaces if enabled in options
+      (if eide-config-show-trailing-spaces-flag
+        (setq show-trailing-whitespace t)
+        (setq show-trailing-whitespace nil)))
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
 
@@ -679,7 +690,7 @@
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
         (if (string-equal (buffer-name) eide-config-file)
-          ;; Close ".emacs-ide.options"
+          ;; Close ".emacs-ide.cfg"
           (progn
             (save-buffer)
             (eide-config-rebuild-config-file)

@@ -18,13 +18,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 -------------------------------------------------------------------------------
-First publication (2008-04, Sourceforge)
--------------------------------------------------------------------------------
-Initial commit in svn repository.
-The project is hosted by Sourceforge.
-Homepage: http://emacs-ide.sourceforge.net/
-
--------------------------------------------------------------------------------
 Version 1.0 (2008-12, Sourceforge)
 -------------------------------------------------------------------------------
 First release.
@@ -58,25 +51,9 @@ Version 1.3 (2010-03, Sourceforge)
     - use recursive grep instead of find/grep.
 
 -------------------------------------------------------------------------------
-Change of project hosting service (2010-07, Gna)
--------------------------------------------------------------------------------
-Import all release versions in svn repository and download area.
-The project is now hosted by Gna.
-New homepage: http://home.gna.org/emacs-ide/
-
--------------------------------------------------------------------------------
 Version 1.4 (2010-07, Gna)
 -------------------------------------------------------------------------------
 - Use gdb graphical interface.
-
--------------------------------------------------------------------------------
-Creation of git repository (2010-08)
--------------------------------------------------------------------------------
-Create git repository for local work (commit all release versions).
-From now on, all developments are commited both in local git repository, and
-svn repository on Gna.
-Git repository should be used as the reference in the future, when git is
-supported on hosting server.
 
 -------------------------------------------------------------------------------
 Version 1.5 (2010-11, Gna)
