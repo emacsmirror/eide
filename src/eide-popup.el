@@ -25,12 +25,12 @@
 (defvar eide-popup-menu-actions-list nil)
 (defvar eide-popup-menu-separator-flag nil)
 
-(setq eide-confirm-dialog
-      '(("yes" . "y")
-        ("no"  . "n")))
+(defvar eide-confirm-dialog
+  '(("yes" . "y")
+    ("no"  . "n")))
 
-(setq eide-message-dialog
-      '(("continue" . "c")))
+(defvar eide-message-dialog
+  '(("continue" . "c")))
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -180,7 +180,7 @@
         (if eide-option-use-cscope-flag
           (progn
             (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
-            (if eide-config-cscope-always-update-database-flag
+            (if eide-custom-always-update-cscope-database
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" nil)
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
         (eide-i-popup-menu-close-action-list "Update")
@@ -200,7 +200,7 @@
         (eide-i-popup-menu-close-action-list "Create")
         (setq popup-header (concat "Root directory: " eide-root-directory))))
 
-    (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-config-file)" t)
+    (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
 
     (eide-i-popup-menu-add-action "Help" "(eide-help-open)" t)

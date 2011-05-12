@@ -279,10 +279,10 @@
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
         (progn
-          (setq tab-width eide-config-c-indent-offset)
-          (setq c-basic-offset eide-config-c-indent-offset)))
+          (setq tab-width eide-custom-c-indent-offset)
+          (setq c-basic-offset eide-custom-c-indent-offset)))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Turn hide/show mode on
@@ -311,10 +311,10 @@
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
         (progn
-          (setq tab-width eide-config-c-indent-offset)
-          (setq c-basic-offset eide-config-c-indent-offset)))
+          (setq tab-width eide-custom-c-indent-offset)
+          (setq c-basic-offset eide-custom-c-indent-offset)))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Turn hide/show mode on
@@ -354,10 +354,10 @@
         ;; "_" should not be a word delimiter
         (modify-syntax-entry ?_ "w" sh-mode-syntax-table))
       ;; Indentation
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-sh-indent-offset)
         (progn
-          (setq tab-width eide-config-sh-indent-offset)
-          (setq sh-basic-offset eide-config-sh-indent-offset)))))
+          (setq tab-width eide-custom-sh-indent-offset)
+          (setq sh-basic-offset eide-custom-sh-indent-offset)))))
 
   ;; Emacs Lisp major mode
   (add-hook
@@ -368,10 +368,10 @@
         (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
 
       ;; Indentation
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-lisp-indent-offset)
         (progn
-          (setq tab-width eide-config-lisp-indent-offset)
-          (setq lisp-body-indent eide-config-lisp-indent-offset)
+          (setq tab-width eide-custom-lisp-indent-offset)
+          (setq lisp-body-indent eide-custom-lisp-indent-offset)
           ;; Indentation after "if" (with default behaviour, the "then" statement is
           ;; more indented than the "else" statement)
           (put 'if 'lisp-indent-function 1)))))
@@ -381,10 +381,10 @@
    'perl-mode-hook
    '(lambda()
       ;; Indentation
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-perl-indent-offset)
         (progn
-          (setq tab-width eide-config-perl-indent-offset)
-          (setq perl-indent-level eide-config-perl-indent-offset)))))
+          (setq tab-width eide-custom-perl-indent-offset)
+          (setq perl-indent-level eide-custom-perl-indent-offset)))))
 
   ;; Python major mode
   (add-hook
@@ -395,36 +395,25 @@
         (modify-syntax-entry ?_ "w" python-mode-syntax-table))
 
       ;; Indentation
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
         (progn
-          (setq tab-width eide-config-python-indent-offset)
-          (setq python-indent eide-config-python-indent-offset))))))
+          (setq tab-width eide-custom-python-indent-offset)
+          (setq python-indent eide-custom-python-indent-offset))))))
 
   ;; SGML (HTML, XML...) major mode
   (add-hook
    'sgml-mode-hook
    '(lambda()
       ;; Indentation
-      (if eide-config-use-indent-offsets-flag
+      (if (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
         (progn
-          (setq tab-width eide-config-sgml-indent-offset)
-          (setq sgml-basic-offset eide-config-sgml-indent-offset)))))
+          (setq tab-width eide-custom-sgml-indent-offset)
+          (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Initialization.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
-  (eide-config-init)
-  ;; Migration from Emacs-IDE 1.5
-  (if (and (not (file-exists-p (concat "~/" eide-config-file)))
-           (file-exists-p "~/.emacs-ide.options"))
-    (shell-command (concat "mv ~/.emacs-ide.options ~/" eide-config-file)))
-  ;; Load options file (it will be closed at the end of "rebuild", so that
-  ;; current buffer - from .emacs.desktop - is not changed)
-  (find-file-noselect (concat "~/" eide-config-file))
-  ;; Options file must be rebuilt before calling eide-project-start-with-project
-  ;; (which may read this file to create current project config file)
-  (eide-config-rebuild-config-file)
   ;; Migration from Emacs-IDE 1.5
   (if (and (not (file-exists-p eide-project-config-file))
            (file-exists-p ".emacs-ide.project"))
@@ -440,10 +429,6 @@
   (eide-project-update-frame-title)
   ;; Start with "editor" mode
   (eide-keys-configure-for-editor)
-  ;; eide-config-file might be present in desktop (in case emacs was closed
-  ;; while editing options): we must close it again.
-  (if (get-buffer eide-config-file)
-    (kill-buffer eide-config-file))
   ;; Close temporary buffers from ediff sessions (if emacs has been closed during
   ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
   ;; files) and they have been loaded in this new emacs session).

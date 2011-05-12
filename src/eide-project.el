@@ -139,7 +139,7 @@
       (kill-buffer eide-project-config-file)
       (if (get-buffer "TAGS")
         (kill-buffer "TAGS"))
-      (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide.*"))
+      (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide-project.*"))
       ;; Delete desktop file and disable automatic saving
       (desktop-remove)
       (desktop-save-mode -1)

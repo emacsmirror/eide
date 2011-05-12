@@ -19,40 +19,26 @@
 
 (provide 'eide-config)
 
-(require 'eide-popup)
-
-(defvar eide-config-file         ".emacs-ide.cfg")
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
 
-(defvar eide-config-menu-position nil)
-(defvar eide-config-menu-height nil)
+(defvar eide-config-ready nil)
 (defvar eide-config-show-svn-status-flag nil)
-(defvar eide-config-svn-diff-command nil)
-(defvar eide-config-cscope-always-update-database-flag nil)
-
-(defvar eide-config-use-emacs-options-flag nil)
-(defvar eide-config-use-color-theme-for-source-flag nil)
-(defvar eide-config-use-show-trailing-spaces-flag nil)
-(defvar eide-config-show-trailing-spaces-flag nil)
-(defvar eide-config-use-indent-offsets-flag nil)
-(defvar eide-config-c-indent-offset nil)
-(defvar eide-config-sh-indent-offset nil)
-(defvar eide-config-lisp-indent-offset nil)
-(defvar eide-config-perl-indent-offset nil)
-(defvar eide-config-python-indent-offset nil)
-(defvar eide-config-sgml-indent-offset nil)
+(defvar eide-config-svn-diff-full-command nil)
 
 (defvar eide-config-background-color nil)
 (defvar eide-config-foreground-color nil)
 (defvar eide-config-menu-background-color nil)
 (defvar eide-config-menu-foreground-color nil)
-(defvar eide-config-user-background-color nil)
-(defvar eide-config-user-foreground-color nil)
 (defvar eide-config-menu-file-highlight-background-color nil)
 (defvar eide-config-config-background-color nil)
 (defvar eide-config-config-foreground-color nil)
 
+(defvar eide-config-user-menu-bar-mode nil)
+(defvar eide-config-user-tool-bar-mode nil)
+(defvar eide-config-user-font-height nil)
+(defvar eide-config-user-background-color nil)
+(defvar eide-config-user-foreground-color nil)
 (defvar eide-config-user-keyword-foreground-color nil)
 (defvar eide-config-user-type-foreground-color nil)
 (defvar eide-config-user-function-foreground-color nil)
@@ -67,20 +53,14 @@
 (defvar eide-config-user-selection-background-color nil)
 (defvar eide-config-user-selection-foreground-color nil)
 
-(defvar eide-config-source-buffer nil)
 (defvar eide-config-target-buffer nil)
 
 ;;;; ==========================================================================
 ;;;; OPTIONS
 ;;;; ==========================================================================
 
-;; Option values: t = on / nil = off
-
 ;; Exclude "_" from word delimiters (when selecting by double-click)
 (defvar eide-option-select-whole-symbol-flag t)
-
-;; Options for Menu Buffer
-;; -----------------------
 
 ;; When using a file (.ref or .new for example), update file date,
 ;; so that compilation takes it into account.
@@ -94,13 +74,11 @@
 
 (define-derived-mode emacs-ide-config-mode fundamental-mode "Emacs-IDE config"
   (setq font-lock-defaults '('(("\\(#.*\\)"      1 'eide-config-config-comment-face) ; comment
-                               ("\\[\\(.*\\)\\]" 1 'eide-config-config-section-face) ; section
                                ("\\(.*\\) = "    1 'eide-config-config-parameter-face) ; parameter
                                (" = "            . 'eide-config-config-separator-face) ; " = "
                                (" = \\(.*\\)"    1 'eide-config-config-value-face))))) ; value
 
-(setq auto-mode-alist (append '(("\\.emacs-ide.cfg\\'" . emacs-ide-config-mode)
-                                ("\\.emacs-ide-project.cfg\\'" . emacs-ide-config-mode)) auto-mode-alist))
+(setq auto-mode-alist (append '(("\\.emacs-ide-project.cfg\\'" . emacs-ide-config-mode)) auto-mode-alist))
 
 ;;;; ==========================================================================
 ;;;; SYNTAX HIGHLIGHTING
@@ -110,13 +88,6 @@
 
 ;; Enable syntax highlighting
 (global-font-lock-mode t)
-
-;; Menus (no effect on Windows)
-(set-face-background 'menu "light grey")
-(set-face-foreground 'menu "black")
-
-;; Vertical scroll bar (no effect on Windows)
-(set-face-background 'scroll-bar "light grey")
 
 ;; Menu
 (make-face 'eide-config-menu-default-face)
@@ -141,21 +112,11 @@
 
 ;; Config files
 (make-face 'eide-config-config-comment-face)
-(make-face 'eide-config-config-section-face)
 (make-face 'eide-config-config-parameter-face)
 (make-face 'eide-config-config-possibilities-face)
 (make-face 'eide-config-config-separator-face)
 (make-face 'eide-config-config-value-face)
-
-(make-face-bold 'eide-config-config-section-face)
 (make-face-bold 'eide-config-config-parameter-face)
-
-;; Parenthese matching (requires show-paren-mode)
-;;(set-face-background 'show-paren-match-face "orange")
-
-;; Compilation warnings and file path in a grep result
-;; (because grep uses "compile" mode to display its results)
-(set-face-foreground 'font-lock-warning-face "tan")
 
 ;; Code
 (make-face-bold 'font-lock-keyword-face)
@@ -225,13 +186,783 @@
 (set-face-background 'ediff-fine-diff-face-B "plum")
 (set-face-foreground 'ediff-fine-diff-face-B "black")
 
-;;(require 'glasses)
+;;;; ==========================================================================
+;;;; CUSTOMIZATION VARIABLES
+;;;; ==========================================================================
 
-;;(make-face-bold 'glasses-face)
+(defgroup eide nil "Customization of Emacs-IDE."
+  :tag "Emacs-IDE"
+  :group 'emacs)
+(defcustom eide-custom-override-emacs-settings nil "Enable or disable \"Emacs settings\" group. If disabled, Emacs-IDE will not override any default or user setting. If enabled, Emacs-IDE will override some default or user settings, in order to provide a more user-friendly interface, and each setting can be enabled or disabled individually in \"Emacs settings\" group."
+  :tag "Override Emacs settings"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide)
+
+(defgroup eide-display nil "Colors and windows layout."
+  :tag "Display"
+  :group 'eide)
+(defcustom eide-custom-color-theme 'light "Color theme for menu. To extend the use of color theme to source code, see \"Emacs settings > Emacs display > Color theme for source code\" option."
+  :tag "Menu color theme"
+  :type '(choice (const dark) (const light))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-color-theme) (eide-i-config-apply-extended-color-theme))
+  :initialize 'custom-initialize-default
+  :group 'eide-display)
+(defcustom eide-custom-menu-window-position 'right "Menu window position."
+  :tag "Menu window position"
+  :type '(choice (const left) (const right))
+  :group 'eide-display)
+(defcustom eide-custom-menu-window-height 'half "Menu window height."
+  :tag "Menu window height"
+  :type '(choice (const half) (const full))
+  :group 'eide-display)
+
+(defgroup eide-version-control nil "Version control facilities in menu."
+  :tag "Version control"
+  :group 'eide)
+(defcustom eide-custom-show-svn-status 'auto "Show svn status of files in menu."
+  :tag "Show svn status"
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Always" t)
+                 (const :tag "If root directory contains .svn directory" auto))
+  :set 'eide-i-config-set-show-svn-status
+  :initialize 'custom-initialize-default
+  :group 'eide-version-control)
+(defcustom eide-custom-svn-diff-command "" "Svn diff command (--diff-cmd argument). Use default (no --diff-cmd option) if empty."
+  :tag "Svn diff command"
+  :type 'string
+  :set 'eide-i-config-set-svn-diff-command
+  :initialize 'custom-initialize-default
+  :group 'eide-version-control)
+
+(defgroup eide-search nil "Cscope option."
+  :tag "Search"
+  :group 'eide)
+(defcustom eide-custom-always-update-cscope-database nil "Update of cscope database."
+  :tag "Update of cscope database"
+  :type '(choice (const :tag "On user request" nil)
+                 (const :tag "On every search (cscope default)" t))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-search)
+
+(defgroup eide-project nil "Commands that are set in project configuration when project is created."
+  :tag "Default commands for projects"
+  :group 'eide)
+(defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
+  :tag "Default init command"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-1 "" "Default compile command (1)."
+  :tag "Default compile command (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-2 "" "Default compile command (2)."
+  :tag "Default compile command (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-3 "" "Default compile command (3)."
+  :tag "Default compile command (3)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-4 "" "Default compile command (4)."
+  :tag "Default compile command (4)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-run-command-1 "" "Default run command (1)."
+  :tag "Default run command (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-run-command-2 "" "Default run command (2)."
+  :tag "Default run command (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-command "" "Default debug command."
+  :tag "Default debug command"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-program-1 "" "Default debug program (1)."
+  :tag "Default debug program (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-program-2 "" "Default debug program (2)."
+  :tag "Default debug program (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+
+(defgroup eide-emacs-settings nil "Options that are not specific to Emacs-IDE, but can be set to override some default settings of Emacs, and provide a more user-friendly interface (requires 'Override Emacs settings' to be enabled)."
+  :tag "Emacs settings"
+  :group 'eide)
+
+(defgroup eide-emacs-settings-display nil "Emacs display."
+  :tag "Emacs display"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-show-menu-bar nil "Show menu bar."
+  :tag "Show menu bar"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Don't override" ignore))
+  :set 'eide-i-config-set-menu-bar
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-display)
+(defcustom eide-custom-show-tool-bar nil "Show tool bar."
+  :tag "Show tool bar"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Don't override" ignore))
+  :set 'eide-i-config-set-tool-bar
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-display)
+(defcustom eide-custom-font-height 105 "Font height (an integer in units of 1/10 point)."
+  :tag "Font height"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "An integer in units of 1/10 point"))
+  :set 'eide-i-config-set-font-height
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-display)
+(defcustom eide-custom-extend-color-theme-to-source-code t "Extend the use of color theme to source code. See \"Display > Menu color theme\" option."
+  :tag "Color theme for source code"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-extended-color-theme))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-display)
+(defcustom eide-custom-show-trailing-spaces 'ignore "Show trailing spaces."
+  :tag "Show trailing spaces"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Don't override buffer-local show-trailing-whitespace variable" ignore))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-display)
+
+(defgroup eide-emacs-settings-coding-rules nil "Indentation for some languages."
+  :tag "Coding rules"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-c-indent-offset 2 "Indentation offset for C/C++."
+  :tag "Indentation offset for C/C++"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-sh-indent-offset 2 "Indentation offset for shell scripts."
+  :tag "Indentation offset for shell scripts"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-lisp-indent-offset 2 "Indentation offset for Emacs Lisp."
+  :tag "Indentation offset for Emacs Lisp"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-perl-indent-offset 2 "Indentation offset for Perl."
+  :tag "Indentation offset for Perl"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-python-indent-offset 4 "Indentation offset for Python."
+  :tag "Indentation offset for Python"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-sgml-indent-offset 2 "Indentation offset for SGML (HTML, XML...)."
+  :tag "Indentation offset for SGML"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-emacs-settings-coding-rules)
+
+(defgroup eide-emacs-settings-dark-colors nil "Source code colors for dark color theme."
+  :tag "Source code colors for dark color theme"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-dark-background "black" "Background color."
+  :tag "Background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-background param value 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-foreground "gray90" "Foreground color."
+  :tag "Foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-foreground param value 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-keyword-foreground "salmon" "Keyword foreground color."
+  :tag "Keyword foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-keyword-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-type-foreground "medium sea green" "Type foreground color."
+  :tag "Type foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-type-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-function-foreground "orange" "Function foreground color."
+  :tag "Function foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-function-name-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-variable-foreground "dark orange" "Variable foreground color."
+  :tag "Variable foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-variable-name-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-constant-background "maroon4" "Constant background color."
+  :tag "Constant background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-constant-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-constant-foreground "misty rose" "Constant foreground color."
+  :tag "Constant foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-constant-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-builtin-background "brown" "Builtin background color."
+  :tag "Builtin background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-builtin-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-builtin-foreground "yellow" "Builtin foreground color."
+  :tag "Builtin foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-builtin-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-string-background "gray15" "String background color."
+  :tag "String background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-string-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-comment-foreground "deep sky blue" "Comment foreground color."
+  :tag "Comment foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-comment-face 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+(defcustom eide-custom-dark-selection-background "gray50" "Selection background color."
+  :tag "Selection background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'region 'dark))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-dark-colors)
+
+(defgroup eide-emacs-settings-light-colors nil "Source code colors for light color theme."
+  :tag "Source code colors for light color theme"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-light-background "old lace" "Background color."
+  :tag "Background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-background param value 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-foreground "black" "Foreground color."
+  :tag "Foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-foreground param value 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-keyword-foreground "brown" "Keyword foreground color."
+  :tag "Keyword foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-keyword-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-type-foreground "sea green" "Type foreground color."
+  :tag "Type foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-type-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-function-foreground "red" "Function foreground color."
+  :tag "Function foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-function-name-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-variable-foreground "orange red" "Variable foreground color."
+  :tag "Variable foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-variable-name-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-constant-background "misty rose" "Constant background color."
+  :tag "Constant background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-constant-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-constant-foreground "deep pink" "Constant foreground color."
+  :tag "Constant foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-constant-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-builtin-background "yellow" "Builtin background color."
+  :tag "Builtin background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-builtin-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-builtin-foreground "red" "Builtin foreground color."
+  :tag "Builtin foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-builtin-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-string-background "white" "String background color."
+  :tag "String background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'font-lock-string-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-comment-foreground "light slate blue" "Comment foreground color."
+  :tag "Comment foreground color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-foreground param value 'font-lock-comment-face 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+(defcustom eide-custom-light-selection-background "bisque" "Selection background color."
+  :tag "Selection background color"
+  :type 'color
+  :set '(lambda (param value) (eide-i-config-set-face-background param value 'region 'light))
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-light-colors)
+
+;;;; ==========================================================================
+;;;; CUSTOMIZATION FUNCTIONS
+;;;; ==========================================================================
+
+;; ----------------------------------------------------------------------------
+;; Apply color theme (for menu).
+;;
+;; input  : eide-custom-color-theme : color theme.
+;; output : eide-config-menu-background-color : menu background color.
+;;          eide-config-menu-foreground-color : menu foreground color.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-apply-color-theme ()
+  (if eide-config-ready
+    (progn
+      (if (equal eide-custom-color-theme 'dark)
+        ;; "Dark" color theme
+        (progn
+          ;; Menu
+          (setq eide-config-menu-background-color "black")
+          (setq eide-config-menu-foreground-color "gray95")
+          (set-face-foreground 'eide-config-menu-project-header-face "deep sky blue")
+          (set-face-foreground 'eide-config-menu-project-name-face "orange")
+          ;; Menu: directories
+          (set-face-background 'eide-config-menu-directory-face "#300030")
+          (set-face-foreground 'eide-config-menu-directory-face "thistle")
+          (set-face-background 'eide-config-menu-directory-out-of-project-face "saddle brown")
+          (set-face-foreground 'eide-config-menu-directory-out-of-project-face "peach puff")
+          ;; Menu: files
+          (set-face-foreground 'eide-config-menu-file-rw-face "gray95")
+          (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
+          (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
+          (setq eide-config-menu-file-highlight-background-color "dark red")
+          (set-face-foreground 'eide-config-menu-file-svn-modified-face "deep sky blue")
+          ;; Menu: functions
+          (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
+          (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
+          (set-face-foreground 'eide-config-menu-function-with-highlight-face "deep sky blue")
+          ;; Help page
+          (set-face-background 'eide-config-help-title-face "indian red")
+          (set-face-foreground 'eide-config-help-title-face "white")
+          (set-face-background 'eide-config-help-chapter1-face "brown")
+          (set-face-foreground 'eide-config-help-chapter1-face "yellow")
+          (set-face-background 'eide-config-help-chapter2-face "dark slate gray")
+          (set-face-foreground 'eide-config-help-chapter2-face "pale green")
+          ;; Config files
+          (setq eide-config-config-background-color "gray20")
+          (setq eide-config-config-foreground-color "white")
+          (set-face-foreground 'eide-config-config-comment-face "deep sky blue")
+          (set-face-foreground 'eide-config-config-parameter-face "salmon")
+          (set-face-foreground 'eide-config-config-possibilities-face "medium sea green")
+          (set-face-foreground 'eide-config-config-separator-face "orange red")
+          (set-face-background 'eide-config-config-value-face "gray30")
+          (set-face-foreground 'eide-config-config-value-face "white")
+          ;; Information line
+          (set-face-background 'mode-line "gray"))
+        ;; "Light" color theme
+        (progn
+          ;; Menu
+          (setq eide-config-menu-background-color "white")
+          (setq eide-config-menu-foreground-color "black")
+          (set-face-foreground 'eide-config-menu-project-header-face "blue")
+          (set-face-foreground 'eide-config-menu-project-name-face "red")
+          ;; Menu: directories
+          (set-face-background 'eide-config-menu-directory-face "lavender blush")
+          (set-face-foreground 'eide-config-menu-directory-face "dark violet")
+          (set-face-background 'eide-config-menu-directory-out-of-project-face "bisque")
+          (set-face-foreground 'eide-config-menu-directory-out-of-project-face "red")
+          ;; Menu: files
+          (set-face-foreground 'eide-config-menu-file-rw-face "black")
+          (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
+          (set-face-foreground 'eide-config-menu-file-nofile-face "black")
+          (setq eide-config-menu-file-highlight-background-color "yellow")
+          (set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
+          ;; Menu: functions
+          (set-face-foreground 'eide-config-menu-function-face "blue")
+          (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
+          (set-face-foreground 'eide-config-menu-function-with-highlight-face "blue")
+          ;; Help page
+          (set-face-background 'eide-config-help-title-face "gold")
+          (set-face-foreground 'eide-config-help-title-face "brown")
+          (set-face-background 'eide-config-help-chapter1-face "yellow")
+          (set-face-foreground 'eide-config-help-chapter1-face "red")
+          (set-face-background 'eide-config-help-chapter2-face "lavender")
+          (set-face-foreground 'eide-config-help-chapter2-face "blue")
+          ;; Config files
+          (setq eide-config-config-background-color "gray90")
+          (setq eide-config-config-foreground-color "black")
+          (set-face-foreground 'eide-config-config-comment-face "slate blue")
+          (set-face-foreground 'eide-config-config-parameter-face "brown")
+          (set-face-foreground 'eide-config-config-possibilities-face "sea green")
+          (set-face-foreground 'eide-config-config-separator-face "red")
+          (set-face-background 'eide-config-config-value-face "white")
+          (set-face-foreground 'eide-config-config-value-face "black")
+          ;; Information line
+          (set-face-background 'mode-line "wheat")))
+
+      (set-face-background 'eide-config-menu-default-face eide-config-menu-background-color)
+      (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
+      (set-face-background 'eide-config-menu-project-header-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-project-name-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-rw-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-ro-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-nofile-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-ref-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-new-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-svn-modified-face eide-config-menu-background-color)
+
+      ;; Menu: current file
+      (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
+      (copy-face 'eide-config-menu-file-ro-face 'eide-config-menu-current-file-ro-face)
+      (copy-face 'eide-config-menu-file-nofile-face 'eide-config-menu-current-file-nofile-face)
+      (copy-face 'eide-config-menu-file-ref-face 'eide-config-menu-current-file-ref-face)
+      (copy-face 'eide-config-menu-file-new-face 'eide-config-menu-current-file-new-face)
+      (copy-face 'eide-config-menu-file-svn-modified-face 'eide-config-menu-current-file-svn-modified-face)
+      (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-ro-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-nofile-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-ref-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-new-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-svn-modified-face eide-config-menu-file-highlight-background-color)
+
+      (set-face-background 'eide-config-menu-function-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-empty-list-face eide-config-menu-background-color)
+      (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color))))
+
+;; ----------------------------------------------------------------------------
+;; Apply color theme (for source code).
+;;
+;; input  : eide-custom-color-theme : color theme.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-custom-extend-color-theme-to-source-code : apply color theme
+;;              on source code flag.
+;;          eide-config-user-... : user values.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-apply-extended-color-theme ()
+  (if eide-config-ready
+    (progn
+      (if (and eide-custom-override-emacs-settings
+               eide-custom-extend-color-theme-to-source-code)
+        (progn
+          (if (equal eide-custom-color-theme 'dark)
+            ;; "Dark" color theme
+            (progn
+              (setq eide-config-background-color eide-custom-dark-background)
+              (setq eide-config-foreground-color eide-custom-dark-foreground)
+              (set-background-color eide-custom-dark-background)
+              (set-face-background 'fringe eide-custom-dark-background)
+              (set-foreground-color eide-custom-dark-foreground)
+              (set-face-foreground 'font-lock-string-face eide-custom-dark-foreground)
+              (set-face-foreground 'region eide-custom-dark-foreground)
+              (set-face-foreground 'font-lock-keyword-face eide-custom-dark-keyword-foreground)
+              (set-face-foreground 'font-lock-type-face eide-custom-dark-type-foreground)
+              (set-face-foreground 'font-lock-function-name-face eide-custom-dark-function-foreground)
+              (set-face-foreground 'font-lock-variable-name-face eide-custom-dark-variable-foreground)
+              (set-face-background 'font-lock-constant-face eide-custom-dark-constant-background)
+              (set-face-foreground 'font-lock-constant-face eide-custom-dark-constant-foreground)
+              (set-face-background 'font-lock-builtin-face eide-custom-dark-builtin-background)
+              (set-face-foreground 'font-lock-builtin-face eide-custom-dark-builtin-foreground)
+              (set-face-background 'font-lock-string-face eide-custom-dark-string-background)
+              (set-face-foreground 'font-lock-comment-face eide-custom-dark-comment-foreground)
+              (set-face-background 'region eide-custom-dark-selection-background))
+            ;; "Light" color theme
+            (progn
+              (setq eide-config-background-color eide-custom-light-background)
+              (setq eide-config-foreground-color eide-custom-light-foreground)
+              (set-background-color eide-custom-light-background)
+              (set-face-background 'fringe eide-custom-light-background)
+              (set-foreground-color eide-custom-light-foreground)
+              (set-face-foreground 'font-lock-string-face eide-custom-light-foreground)
+              (set-face-foreground 'region eide-custom-light-foreground)
+              (set-face-foreground 'font-lock-keyword-face eide-custom-light-keyword-foreground)
+              (set-face-foreground 'font-lock-type-face eide-custom-light-type-foreground)
+              (set-face-foreground 'font-lock-function-name-face eide-custom-light-function-foreground)
+              (set-face-foreground 'font-lock-variable-name-face eide-custom-light-variable-foreground)
+              (set-face-background 'font-lock-constant-face eide-custom-light-constant-background)
+              (set-face-foreground 'font-lock-constant-face eide-custom-light-constant-foreground)
+              (set-face-background 'font-lock-builtin-face eide-custom-light-builtin-background)
+              (set-face-foreground 'font-lock-builtin-face eide-custom-light-builtin-foreground)
+              (set-face-background 'font-lock-string-face eide-custom-light-string-background)
+              (set-face-foreground 'font-lock-comment-face eide-custom-light-comment-foreground)
+              (set-face-background 'region eide-custom-light-selection-background))))
+        (progn
+          ;; Restore user colors
+          (set-background-color eide-config-user-background-color)
+          (set-foreground-color eide-config-user-foreground-color)
+          (set-face-background 'fringe eide-config-user-background-color)
+          (set-face-foreground 'font-lock-keyword-face eide-config-user-keyword-foreground-color)
+          (set-face-foreground 'font-lock-type-face eide-config-user-type-foreground-color)
+          (set-face-foreground 'font-lock-function-name-face eide-config-user-function-foreground-color)
+          (set-face-foreground 'font-lock-variable-name-face eide-config-user-variable-foreground-color)
+          (set-face-background 'font-lock-constant-face eide-config-user-constant-background-color)
+          (set-face-foreground 'font-lock-constant-face eide-config-user-constant-foreground-color)
+          (set-face-background 'font-lock-builtin-face eide-config-user-builtin-background-color)
+          (set-face-foreground 'font-lock-builtin-face eide-config-user-builtin-foreground-color)
+          (set-face-background 'font-lock-string-face eide-config-user-string-background-color)
+          (set-face-foreground 'font-lock-string-face eide-config-user-string-foreground-color)
+          (set-face-foreground 'font-lock-comment-face eide-config-user-comment-foreground-color)
+          (set-face-background 'region eide-config-user-selection-background-color)
+          (set-face-foreground 'region eide-config-user-selection-foreground-color))))))
+
+;; ----------------------------------------------------------------------------
+;; Set show svn status.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;; output : eide-config-show-svn-status-flag : show svn status.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-show-svn-status (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (progn
+      (if (equal value 'auto)
+        (if (file-exists-p (concat eide-root-directory ".svn"))
+          (setq eide-config-show-svn-status-flag t)
+          (setq eide-config-show-svn-status-flag nil))
+        (setq eide-config-show-svn-status-flag value))
+      (eide-menu-update t t))))
+
+;; ----------------------------------------------------------------------------
+;; Set svn diff command.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;; output : eide-config-svn-diff-full-command : svn diff command.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-svn-diff-command (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if (string-equal value "")
+      (setq eide-config-svn-diff-full-command "svn diff ")
+      (setq eide-config-svn-diff-full-command (concat "svn diff --diff-cmd=" value " ")))))
+
+;; ----------------------------------------------------------------------------
+;; Set menu bar mode.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-config-user-menu-bar-mode : user value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-menu-bar (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if window-system
+      (if (and eide-custom-override-emacs-settings
+               (not (equal value 'ignore)))
+        (if value
+          (menu-bar-mode 1)
+          (menu-bar-mode -1))
+        (menu-bar-mode (if eide-config-user-menu-bar-mode 1 -1))))))
+
+;; ----------------------------------------------------------------------------
+;; Set tool bar mode.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-config-user-tool-bar-mode : user value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-tool-bar (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if window-system
+      (if (and eide-custom-override-emacs-settings
+               (not (equal value 'ignore)))
+        (if value
+          (tool-bar-mode 1)
+          (tool-bar-mode -1))
+        (tool-bar-mode (if eide-config-user-tool-bar-mode 1 -1))))))
+
+;; ----------------------------------------------------------------------------
+;; Set font height.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-config-user-font-height : user value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-font-height (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if window-system
+      (if (and eide-custom-override-emacs-settings value)
+        (set-face-attribute 'default nil :height value)
+        (set-face-attribute 'default nil :height eide-config-user-font-height)))))
+
+;; ----------------------------------------------------------------------------
+;; Set background color for a color theme.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          color-theme : color theme.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-custom-extend-color-theme-to-source-code : apply color theme
+;;              on source code flag.
+;;          eide-custom-color-theme : current color theme.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-background (param value color-theme)
+  (set-default param value)
+  (if eide-config-ready
+    (if (and eide-custom-override-emacs-settings
+             eide-custom-extend-color-theme-to-source-code
+             (equal eide-custom-color-theme color-theme))
+      (progn
+        (setq eide-config-background-color value)
+        (set-background-color value)
+        (set-face-background 'fringe value)))))
+
+;; ----------------------------------------------------------------------------
+;; Set foreground color for a color theme.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          color-theme : color theme.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-custom-extend-color-theme-to-source-code : apply color theme
+;;              on source code flag.
+;;          eide-custom-color-theme : current color theme.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-foreground (param value color-theme)
+  (set-default param value)
+  (if eide-config-ready
+    (if (and eide-custom-override-emacs-settings
+             eide-custom-extend-color-theme-to-source-code
+             (equal eide-custom-color-theme color-theme))
+      (progn
+        (setq eide-config-foreground-color value)
+        (set-foreground-color value)
+        (set-face-foreground 'font-lock-string-face value)
+        (set-face-foreground 'region value)))))
+
+;; ----------------------------------------------------------------------------
+;; Set background color of a face for a color theme.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          face : face.
+;;          color-theme : color theme.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-custom-extend-color-theme-to-source-code : apply color theme
+;;              on source code flag.
+;;          eide-custom-color-theme : current color theme.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-face-background (param value face color-theme)
+  (set-default param value)
+  (if eide-config-ready
+    (if (and eide-custom-override-emacs-settings
+             eide-custom-extend-color-theme-to-source-code
+             (equal eide-custom-color-theme color-theme))
+      (set-face-background face value))))
+
+;; ----------------------------------------------------------------------------
+;; Set foreground color of a face for a color theme.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          face : face.
+;;          color-theme : color theme.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-custom-extend-color-theme-to-source-code : apply color theme
+;;              on source code flag.
+;;          eide-custom-color-theme : current color theme.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-face-foreground (param value face color-theme)
+  (set-default param value)
+  (if eide-config-ready
+    (if (and eide-custom-override-emacs-settings
+             eide-custom-extend-color-theme-to-source-code
+             (equal eide-custom-color-theme color-theme))
+      (set-face-foreground face value))))
+
+;; ----------------------------------------------------------------------------
+;; Apply "Emacs settings" options.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-apply-emacs-settings ()
+  (if eide-config-ready
+    (progn
+      (eide-i-config-apply-extended-color-theme)
+      (eide-i-config-set-show-svn-status 'eide-custom-show-svn-status eide-custom-show-svn-status)
+      (eide-i-config-set-svn-diff-command 'eide-custom-svn-diff-command eide-custom-svn-diff-command)
+      (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
+      (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
+      (eide-i-config-set-font-height 'eide-custom-font-height eide-custom-font-height))))
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
+
+;; ----------------------------------------------------------------------------
+;; Save emacs settings.
+;;
+;; output : eide-config-user-... : user values.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-save-emacs-settings ()
+  (setq eide-config-user-menu-bar-mode menu-bar-mode)
+  (setq eide-config-user-tool-bar-mode tool-bar-mode)
+  (setq eide-config-user-font-height (face-attribute 'default :height))
+  (setq eide-config-user-background-color (face-background 'default))
+  (setq eide-config-user-foreground-color (face-foreground 'default))
+
+  (setq eide-config-user-keyword-foreground-color (face-foreground 'font-lock-keyword-face))
+  (setq eide-config-user-type-foreground-color (face-foreground 'font-lock-type-face))
+  (setq eide-config-user-function-foreground-color (face-foreground 'font-lock-function-name-face))
+  (setq eide-config-user-variable-foreground-color (face-foreground 'font-lock-variable-name-face))
+  (setq eide-config-user-constant-background-color (face-background 'font-lock-constant-face))
+  (setq eide-config-user-constant-foreground-color (face-foreground 'font-lock-constant-face))
+  (setq eide-config-user-builtin-background-color (face-background 'font-lock-builtin-face))
+  (setq eide-config-user-builtin-foreground-color (face-foreground 'font-lock-builtin-face))
+  (setq eide-config-user-string-background-color (face-background 'font-lock-string-face))
+  (setq eide-config-user-string-foreground-color (face-foreground 'font-lock-string-face))
+  (setq eide-config-user-comment-foreground-color (face-foreground 'font-lock-comment-face))
+  (setq eide-config-user-selection-background-color (face-background 'region))
+  (setq eide-config-user-selection-foreground-color (face-foreground 'region)))
 
 ;; ----------------------------------------------------------------------------
 ;; Get the value of a parameter in a config (current buffer).
@@ -249,11 +980,7 @@
       (goto-char (point-min))
       (if (re-search-forward (concat "^" p-parameter ":") nil t)
         (buffer-substring-no-properties (point) (line-end-position))
-        (progn
-          (goto-char (point-min))
-          (if (and (re-search-forward (concat "^" p-parameter "(") nil t) (search-forward "):" nil t))
-            (buffer-substring-no-properties (point) (line-end-position))
-            nil))))))
+        nil))))
 
 ;; ----------------------------------------------------------------------------
 ;; Get the value of a parameter in a config (current buffer).
@@ -273,111 +1000,9 @@
 ;; input  : p-parameter : config parameter.
 ;; return : config value.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-get-option-value (p-parameter)
-  (save-excursion
-    (if (not (get-buffer eide-config-file))
-      (find-file-noselect (concat "~/" eide-config-file)))
-    (set-buffer eide-config-file)
-    (eide-i-config-get-value p-parameter)))
-
-;; ----------------------------------------------------------------------------
-;; Prepare update of config file (in a temporary file).
-;;
-;; input  : p-path : path of config file.
-;;          p-file : name of config file.
-;; output : eide-config-source-buffer : name of config file.
-;;          eide-config-target-buffer : temporary buffer for update.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-start (p-path p-file)
-  ;; Define source and target config files
-  (setq eide-config-source-buffer p-file)
-  (setq eide-config-target-buffer (concat p-file "_temp"))
-
-  ;; Open these config files
-  (if (not (get-buffer eide-config-source-buffer))
-    (find-file-noselect (concat p-path eide-config-source-buffer)))
-  (get-buffer-create eide-config-target-buffer)
-  (set-buffer eide-config-target-buffer)
-  (erase-buffer))
-
-;; ----------------------------------------------------------------------------
-;; Clean after update of config file.
-;;
-;; input  : eide-config-source-buffer : name of config file.
-;;          eide-config-target-buffer : temporary buffer for update.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-stop ()
-  ;; Replace source file by target buffer if different
-  (if (not (equal (compare-buffer-substrings eide-config-source-buffer nil nil eide-config-target-buffer nil nil) 0))
-    (progn
-      (set-buffer eide-config-source-buffer)
-      (erase-buffer)
-      (insert-buffer eide-config-target-buffer)
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer)))
-  ;; Close temporary buffer
-  (kill-buffer eide-config-target-buffer))
-
-;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in config file.
-;;
-;; input  : p-parameter : config parameter.
-;;          eide-config-source-buffer : name of config file.
-;; return : config value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-get-current-value (p-parameter)
-  (set-buffer eide-config-source-buffer)
+  (set-buffer eide-project-config-file)
   (eide-i-config-get-value-if-defined p-parameter))
-
-;; ----------------------------------------------------------------------------
-;; Insert information in config file.
-;;
-;; input  : p-config-file : string describing config file.
-;;          eide-config-target-buffer : temporary config buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-insert-info (p-config-file)
-  (set-buffer eide-config-target-buffer)
-  (insert "\n# *****************************************************************************\n")
-  (insert (concat "# Emacs-IDE " p-config-file))
-  (insert "\n# *****************************************************************************\n\n")
-  (insert "# --> Click right to exit this page.\n")
-  (if (string-equal p-config-file "configuration")
-    (insert "# --> Press shift + click right to show/hide the list of available colors.\n"))
-  (insert "# --> To restore the default value of a parameter, delete the line\n")
-  (insert (concat "#     (" p-config-file " file is rebuilt when you exit this page).\n\n")))
-
-;; ----------------------------------------------------------------------------
-;; Insert dotted line in config file.
-;;
-;; input  : p-add-empty-line-before-flag : t = add an empty line before.
-;;          eide-config-target-buffer : temporary config buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-insert-dotted-line (p-add-empty-line-before-flag)
-  (set-buffer eide-config-target-buffer)
-  (if p-add-empty-line-before-flag
-    (insert "\n"))
-  (insert "# -----------------------------------------------------------------------------\n"))
-
-;; ----------------------------------------------------------------------------
-;; Insert section header in config file.
-;;
-;; input  : p-section : section header (string).
-;;          eide-config-target-buffer : temporary config buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-insert-section (p-section)
-  (set-buffer eide-config-target-buffer)
-  (insert (concat "\n[" p-section "]\n")))
-
-;; ----------------------------------------------------------------------------
-;; Insert comment in config file.
-;;
-;; input  : p-comment : comment (string).
-;;          eide-config-target-buffer : temporary config buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-insert-comment (p-comment)
-  (set-buffer eide-config-target-buffer)
-  (insert (concat "# " p-comment "\n")))
 
 ;; ----------------------------------------------------------------------------
 ;; Insert a line with a parameter and its value in config file.
@@ -401,16 +1026,9 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-update-value (p-parameter p-default-value)
   (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
-    ;; If the parameter is not present, or it is a color and the value is not
-    ;; correct, we use default value.
+    ;; If the parameter is not present, we use default value.
     (if (not l-value)
       (setq l-value p-default-value))
-    (if (and (or (string-match "^dark_color_theme_" p-parameter)
-                 (string-match "^light_color_theme_" p-parameter))
-             (not (color-defined-p l-value)))
-      (progn
-        (eide-popup-message (concat "Warning: " p-parameter " value \"" l-value "\" is not correct,\nusing default value \"" p-default-value "\" instead."))
-        (setq l-value p-default-value)))
     (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
 
 ;; ----------------------------------------------------------------------------
@@ -418,496 +1036,25 @@
 ;; found).
 ;;
 ;; input  : p-parameter : config parameter.
-;;          p-config-parameter : related parameter in config.
+;;          p-default-value : default value in config.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-update-value-from-config (p-parameter p-config-parameter)
+(defun eide-i-config-rebuild-update-value-from-config (p-parameter p-default-value)
   (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
     (if (not l-value)
-      (setq l-value (eide-i-config-get-option-value p-config-parameter)))
+      (setq l-value p-default-value))
     (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
-
-;; ----------------------------------------------------------------------------
-;; Apply color theme.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-apply-color-theme ()
-  (let ((l-color-theme (eide-i-config-get-option-value "color_theme")))
-    (if (string-equal l-color-theme "dark")
-      (progn
-        ;; "dark" theme
-        (setq eide-config-background-color (eide-i-config-get-option-value "dark_color_theme_background"))
-        (setq eide-config-foreground-color (eide-i-config-get-option-value "dark_color_theme_foreground"))
-
-        (if eide-config-use-color-theme-for-source-flag
-          (progn
-            ;; Code
-            (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "dark_color_theme_keyword_foreground"))
-            (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "dark_color_theme_type_foreground"))
-            (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "dark_color_theme_function_foreground"))
-            (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "dark_color_theme_variable_foreground"))
-            (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "dark_color_theme_constant_background"))
-            (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "dark_color_theme_constant_foreground"))
-            (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "dark_color_theme_builtin_background"))
-            (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "dark_color_theme_builtin_foreground"))
-            (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "dark_color_theme_string_background"))
-            (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "dark_color_theme_foreground"))
-            (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "dark_color_theme_comment_foreground"))
-            (set-face-background 'region (eide-i-config-get-option-value "dark_color_theme_selection_background"))
-            (set-face-foreground 'region (eide-i-config-get-option-value "dark_color_theme_foreground"))))
-
-        ;; Menu
-        (setq eide-config-menu-background-color (eide-i-config-get-option-value "dark_color_theme_menu_background"))
-        (setq eide-config-menu-foreground-color "white")
-        (set-face-foreground 'eide-config-menu-project-header-face "deep sky blue")
-        (set-face-foreground 'eide-config-menu-project-name-face "orange")
-
-        ;; Menu: directories
-        (set-face-background 'eide-config-menu-directory-face "#200020")
-        (set-face-foreground 'eide-config-menu-directory-face "thistle")
-        (set-face-background 'eide-config-menu-directory-out-of-project-face "saddle brown")
-        (set-face-foreground 'eide-config-menu-directory-out-of-project-face "peach puff")
-
-        ;; Menu: files
-        (set-face-foreground 'eide-config-menu-file-rw-face "gray95")
-        (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
-        (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
-        (setq eide-config-menu-file-highlight-background-color "dark red")
-        (set-face-foreground 'eide-config-menu-file-svn-modified-face "deep sky blue")
-
-        ;; Menu: functions
-        (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
-        (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
-        (set-face-foreground 'eide-config-menu-function-with-highlight-face "deep sky blue")
-
-        ;; Help page
-        (set-face-background 'eide-config-help-title-face "indian red")
-        (set-face-foreground 'eide-config-help-title-face "white")
-        (set-face-background 'eide-config-help-chapter1-face "brown")
-        (set-face-foreground 'eide-config-help-chapter1-face "yellow")
-        (set-face-background 'eide-config-help-chapter2-face "dark slate gray")
-        (set-face-foreground 'eide-config-help-chapter2-face "pale green")
-
-        ;; Config files
-        (setq eide-config-config-background-color "gray20")
-        (setq eide-config-config-foreground-color "white")
-        (set-face-foreground 'eide-config-config-comment-face "deep sky blue")
-        (set-face-foreground 'eide-config-config-section-face "orange")
-        (set-face-foreground 'eide-config-config-parameter-face "salmon")
-        (set-face-foreground 'eide-config-config-possibilities-face "medium sea green")
-        (set-face-foreground 'eide-config-config-separator-face "orange red")
-        (set-face-background 'eide-config-config-value-face "gray30")
-        (set-face-foreground 'eide-config-config-value-face "white")
-
-        ;; Information line
-        (set-face-background 'mode-line "gray"))
-
-      (progn
-        ;; "light" theme
-        (setq eide-config-background-color (eide-i-config-get-option-value "light_color_theme_background"))
-        (setq eide-config-foreground-color (eide-i-config-get-option-value "light_color_theme_foreground"))
-
-        (if eide-config-use-color-theme-for-source-flag
-          (progn
-            ;; Code
-            (set-face-foreground 'font-lock-keyword-face (eide-i-config-get-option-value "light_color_theme_keyword_foreground"))
-            (set-face-foreground 'font-lock-type-face (eide-i-config-get-option-value "light_color_theme_type_foreground"))
-            (set-face-foreground 'font-lock-function-name-face (eide-i-config-get-option-value "light_color_theme_function_foreground"))
-            (set-face-foreground 'font-lock-variable-name-face (eide-i-config-get-option-value "light_color_theme_variable_foreground"))
-            (set-face-background 'font-lock-constant-face (eide-i-config-get-option-value "light_color_theme_constant_background"))
-            (set-face-foreground 'font-lock-constant-face (eide-i-config-get-option-value "light_color_theme_constant_foreground"))
-            (set-face-background 'font-lock-builtin-face (eide-i-config-get-option-value "light_color_theme_builtin_background"))
-            (set-face-foreground 'font-lock-builtin-face (eide-i-config-get-option-value "light_color_theme_builtin_foreground"))
-            (set-face-background 'font-lock-string-face (eide-i-config-get-option-value "light_color_theme_string_background"))
-            (set-face-foreground 'font-lock-string-face (eide-i-config-get-option-value "light_color_theme_foreground"))
-            (set-face-foreground 'font-lock-comment-face (eide-i-config-get-option-value "light_color_theme_comment_foreground"))
-            (set-face-background 'region (eide-i-config-get-option-value "light_color_theme_selection_background"))
-            (set-face-foreground 'region (eide-i-config-get-option-value "light_color_theme_foreground"))))
-
-        ;; Menu
-        (setq eide-config-menu-background-color (eide-i-config-get-option-value "light_color_theme_menu_background"))
-        (setq eide-config-menu-foreground-color "black")
-        (set-face-foreground 'eide-config-menu-project-header-face "blue")
-        (set-face-foreground 'eide-config-menu-project-name-face "red")
-
-        ;; Menu: directories
-        (set-face-background 'eide-config-menu-directory-face "lavender blush")
-        (set-face-foreground 'eide-config-menu-directory-face "dark violet")
-        (set-face-background 'eide-config-menu-directory-out-of-project-face "bisque")
-        (set-face-foreground 'eide-config-menu-directory-out-of-project-face "red")
-
-        ;; Menu: files
-        (set-face-foreground 'eide-config-menu-file-rw-face "black")
-        (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
-        (set-face-foreground 'eide-config-menu-file-nofile-face "black")
-        (setq eide-config-menu-file-highlight-background-color "yellow")
-        (set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
-
-        ;; Menu: functions
-        (set-face-foreground 'eide-config-menu-function-face "blue")
-        (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
-        (set-face-foreground 'eide-config-menu-function-with-highlight-face "blue")
-
-        ;; Help page
-        (set-face-background 'eide-config-help-title-face "gold")
-        (set-face-foreground 'eide-config-help-title-face "brown")
-        (set-face-background 'eide-config-help-chapter1-face "yellow")
-        (set-face-foreground 'eide-config-help-chapter1-face "red")
-        (set-face-background 'eide-config-help-chapter2-face "lavender")
-        (set-face-foreground 'eide-config-help-chapter2-face "blue")
-
-        ;; Config files
-        (setq eide-config-config-background-color "gray90")
-        (setq eide-config-config-foreground-color "black")
-        (set-face-foreground 'eide-config-config-comment-face "slate blue")
-        (set-face-foreground 'eide-config-config-section-face "red")
-        (set-face-foreground 'eide-config-config-parameter-face "brown")
-        (set-face-foreground 'eide-config-config-possibilities-face "sea green")
-        (set-face-foreground 'eide-config-config-separator-face "red")
-        (set-face-background 'eide-config-config-value-face "white")
-        (set-face-foreground 'eide-config-config-value-face "black")
-
-        ;; Information line
-        (set-face-background 'mode-line "wheat")))
-
-    (if eide-config-use-color-theme-for-source-flag
-      (progn
-        ;; Background
-        (set-background-color eide-config-background-color)
-        ;; Normal text
-        (set-foreground-color eide-config-foreground-color)
-        ;; Left and right borders (same color as background)
-        (set-face-background 'fringe eide-config-background-color))
-      (progn
-        (set-background-color eide-config-user-background-color)
-        (set-foreground-color eide-config-user-foreground-color)
-        (set-face-background 'fringe eide-config-user-background-color)
-        (set-face-foreground 'font-lock-keyword-face eide-config-user-keyword-foreground-color)
-        (set-face-foreground 'font-lock-type-face eide-config-user-type-foreground-color)
-        (set-face-foreground 'font-lock-function-name-face eide-config-user-function-foreground-color)
-        (set-face-foreground 'font-lock-variable-name-face eide-config-user-variable-foreground-color)
-        (set-face-background 'font-lock-constant-face eide-config-user-constant-background-color)
-        (set-face-foreground 'font-lock-constant-face eide-config-user-constant-foreground-color)
-        (set-face-background 'font-lock-builtin-face eide-config-user-builtin-background-color)
-        (set-face-foreground 'font-lock-builtin-face eide-config-user-builtin-foreground-color)
-        (set-face-background 'font-lock-string-face eide-config-user-string-background-color)
-        (set-face-foreground 'font-lock-string-face eide-config-user-string-foreground-color)
-        (set-face-foreground 'font-lock-comment-face eide-config-user-comment-foreground-color)
-        (set-face-background 'region eide-config-user-selection-background-color)
-        (set-face-foreground 'region eide-config-user-selection-foreground-color)))
-
-    (set-face-background 'eide-config-menu-default-face eide-config-menu-background-color)
-    (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
-    (set-face-background 'eide-config-menu-project-header-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-project-name-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-rw-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-ro-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-nofile-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-ref-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-new-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-file-svn-modified-face eide-config-menu-background-color)
-
-    ;; Menu: current file
-    (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
-    (copy-face 'eide-config-menu-file-ro-face 'eide-config-menu-current-file-ro-face)
-    (copy-face 'eide-config-menu-file-nofile-face 'eide-config-menu-current-file-nofile-face)
-    (copy-face 'eide-config-menu-file-ref-face 'eide-config-menu-current-file-ref-face)
-    (copy-face 'eide-config-menu-file-new-face 'eide-config-menu-current-file-new-face)
-    (copy-face 'eide-config-menu-file-svn-modified-face 'eide-config-menu-current-file-svn-modified-face)
-    (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-ro-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-nofile-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-ref-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-new-face eide-config-menu-file-highlight-background-color)
-    (set-face-background 'eide-config-menu-current-file-svn-modified-face eide-config-menu-file-highlight-background-color)
-
-    (set-face-background 'eide-config-menu-function-face eide-config-menu-background-color)
-    (set-face-background 'eide-config-menu-empty-list-face eide-config-menu-background-color)
-    (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color)
-
-    (eide-config-set-colors-for-files)))
-
-;; ----------------------------------------------------------------------------
-;; Apply config.
-;;
-;; output : eide-config-menu-position : menu position (windows layout).
-;;          eide-config-menu-height : menu height (windows layout).
-;;          eide-config-show-svn-status-flag : show svn status flag.
-;;          eide-config-svn-diff-command : svn diff command.
-;;          eide-config-cscope-always-update-database-flag : cscope database
-;;              update flag.
-;;          eide-config-use-emacs-options-flag : use emacs options flag.
-;;          eide-config-use-color-theme-for-source-flag : use color theme for
-;;              source flag.
-;;          eide-config-use-show-trailing-spaces-flag : use show trailing
-;;              spaces flag.
-;;          eide-config-show-trailing-spaces-flag : show trailing spaces flag.
-;;          eide-config-use-indent-offsets-flag : use indent offsets.
-;;          eide-config-c-indent-offset : indent offset for C/C++.
-;;          eide-config-sh-indent-offset : indent offset for shell scripts.
-;;          eide-config-lisp-indent-offset : indent offset for Emacs Lisp.
-;;          eide-config-perl-indent-offset : indent offset for Perl.
-;;          eide-config-python-indent-offset : indent offset for Python.
-;;          eide-config-sgml-indent-offset : indent offset for SGML.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-apply-config ()
-  ;; Windows layout: menu position
-  (setq eide-config-menu-position (eide-i-config-get-option-value "menu_position"))
-  ;; If menu position is not correct, set default value
-  (if (not (or (string-equal eide-config-menu-position "left")
-               (string-equal eide-config-menu-position "right")))
-    (setq eide-config-menu-position "right"))
-
-  ;; Windows layout: menu height
-  (setq eide-config-menu-height (eide-i-config-get-option-value "menu_height"))
-  ;; If menu position is not correct, set default value
-  (if (not (or (string-equal eide-config-menu-height "half")
-               (string-equal eide-config-menu-height "full")))
-    (setq eide-config-menu-height "half"))
-
-  ;; Version control
-  (if (string-equal (eide-i-config-get-option-value "show_svn_status") "auto")
-    (if (file-exists-p (concat eide-root-directory ".svn"))
-      (setq eide-config-show-svn-status-flag t)
-      (setq eide-config-show-svn-status-flag nil))
-    (if (string-equal (eide-i-config-get-option-value "show_svn_status") "yes")
-      (setq eide-config-show-svn-status-flag t)
-      (setq eide-config-show-svn-status-flag nil)))
-
-  (setq eide-config-svn-diff-command (eide-i-config-get-option-value "svn_diff_command"))
-  (if (string-equal eide-config-svn-diff-command "")
-    (setq eide-config-svn-diff-command "svn diff ")
-    (setq eide-config-svn-diff-command (concat "svn diff --diff-cmd=" eide-config-svn-diff-command " ")))
-
-  (if (string-equal (eide-i-config-get-option-value "cscope_always_update_database") "yes")
-    (setq eide-config-cscope-always-update-database-flag t)
-    (setq eide-config-cscope-always-update-database-flag nil))
-
-  (if (string-equal (eide-i-config-get-option-value "use_emacs_options") "yes")
-    (setq eide-config-use-emacs-options-flag t)
-    (setq eide-config-use-emacs-options-flag nil))
-
-  (if eide-config-use-emacs-options-flag
-    (progn
-      (if window-system
-        (progn
-          (if (string-equal (eide-i-config-get-option-value "show_menu_bar") "yes")
-            (menu-bar-mode 1)
-            (menu-bar-mode -1))
-          (if (string-equal (eide-i-config-get-option-value "show_tool_bar") "yes")
-            (tool-bar-mode 1)
-            (tool-bar-mode -1))))
-
-      ;; Size of characters for X system
-      (if window-system
-        (set-face-attribute 'default nil :height (string-to-number (eide-i-config-get-option-value "font_height"))))
-
-      (if (string-equal (eide-i-config-get-option-value "use_color_theme_for_source") "yes")
-        (setq eide-config-use-color-theme-for-source-flag t)
-        (setq eide-config-use-color-theme-for-source-flag nil))
-
-      (if (string-equal (eide-i-config-get-option-value "use_show_trailing_spaces") "yes")
-        (setq eide-config-use-show-trailing-spaces-flag t)
-        (setq eide-config-use-show-trailing-spaces-flag nil))
-
-      (if (string-equal (eide-i-config-get-option-value "show_trailing_spaces") "yes")
-        (setq eide-config-show-trailing-spaces-flag t)
-        (setq eide-config-show-trailing-spaces-flag nil))
-
-      (if (string-equal (eide-i-config-get-option-value "use_indent_offsets") "yes")
-        (setq eide-config-use-indent-offsets-flag t)
-        (setq eide-config-use-indent-offsets-flag nil))
-
-      ;; Coding rules
-      ;; TODO: appliquer la valeur sans avoir à recharger les fichiers manuellement (F5)
-      (setq eide-config-c-indent-offset (string-to-number (eide-i-config-get-option-value "c_indent_offset")))
-      (setq eide-config-sh-indent-offset (string-to-number (eide-i-config-get-option-value "sh_indent_offset")))
-      (setq eide-config-lisp-indent-offset (string-to-number (eide-i-config-get-option-value "lisp_indent_offset")))
-      (setq eide-config-perl-indent-offset (string-to-number (eide-i-config-get-option-value "perl_indent_offset")))
-      (setq eide-config-python-indent-offset (string-to-number (eide-i-config-get-option-value "python_indent_offset")))
-      (setq eide-config-sgml-indent-offset (string-to-number (eide-i-config-get-option-value "sgml_indent_offset"))))
-
-    (progn
-      (setq eide-config-use-color-theme-for-source-flag nil)
-      (setq eide-config-use-show-trailing-spaces-flag nil)
-      (setq eide-config-use-indent-offsets-flag nil)))
-
-  (eide-i-config-apply-color-theme))
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Initialize config.
+;; Display customization (full frame).
 ;; ----------------------------------------------------------------------------
-(defun eide-config-init ()
-  (setq eide-config-user-background-color (face-background 'default))
-  (setq eide-config-user-foreground-color (face-foreground 'default))
-
-  (setq eide-config-user-keyword-foreground-color (face-foreground 'font-lock-keyword-face))
-  (setq eide-config-user-type-foreground-color (face-foreground 'font-lock-type-face))
-  (setq eide-config-user-function-foreground-color (face-foreground 'font-lock-function-name-face))
-  (setq eide-config-user-variable-foreground-color (face-foreground 'font-lock-variable-name-face))
-  (setq eide-config-user-constant-background-color (face-background 'font-lock-constant-face))
-  (setq eide-config-user-constant-foreground-color (face-foreground 'font-lock-constant-face))
-  (setq eide-config-user-builtin-background-color (face-background 'font-lock-builtin-face))
-  (setq eide-config-user-builtin-foreground-color (face-foreground 'font-lock-builtin-face))
-  (setq eide-config-user-string-background-color (face-background 'font-lock-string-face))
-  (setq eide-config-user-string-foreground-color (face-foreground 'font-lock-string-face))
-  (setq eide-config-user-comment-foreground-color (face-foreground 'font-lock-comment-face))
-  (setq eide-config-user-selection-background-color (face-background 'region))
-  (setq eide-config-user-selection-foreground-color (face-foreground 'region)))
-
-;; ----------------------------------------------------------------------------
-;; Update config file.
-;; ----------------------------------------------------------------------------
-(defun eide-config-rebuild-config-file ()
-  ;; Configuration values are read from source file (current config file) and
-  ;; wrote into target file (which will replace config file in the end).
-  ;; - If a parameter is not set in source file - a new parameter for example -
-  ;;   it will be given default value in target file.
-  ;; - If a parameter is set in source file but doesn't exist anymore - a
-  ;;   deprecated parameter for example - it will not be present in target
-  ;;   file.
-  ;; Therefore, config file is always compliant with current version.
-
-  (save-excursion
-    (eide-i-config-rebuild-start "~/" eide-config-file)
-
-    (eide-i-config-rebuild-insert-info "configuration")
-
-    (eide-i-config-rebuild-insert-dotted-line t)
-    (eide-i-config-rebuild-insert-comment "Following options are specific to Emacs-IDE.")
-    (eide-i-config-rebuild-insert-dotted-line nil)
-
-    (eide-i-config-rebuild-insert-section "display")
-    (eide-i-config-rebuild-insert-comment "Color theme applies to 'menu' window. It may also apply to all other windows if 'use_color_theme_for_source' is set (see below).")
-    (eide-i-config-rebuild-insert-comment "Possible values: dark or light.")
-    (eide-i-config-rebuild-update-value "color_theme" "light")
-
-    (eide-i-config-rebuild-insert-section "windows_layout")
-    (eide-i-config-rebuild-insert-comment "Possible values: left or right.")
-    (eide-i-config-rebuild-update-value "menu_position" "right")
-    (eide-i-config-rebuild-insert-comment "Possible values: half or full.")
-    (eide-i-config-rebuild-update-value "menu_height" "half")
-
-    (eide-i-config-rebuild-insert-section "version_control")
-    (eide-i-config-rebuild-insert-comment "Possible values:")
-    (eide-i-config-rebuild-insert-comment "- yes: always check svn status,")
-    (eide-i-config-rebuild-insert-comment "- no: never check svn status,")
-    (eide-i-config-rebuild-insert-comment "- auto: check svn status if root directory is versioned by svn.")
-    (eide-i-config-rebuild-update-value "show_svn_status" "auto")
-    (eide-i-config-rebuild-update-value "svn_diff_command" "")
-
-    (eide-i-config-rebuild-insert-section "search")
-    (eide-i-config-rebuild-insert-comment "Possible values:")
-    (eide-i-config-rebuild-insert-comment "- yes: update cscope database on every search,")
-    (eide-i-config-rebuild-insert-comment "- no: update only on user request.")
-    (eide-i-config-rebuild-insert-comment "cscope default behaviour is 'yes', but Emacs-IDE default value is 'no'.")
-    (eide-i-config-rebuild-update-value "cscope_always_update_database" "no")
-
-    (eide-i-config-rebuild-insert-section "default_project_commands")
-    (eide-i-config-rebuild-insert-comment "All default commands are set in project configuration when project is created.")
-    (eide-i-config-rebuild-insert-comment "Init command is called before all 'compile' and 'run' commands.")
-    (eide-i-config-rebuild-update-value "default_init_command"      "")
-    (eide-i-config-rebuild-update-value "default_compile_command_1" "make")
-    (eide-i-config-rebuild-update-value "default_compile_command_2" "")
-    (eide-i-config-rebuild-update-value "default_compile_command_3" "")
-    (eide-i-config-rebuild-update-value "default_compile_command_4" "")
-    (eide-i-config-rebuild-update-value "default_run_command_1"     "")
-    (eide-i-config-rebuild-update-value "default_run_command_2"     "")
-    (eide-i-config-rebuild-update-value "default_debug_command"     "gdb")
-    (eide-i-config-rebuild-update-value "default_debug_program_1"   "")
-    (eide-i-config-rebuild-update-value "default_debug_program_2"   "")
-
-    (eide-i-config-rebuild-insert-section "dark_color_theme_colors_for_menu")
-    (eide-i-config-rebuild-update-value "dark_color_theme_menu_background" "black")
-
-    (eide-i-config-rebuild-insert-section "light_color_theme_colors_for_menu")
-    (eide-i-config-rebuild-update-value "light_color_theme_menu_background" "white")
-
-    (eide-i-config-rebuild-insert-dotted-line t)
-    (eide-i-config-rebuild-insert-comment "Following options are not specific to Emacs-IDE. You can disable them (see")
-    (eide-i-config-rebuild-insert-comment "'use_emacs_options' and other 'use' flags below) and configure them in your")
-    (eide-i-config-rebuild-insert-comment "own way, in your ~/.emacs file.")
-    (eide-i-config-rebuild-insert-dotted-line nil)
-    (eide-i-config-rebuild-insert-section "emacs_options")
-    (eide-i-config-rebuild-insert-comment "If use_emacs_options = no, all following options will be ignored.")
-    (eide-i-config-rebuild-insert-comment "It is also possible to select them individually with appropriate 'use' flag.")
-    (eide-i-config-rebuild-insert-comment "Possible values: yes or no.")
-    (eide-i-config-rebuild-update-value "use_emacs_options" "yes")
-
-    (eide-i-config-rebuild-insert-section "display")
-    (eide-i-config-rebuild-insert-comment "Show menu bar. Possible values: yes or no.")
-    (eide-i-config-rebuild-update-value "show_menu_bar" "no")
-    (eide-i-config-rebuild-insert-comment "Show tool bar. Possible values: yes or no.")
-    (eide-i-config-rebuild-update-value "show_tool_bar" "no")
-
-    (eide-i-config-rebuild-insert-comment "Use font_height option. Possible values: yes or no.")
-    (eide-i-config-rebuild-update-value "use_font_height" "yes")
-    (eide-i-config-rebuild-insert-comment "Font height: an integer in units of 1/10 point.")
-    (eide-i-config-rebuild-update-value "font_height" "105")
-    (eide-i-config-rebuild-insert-comment "Possible values:")
-    (eide-i-config-rebuild-insert-comment "- yes: use color theme for all windows,")
-    (eide-i-config-rebuild-insert-comment "- no: do not override user colors, apply color theme on 'menu' window only.")
-    (eide-i-config-rebuild-update-value "use_color_theme_for_source" "yes")
-    (eide-i-config-rebuild-insert-comment "Use show_trailing_spaces option. Possible values:")
-    (eide-i-config-rebuild-insert-comment "- yes: option applies on every buffer displayed in 'source' window.")
-    (eide-i-config-rebuild-insert-comment "- no: do not override buffer-local show-trailing-whitespace variable.")
-    (eide-i-config-rebuild-update-value "use_show_trailing_spaces" "yes")
-    (eide-i-config-rebuild-insert-comment "Force value of buffer-local show-trailing-whitespace variable, for every buffer displayed in 'source' window.")
-    (eide-i-config-rebuild-insert-comment "Possible values: yes (t) or no (nil).")
-    (eide-i-config-rebuild-update-value "show_trailing_spaces" "no")
-
-    (eide-i-config-rebuild-insert-section "coding_rules")
-    (eide-i-config-rebuild-insert-comment "Use indent offsets. Possible values: yes or no.")
-    (eide-i-config-rebuild-update-value "use_indent_offsets" "yes")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for C/C++.")
-    (eide-i-config-rebuild-update-value "c_indent_offset" "2")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for shell scripts.")
-    (eide-i-config-rebuild-update-value "sh_indent_offset" "2")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for Emacs Lisp.")
-    (eide-i-config-rebuild-update-value "lisp_indent_offset" "2")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for Perl.")
-    (eide-i-config-rebuild-update-value "perl_indent_offset" "2")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for Python.")
-    (eide-i-config-rebuild-update-value "python_indent_offset" "4")
-    (eide-i-config-rebuild-insert-comment "Indentation offset for SGML (HTML, XML...).")
-    (eide-i-config-rebuild-update-value "sgml_indent_offset" "2")
-
-    (eide-i-config-rebuild-insert-section "dark_color_theme_colors_for_source")
-    (eide-i-config-rebuild-update-value "dark_color_theme_background" "black")
-    (eide-i-config-rebuild-update-value "dark_color_theme_foreground" "gray90")
-    (eide-i-config-rebuild-update-value "dark_color_theme_keyword_foreground" "salmon")
-    (eide-i-config-rebuild-update-value "dark_color_theme_type_foreground" "medium sea green")
-    (eide-i-config-rebuild-update-value "dark_color_theme_function_foreground" "orange")
-    (eide-i-config-rebuild-update-value "dark_color_theme_variable_foreground" "dark orange")
-    (eide-i-config-rebuild-update-value "dark_color_theme_constant_background" "maroon4")
-    (eide-i-config-rebuild-update-value "dark_color_theme_constant_foreground" "misty rose")
-    (eide-i-config-rebuild-update-value "dark_color_theme_builtin_background" "brown")
-    (eide-i-config-rebuild-update-value "dark_color_theme_builtin_foreground" "yellow")
-    (eide-i-config-rebuild-update-value "dark_color_theme_string_background" "gray15")
-    (eide-i-config-rebuild-update-value "dark_color_theme_comment_foreground" "deep sky blue")
-    (eide-i-config-rebuild-update-value "dark_color_theme_selection_background" "gray50")
-
-    (eide-i-config-rebuild-insert-section "light_color_theme_colors_for_source")
-    (eide-i-config-rebuild-update-value "light_color_theme_background" "old lace")
-    (eide-i-config-rebuild-update-value "light_color_theme_foreground" "black")
-    (eide-i-config-rebuild-update-value "light_color_theme_keyword_foreground" "brown")
-    (eide-i-config-rebuild-update-value "light_color_theme_type_foreground" "sea green")
-    (eide-i-config-rebuild-update-value "light_color_theme_function_foreground" "red")
-    (eide-i-config-rebuild-update-value "light_color_theme_variable_foreground" "orange red")
-    (eide-i-config-rebuild-update-value "light_color_theme_constant_background" "misty rose")
-    (eide-i-config-rebuild-update-value "light_color_theme_constant_foreground" "deep pink")
-    (eide-i-config-rebuild-update-value "light_color_theme_builtin_background" "yellow")
-    (eide-i-config-rebuild-update-value "light_color_theme_builtin_foreground" "red")
-    (eide-i-config-rebuild-update-value "light_color_theme_string_background" "white")
-    (eide-i-config-rebuild-update-value "light_color_theme_comment_foreground" "light slate blue")
-    (eide-i-config-rebuild-update-value "light_color_theme_selection_background" "bisque")
-
-    (eide-i-config-rebuild-stop)
-    (eide-i-config-apply-config)
-    ;; Close config file
-    (kill-buffer eide-config-file)))
+(defun eide-config-open-customization ()
+  (eide-windows-layout-unbuild)
+  (eide-keys-configure-for-special-buffer)
+  (customize-group 'eide))
 
 ;; ----------------------------------------------------------------------------
 ;; Update project file.
@@ -916,28 +1063,46 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-config-rebuild-project-file ()
   (save-excursion
-    (eide-i-config-rebuild-start eide-root-directory eide-project-config-file)
-    ;; Temporarily open config file (to get default values for project)
-    (find-file-noselect (concat "~/" eide-config-file))
+    ;; Define target config file
+    (setq eide-config-target-buffer (concat eide-project-config-file "_temp"))
 
-    (eide-i-config-rebuild-insert-info "project configuration")
+    ;; Open these config files
+    (if (not (get-buffer eide-project-config-file))
+      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
+    (get-buffer-create eide-config-target-buffer)
+    (set-buffer eide-config-target-buffer)
+    (erase-buffer)
 
-    (eide-i-config-rebuild-insert-section "project_commands")
-    (eide-i-config-rebuild-insert-comment "Init command is called before all 'compile' and 'run' commands.")
-    (eide-i-config-rebuild-update-value-from-config "init_command"      "default_init_command")
-    (eide-i-config-rebuild-update-value-from-config "compile_command_1" "default_compile_command_1")
-    (eide-i-config-rebuild-update-value-from-config "compile_command_2" "default_compile_command_2")
-    (eide-i-config-rebuild-update-value-from-config "compile_command_3" "default_compile_command_3")
-    (eide-i-config-rebuild-update-value-from-config "compile_command_4" "default_compile_command_4")
-    (eide-i-config-rebuild-update-value-from-config "run_command_1"     "default_run_command_1")
-    (eide-i-config-rebuild-update-value-from-config "run_command_2"     "default_run_command_2")
-    (eide-i-config-rebuild-update-value-from-config "debug_command"     "default_debug_command")
-    (eide-i-config-rebuild-update-value-from-config "debug_program_1"   "default_debug_program_1")
-    (eide-i-config-rebuild-update-value-from-config "debug_program_2"   "default_debug_program_2")
+    (insert "# *****************************************************************************\n")
+    (insert "# Emacs-IDE project configuration\n")
+    (insert "# *****************************************************************************\n\n")
+    (insert "# --> Click right to exit this page.\n")
+    (insert "# --> To restore the default value of a parameter, delete the line\n")
+    (insert "#     (project configuration file is rebuilt when you exit this page).\n\n")
 
-    ;; Close config files
-    (kill-buffer eide-config-file)
-    (eide-i-config-rebuild-stop)))
+    (insert "# Init command is called before all 'compile' and 'run' commands.\n")
+    (eide-i-config-rebuild-update-value-from-config "init_command"      eide-custom-project-default-init-command)
+    (eide-i-config-rebuild-update-value-from-config "compile_command_1" eide-custom-project-default-compile-command-1)
+    (eide-i-config-rebuild-update-value-from-config "compile_command_2" eide-custom-project-default-compile-command-2)
+    (eide-i-config-rebuild-update-value-from-config "compile_command_3" eide-custom-project-default-compile-command-3)
+    (eide-i-config-rebuild-update-value-from-config "compile_command_4" eide-custom-project-default-compile-command-4)
+    (eide-i-config-rebuild-update-value-from-config "run_command_1"     eide-custom-project-default-run-command-1)
+    (eide-i-config-rebuild-update-value-from-config "run_command_2"     eide-custom-project-default-run-command-1)
+    (eide-i-config-rebuild-update-value-from-config "debug_command"     eide-custom-project-default-debug-command)
+    (eide-i-config-rebuild-update-value-from-config "debug_program_1"   eide-custom-project-default-debug-program-1)
+    (eide-i-config-rebuild-update-value-from-config "debug_program_2"   eide-custom-project-default-debug-program-2)
+
+    ;; Replace source file by target buffer if different
+    (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-config-target-buffer nil nil) 0))
+      (progn
+        (set-buffer eide-project-config-file)
+        (erase-buffer)
+        (insert-buffer eide-config-target-buffer)
+        (ad-deactivate 'save-buffer)
+        (save-buffer)
+        (ad-activate 'save-buffer)))
+    ;; Close temporary buffer
+    (kill-buffer eide-config-target-buffer)))
 
 ;; ----------------------------------------------------------------------------
 ;; Get the value of a parameter in project config.
@@ -952,15 +1117,6 @@
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (set-buffer eide-project-config-file)
     (eide-i-config-get-value p-parameter)))
-
-;; ----------------------------------------------------------------------------
-;; Display config file (full frame).
-;; ----------------------------------------------------------------------------
-(defun eide-config-open-config-file ()
-  (eide-windows-layout-unbuild)
-  (eide-config-set-colors-for-config)
-  (eide-keys-configure-for-special-buffer)
-  (eide-windows-find-file-without-advice (concat "~/" eide-config-file)))
 
 ;; ----------------------------------------------------------------------------
 ;; Display project file (full frame).
@@ -1005,7 +1161,7 @@
 ;; Set colors for edition mode.
 ;; ----------------------------------------------------------------------------
 (defun eide-config-set-colors-for-files ()
-  (if eide-config-use-color-theme-for-source-flag
+  (if (and eide-custom-override-emacs-settings eide-custom-extend-color-theme-to-source-code)
     (progn
       (set-background-color eide-config-background-color)
       (set-foreground-color eide-config-foreground-color)
@@ -1014,5 +1170,21 @@
       (set-background-color eide-config-user-background-color)
       (set-foreground-color eide-config-user-foreground-color)
       (set-face-background 'fringe eide-config-user-background-color))))
+
+;; ----------------------------------------------------------------------------
+;; Initialize config.
+;; ----------------------------------------------------------------------------
+(defun eide-config-init ()
+  ;; Custom values are initialized (and set if customized) by
+  ;; custom-set-variables in ~/.emacs, which may be done before or after
+  ;; eide-start call.
+  ;; There are dependencies between parameters: we cannot set them until they
+  ;; have all been defined.
+  ;; Moreover, in order to avoid to set different values successively, values
+  ;; are not set until eide-config-ready is set (below).
+  (setq eide-config-ready t)
+  (eide-i-config-save-emacs-settings)
+  (eide-i-config-apply-color-theme)
+  (eide-i-config-apply-emacs-settings))
 
 ;;; eide-config.el ends here

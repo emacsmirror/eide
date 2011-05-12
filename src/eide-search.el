@@ -246,7 +246,7 @@
             (setq l-do-it-flag nil)))
         (if l-do-it-flag
           (progn
-            (if (or eide-config-cscope-always-update-database-flag eide-search-cscope-update-database-request-pending-flag)
+            (if (or eide-custom-always-update-cscope-database eide-search-cscope-update-database-request-pending-flag)
               (progn
                 (setq cscope-do-not-update-database nil)
                 (setq eide-search-cscope-update-database-request-pending-flag nil))

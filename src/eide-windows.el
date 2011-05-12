@@ -69,7 +69,6 @@
                 (equal major-mode 'Buffer-menu-mode))
           nil
           (if (or (string-equal "TAGS" p-buffer-name)
-                  (string-equal eide-config-file p-buffer-name)
                   (string-equal eide-project-config-file p-buffer-name)
                   (string-equal eide-project-notes-file p-buffer-name))
             nil
@@ -224,7 +223,7 @@
             p-buffer)
           (progn
             ;; Do not display TAGS file, and configuration files
-            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-config-file) (string-equal l-buffer-name eide-project-config-file) (string-equal l-buffer-name eide-project-notes-file))
+            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-project-config-file) (string-equal l-buffer-name eide-project-notes-file))
               (setq l-do-it-flag nil))
             (if l-do-it-flag
               (progn
@@ -234,10 +233,11 @@
                   (setq l-window (selected-window)))
                 ad-do-it
                 (set-buffer l-buffer-name)
-                (if (and eide-config-use-show-trailing-spaces-flag
+                (if (and eide-custom-override-emacs-settings
+                         (not (equal eide-custom-show-trailing-spaces 'ignore))
                          (equal l-window eide-windows-source-window))
                   ;; Show trailing spaces if enabled in options
-                  (if eide-config-show-trailing-spaces-flag
+                  (if eide-custom-show-trailing-spaces
                     (setq show-trailing-whitespace t)
                     (setq show-trailing-whitespace nil)))
                 (if eide-project-is-gdb-session-visible-flag
@@ -261,7 +261,7 @@
                 p-buffer)
               (progn
                 ;; Close unwanted files (except TAGS and project configuration)
-                (if (or (string-equal l-buffer-name eide-config-file) (string-equal l-buffer-name eide-project-notes-file))
+                (if (string-equal l-buffer-name eide-project-notes-file)
                   (progn
                     (kill-buffer l-buffer-name)
                     ;; Return the current buffer
@@ -385,6 +385,7 @@
 ;;          eide-windows-menu-window-width : width of "menu" window.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-windows-window-setup-hook ()
+  (eide-config-init)
   ;;(setq eide-windows-output-window-height (/ (frame-height) 5))
   ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 
@@ -463,11 +464,13 @@
 ;; Build windows layout.
 ;;
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;;          eide-config-menu-position : menu position (windows layout).
-;;          eide-config-menu-height : menu height (windows layout).
+;;          eide-custom-menu-window-position : menu window position.
+;;          eide-custom-menu-window-height : menu window height.
 ;;          eide-windows-menu-window-width : width of "menu" window.
 ;;          eide-windows-output-window-height : height of "output" window.
 ;;          eide-windows-output-window-buffer : buffer in "output" window.
+;;          eide-windows-menu-update-request-pending-flag : t = menu buffer
+;;              update is necessary.
 ;; output : eide-windows-source-window : "source" window.
 ;;          eide-windows-menu-window : "menu" window.
 ;;          eide-windows-output-window : "output" window.
@@ -481,10 +484,10 @@
       ;; Make sure that current window is not dedicated
       (set-window-dedicated-p (selected-window) nil)
       ;; Split into 3 windows ("source", "menu", "output")
-      (if (string-equal eide-config-menu-height "full")
+      (if (equal eide-custom-menu-window-height 'full)
         (progn
           (split-window-horizontally)
-          (if (string-equal eide-config-menu-position "left")
+          (if (equal eide-custom-menu-window-position 'left)
             ;; Menu on left side
             (progn
               (setq eide-windows-menu-window (selected-window))
@@ -504,7 +507,7 @@
         (progn
           (split-window-vertically)
           (split-window-horizontally)
-          (if (string-equal eide-config-menu-position "left")
+          (if (equal eide-custom-menu-window-position 'left)
             ;; Menu on left side
             (progn
               (setq eide-windows-menu-window (selected-window))
@@ -538,11 +541,11 @@
         (setq eide-windows-output-window-buffer "*results*"))
 
       (select-window eide-windows-source-window)
-      (setq eide-windows-is-layout-visible-flag t)
       (eide-windows-skip-unwanted-buffers-in-source-window)
+      (setq eide-windows-is-layout-visible-flag t)
       ;; Update menu if necessary
       (if eide-windows-menu-update-request-pending-flag
-        (eide-menu-update eide-windows-menu-update-request-pending-force-rebuild-flag eide-windows-menu-update-request-pending-force-update-status-flag))
+        (eide-menu-update nil))
       (ad-activate 'select-window))))
 
 ;; ----------------------------------------------------------------------------
@@ -652,9 +655,10 @@
               (switch-to-buffer "*scratch*"))))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
-    (if eide-config-use-show-trailing-spaces-flag
+    (if (and eide-custom-override-emacs-settings
+             (not (equal eide-custom-show-trailing-spaces 'ignore)))
       ;; Show trailing spaces if enabled in options
-      (if eide-config-show-trailing-spaces-flag
+      (if eide-custom-show-trailing-spaces
         (setq show-trailing-whitespace t)
         (setq show-trailing-whitespace nil)))
     ;; Update menu (switch-to-buffer advice was disabled)
@@ -664,8 +668,6 @@
 ;; Handle mouse-3 (right click) action.
 ;;
 ;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;;          eide-windows-menu-update-request-pending-flag : t = menu buffer
-;;              update is necessary.
 ;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-3 ()
   (interactive)
@@ -674,14 +676,6 @@
     (progn
       ;; Select the window where the mouse is
       (eide-i-windows-select-window-at-mouse-position)
-
-      (if (string-equal (buffer-name) "*Colors*")
-        (progn
-          ;; Close colors buffer and window
-          (kill-this-buffer)
-          (select-window (next-window))
-          (if (string-equal (buffer-name) eide-config-file)
-            (delete-other-windows))))
       (if (string-equal (buffer-name) "* Help *")
         ;; Close "help"
         (progn
@@ -689,19 +683,15 @@
           (eide-config-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
-        (if (string-equal (buffer-name) eide-config-file)
-          ;; Close ".emacs-ide.cfg"
+        (if (string-match "^\*Customize.*" (buffer-name))
+          ;; Close customization
           (progn
-            (save-buffer)
-            (eide-config-rebuild-config-file)
-            (eide-config-set-colors-for-files)
+            ;; NB: Exit button does not work...
+            (kill-this-buffer)
             (eide-keys-configure-for-editor)
-            (eide-windows-layout-build)
-            ;; Close colors buffer if opened
-            (if (get-buffer "*Colors*")
-              (kill-buffer "*Colors*")))
+            (eide-windows-layout-build))
           (if (string-equal (buffer-name) eide-project-config-file)
-            ;; Display another buffer (other than ".emacs-ide.project")
+            ;; Display another buffer (other than ".emacs-ide-project.cfg")
             (progn
               (save-buffer)
               (eide-config-rebuild-project-file)
@@ -711,7 +701,7 @@
               (eide-keys-configure-for-editor)
               (eide-windows-layout-build))
             (if (string-equal (buffer-name) eide-project-notes-file)
-              ;; Close ".emacs-ide.project_notes"
+              ;; Close ".emacs-ide-project.txt"
               (progn
                 (save-buffer)
                 (kill-buffer eide-project-notes-file)
@@ -762,7 +752,6 @@
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
-
   (if (and eide-windows-is-layout-visible-flag (eide-i-windows-is-menu-window-selected-p))
     (eide-menu-dired-open)
     (yank)))
@@ -774,26 +763,9 @@
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
-
   (if (eide-i-windows-is-output-window-selected-p)
     ;; In "output" window, open popup menu to delete search results
-    (eide-popup-open-menu-for-search-results-delete)
-    ;; In options, show/hide list of colors
-    (if (string-equal (buffer-name) eide-config-file)
-      (if (get-buffer "*Colors*")
-        ;; Close colors buffer and window
-        (progn
-          (delete-other-windows)
-          (kill-buffer "*Colors*"))
-        ;; Display colors in another window
-        (list-colors-display))
-      (if (string-equal (buffer-name) "*Colors*")
-        ;; Close colors buffer and window
-        (progn
-          (kill-this-buffer)
-          (select-window (next-window))
-          (if (string-equal (buffer-name) eide-config-file)
-            (delete-other-windows)))))))
+    (eide-popup-open-menu-for-search-results-delete)))
 
 ;; ----------------------------------------------------------------------------
 ;; Load a file without using advice (when "menu" buffer must not be updated).

@@ -1,5 +1,5 @@
 /------------------------------------------\
-| Emacs-IDE version 1.6+ (2011-04)         |
+| Emacs-IDE version 1.6+ (2011-05)         |
 |                                          |
 | Homepage: http://home.gna.org/emacs-ide/ |
 \------------------------------------------/
@@ -46,6 +46,7 @@ Installation
 -------------------------------------------------------------------------------
 
 Execute ./install in a terminal.
+
 Add these two lines in your ~/.emacs:
 (require 'eide)
 (eide-start)
@@ -81,16 +82,29 @@ Instructions are available in "Help" page: click on right button over "menu"
 window, and select "Help" in popup menu.
 
 -------------------------------------------------------------------------------
+Configuration
+-------------------------------------------------------------------------------
+
+Default configuration does not override default or user Emacs settings, in
+order to be compliant with Emacs Lisp conventions.
+
+Nevertheless, in order to take advantage of all user-friendly features, it is
+recommended to enable "Override Emacs settings" option in customization: click
+on right button over "menu" window, select "Configuration" in popup menu,
+enable "Override Emacs settings" option, click on "Save for future
+sessions", and click on right button to exit customization.
+
+-------------------------------------------------------------------------------
 Quick start
 -------------------------------------------------------------------------------
 
-The directory from which emacs is launched is important: it stands as the root
-directory during emacs session.
+The directory from which Emacs is launched is important: it stands as the root
+directory during Emacs session.
 
 If you work on a project - which is the main purpose of Emacs-IDE - you should
-always run emacs from the root directory of your project.
+always run Emacs from the root directory of your project.
 
-When you first run emacs for a project, click on right button over "menu"
+When you first run Emacs for a project, click on right button over "menu"
 window, and select "Create project".
 
 -------------------------------------------------------------------------------

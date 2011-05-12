@@ -22,6 +22,7 @@
 (require 'imenu) ; for imenu--generic-function and imenu-generic-expression
 
 (require 'eide-edit)
+(require 'eide-popup)
 (require 'eide-svn)
 
 (setq eide-menu-local-functions-unfolded-flag nil)
@@ -562,8 +563,6 @@
     (progn
       ;; Cancel pending request
       (setq eide-windows-menu-update-request-pending-flag nil)
-      (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
-      (setq eide-windows-menu-update-request-pending-force-update-status-flag nil)
       ;; Save window to go back to, once menu has been updated
       (let ((l-window (selected-window)))
         (eide-windows-select-source-window t)
@@ -571,11 +570,15 @@
         ;; buffer!... The bug is fixed if window-buffer is used.
         ;;(setq eide-current-buffer-temp (buffer-name))
         (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
-          (if p-force-rebuild-flag
+          (if (or p-force-rebuild-flag eide-windows-menu-update-request-pending-force-rebuild-flag)
             (progn
+              ;; Cancel pending request (force rebuild)
+              (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
               (eide-windows-select-menu-window)
               (setq eide-current-buffer eide-current-buffer-temp)
-              (eide-i-menu-rebuild p-force-update-status-flag))
+              (eide-i-menu-rebuild (or p-force-update-status-flag eide-windows-menu-update-request-pending-force-update-status-flag))
+              ;; Cancel pending request (force update status)
+              (setq eide-windows-menu-update-request-pending-force-update-status-flag nil))
             (if (not (string-equal eide-current-buffer eide-current-buffer-temp))
               (progn
                 (eide-windows-select-menu-window)
@@ -709,12 +712,15 @@
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-file-close (p-buffer-name)
-  (let ((l-do-it-flag t) (l-buffer-edit-status nil))
+  (let ((l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil))
     (save-excursion
       (set-buffer p-buffer-name)
-      (setq l-buffer-edit-status eide-menu-local-edit-status))
+      (setq l-buffer-edit-status eide-menu-local-edit-status)
+      (if eide-config-show-svn-status-flag
+        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
     (if (or (string-equal l-buffer-edit-status "new")
-            (string-equal l-buffer-edit-status "ref"))
+            (string-equal l-buffer-edit-status "ref")
+            l-buffer-svn-modified-flag)
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
     (if l-do-it-flag
       (progn

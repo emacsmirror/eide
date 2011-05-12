@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.6+")
-(defvar eide-release-date "2011-04")
+(defvar eide-release-date "2011-05")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -113,6 +113,7 @@ In 'menu' window:
     Open project popup menu:
     - project creation/configuration
     - project commands (compile, run, debug)
+    - tags and cscope update
     - configuration
     - help (this page)
 
@@ -175,16 +176,12 @@ Shift + mouse wheel up/down scrolls right/left.
   (eide-i-help-insert-header-1 "Configuration")
 
   (insert "
-Configuration is saved in a file, '.emacs-ide.cfg', in your home directory.
-This file is created as soon as you launch emacs. To edit configuration, open
-project popup menu and select 'Configuration'.
+Configuration uses Emacs customization. Customized parameters are saved in
+'.emacs', in your home directory.
+To edit configuration, open project popup menu and select 'Configuration'.
 
 Configuration covers topics such as display, coding rules, and default
 parameters for new projects (see '.emacs-ide-project.cfg' below).
-
-If you delete this file, it will be created again with default values.
-If you delete any parameter in this file, it will be restored with default
-value.
 ")
 
   (eide-i-help-insert-header-1 "Work on a project")
@@ -192,7 +189,7 @@ value.
   (eide-i-help-insert-header-2 "Create a project")
 
   (insert "
-Launch emacs from your workset root directory.
+Launch Emacs from your workset root directory.
 Open project popup menu and select 'Create project'.
 
 In your workset root directory, several files are created:
@@ -205,10 +202,13 @@ In your workset root directory, several files are created:
 
 - .emacs-ide-project.cfg:
   It defines parameters for this project.
-  It is created with default values from '~/.emacs-ide.cfg'.
+  It is created with default values from configuration ('Default commands for projects').
+  If you delete this file, it will be created again with default values.
+  If you delete any parameter in this file, it will be restored with default
+  value.
 
 - .emacs-ide-project.txt:
-  It can be used to write notes about the project, it is not used by emacs.
+  It can be used to write notes about the project, it is not used by Emacs.
   It is created empty.
 
 To edit project configuration ('.emacs-ide-project.cfg'), open project popup
@@ -221,17 +221,20 @@ select 'Project notes'.
   (eide-i-help-insert-header-2 "Open existing project")
 
   (insert "
-Launch emacs from your workset root directory.
+Launch Emacs from your workset root directory.
 Files opened during last session are opened again automatically.
 ")
 
   (eide-i-help-insert-header-2 "Tags and cscope update")
 
   (insert "
+To update tags or cscope, open project popup menu and select appropriate
+update action.
+
 When code is changed:
 - Tags database ('TAGS') needs to be updated.
 - Cscope database ('cscope.out') needs to be updated (unless
-  cscope_always_update_database option is set).
+  'Search > Update of cscope database' option value is 'On every search').
 
 When a file is added or deleted:
 - Tags database ('TAGS') needs to be updated.

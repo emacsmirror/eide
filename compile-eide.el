@@ -20,6 +20,7 @@
 ;; Configuration
 (mouse-wheel-mode 1)
 (set-scroll-bar-mode 'right)
+(setq inhibit-startup-message t)
 
 ;; Load path
 (add-to-list 'load-path (concat default-directory "src"))
@@ -38,5 +39,7 @@
 (byte-compile-file "src/eide.el")
 
 (kill-emacs)
+;;(switch-to-buffer "*Compile-Log*")
+;;(delete-other-windows)
 
 ;;; compile-eide.el ends here
