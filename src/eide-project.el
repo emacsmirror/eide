@@ -62,6 +62,9 @@
     ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
     (setq eide-windows-update-output-buffer-id "c")
     (compile l-compile-command))
+  ;; Although eide-compilation-buffer is supposed to be displayed in output window,
+  ;; it is necessary to set it as current buffer
+  (set-buffer eide-compilation-buffer)
   (end-of-buffer)
   (eide-windows-select-source-window t))
 
