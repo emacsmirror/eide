@@ -246,11 +246,13 @@
             (setq l-do-it-flag nil)))
         (if l-do-it-flag
           (progn
-            (if (or eide-custom-always-update-cscope-database eide-search-cscope-update-database-request-pending-flag)
-              (progn
-                (setq cscope-do-not-update-database nil)
-                (setq eide-search-cscope-update-database-request-pending-flag nil))
-              (setq cscope-do-not-update-database t))
+            (if (and eide-custom-override-emacs-settings
+                     (not (equal eide-custom-update-cscope-database 'ignore)))
+              (if (or (equal eide-custom-update-cscope-database 't) eide-search-cscope-update-database-request-pending-flag)
+                (progn
+                  (setq cscope-do-not-update-database nil)
+                  (setq eide-search-cscope-update-database-request-pending-flag nil))
+                (setq cscope-do-not-update-database t)))
             (cscope-find-this-symbol p-symbol)
             (save-excursion
               (set-buffer "*cscope*")

@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.6+")
-(defvar eide-release-date "2011-06")
+(defvar eide-release-date "2011-07")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -233,8 +233,10 @@ update action.
 
 When code is changed:
 - Tags database ('TAGS') needs to be updated.
-- Cscope database ('cscope.out') needs to be updated (unless
-  'Search > Update of cscope database' option value is 'On every search').
+- Cscope database ('cscope.out') needs to be updated if 'Emacs settings >
+  Search > Update of cscope database' option value is either 'Never (only on
+  user request)' or 'When a buffer has been edited or refreshed' (in case a
+  file has been modified outside Emacs).
 
 When a file is added or deleted:
 - Tags database ('TAGS') needs to be updated.

@@ -180,8 +180,9 @@
         (if eide-option-use-cscope-flag
           (progn
             (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
-            (if eide-custom-always-update-cscope-database
-              (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" nil)
+            (if (and eide-custom-override-emacs-settings
+                     (or (not eide-custom-update-cscope-database)
+                         (equal eide-custom-update-cscope-database 'auto)))
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
         (eide-i-popup-menu-close-action-list "Update")
         (if eide-compare-other-project-name

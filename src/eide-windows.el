@@ -189,6 +189,7 @@
 ;; - when switching to compile, run or shell buffer.
 ;;
 ;; input  : p-buffer : buffer.
+;;          p-norecord : norecord flag.
 ;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
 ;;          eide-search-find-symbol-definition-flag : t = display update is
 ;;              necessary after symbol search.
@@ -197,7 +198,7 @@
 ;;              (nil).
 ;; return : p-buffer (or current buffer if it didn't switch to p-buffer).
 ;; ----------------------------------------------------------------------------
-(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer))
+(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord))
   (let ((l-buffer-name) (l-do-it-flag t) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
       ;; Get buffer name from buffer
@@ -280,17 +281,39 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Override save-buffer function (advice), to save buffer in "source" window.
+;;
+;; input  : p-backup-option : backup option.
 ;; ----------------------------------------------------------------------------
-(defadvice save-buffer (around eide-save-buffer-advice-around)
+(defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
   (let ((l-window (selected-window)))
     (eide-windows-select-source-window nil)
     ad-do-it
     (eide-menu-update-current-buffer-modified-status)
+    (if (equal eide-custom-update-cscope-database 'auto)
+      ;; Current buffer has been modified and saved: we must update cscope database
+      (setq eide-search-cscope-update-database-request-pending-flag t))
     (select-window l-window)))
+
+;; ----------------------------------------------------------------------------
+;; Override revert-buffer function (advice), to update cscope database.
+;;
+;; input  : p-ignore-auto : ignore-auto flag.
+;;          p-noconfirm : noconfirm flag.
+;;          p-preserve-modes : preserve-modes flag.
+;;          eide-custom-update-cscope-database : cscope database update.
+;; output : eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request.
+;; ----------------------------------------------------------------------------
+(defadvice revert-buffer (after eide-revert-buffer-advice-after (&optional p-ignore-auto p-noconfirm p-preserve-modes))
+  (if (equal eide-custom-update-cscope-database 'auto)
+    ;; Current buffer has been updated: we must update cscope database
+    (setq eide-search-cscope-update-database-request-pending-flag t)))
 
 ;; ----------------------------------------------------------------------------
 ;; Override mode-line-unbury-buffer (previous buffer) function (advice), to
 ;; select appropriate buffer according to selected window (for Emacs 21 only).
+;;
+;; input  : p-event : event.
 ;; ----------------------------------------------------------------------------
 (defadvice mode-line-unbury-buffer (around eide-previous-buffer-advice-around (p-event))
   (interactive "e")
@@ -312,6 +335,8 @@
 ;; ----------------------------------------------------------------------------
 ;; Override mode-line-bury-buffer (next buffer) function (advice), to select
 ;; appropriate buffer according to selected window (for Emacs 21 only).
+;;
+;; input  : p-event : event.
 ;; ----------------------------------------------------------------------------
 (defadvice mode-line-bury-buffer (around eide-previous-buffer-advice-around (p-event))
   (interactive "e")
@@ -400,6 +425,7 @@
   (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
+  (ad-activate 'revert-buffer)
   (if (fboundp 'previous-buffer)
     (progn
       ;; New API (Emacs 22)
