@@ -159,6 +159,8 @@
 ;; output : eide-search-tags-available-flag : t if tags are already available.
 ;;          eide-search-cscope-available-flag : t if cscope is already
 ;;              available.
+;;          eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-start-with-project ()
   ;; Get project name from directory

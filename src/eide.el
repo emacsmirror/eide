@@ -265,10 +265,6 @@
             ;;("#define"    , eide-cc-imenu-c-define 1)
             )))
 
-  ;; Default indentation: insert spaces instead of tabs
-  (setq-default indent-tabs-mode nil)
-  (setq-default tab-width 4) ; Number of spaces for one tab
-
   ;; C major mode
   (add-hook
    'c-mode-hook

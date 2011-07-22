@@ -209,6 +209,8 @@
 ;;
 ;; input  : eide-root-directory : project root directory.
 ;; output : eide-search-cscope-available-flag : nil.
+;;          eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request (t).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-create-cscope-list-of-files ()
   (message "Creating cscope list of files...")
@@ -221,6 +223,9 @@
 
 ;; ----------------------------------------------------------------------------
 ;; Update cscope database (on next search).
+;;
+;; output : eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request (t).
 ;; ----------------------------------------------------------------------------
 (defun eide-search-update-cscope-database ()
   (setq eide-search-cscope-update-database-request-pending-flag t)
@@ -232,6 +237,10 @@
 ;; input  : p-symbol : symbol.
 ;;          eide-search-cscope-available-flag : t if cscope is available.
 ;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
+;;          eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request.
+;; output : eide-search-cscope-update-database-request-pending-flag : updated
+;;              cscope database update pending request.
 ;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
   (if eide-search-cscope-available-flag

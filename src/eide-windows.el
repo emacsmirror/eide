@@ -283,6 +283,8 @@
 ;; Override save-buffer function (advice), to save buffer in "source" window.
 ;;
 ;; input  : p-backup-option : backup option.
+;; output : eide-search-cscope-update-database-request-pending-flag : cscope
+;;              database update pending request.
 ;; ----------------------------------------------------------------------------
 (defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
   (let ((l-window (selected-window)))
