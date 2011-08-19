@@ -983,7 +983,8 @@
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-font-height 'eide-custom-font-height eide-custom-font-height)
       (eide-i-config-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
-      (eide-i-config-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database))))
+      (if eide-option-use-cscope-flag
+        (eide-i-config-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))))
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -1015,7 +1016,8 @@
   (setq eide-config-user-comment-foreground-color (face-foreground 'font-lock-comment-face))
   (setq eide-config-user-selection-background-color (face-background 'region))
   (setq eide-config-user-selection-foreground-color (face-foreground 'region))
-  (setq eide-config-user-cscope-do-not-update-database cscope-do-not-update-database))
+  (if eide-option-use-cscope-flag
+    (setq eide-config-user-cscope-do-not-update-database cscope-do-not-update-database)))
 
 ;; ----------------------------------------------------------------------------
 ;; Get the value of a parameter in a config (current buffer).
