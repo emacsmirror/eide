@@ -412,7 +412,7 @@
 ;;          eide-windows-menu-window-width : width of "menu" window.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-windows-window-setup-hook ()
-  (eide-config-init)
+  (eide-config-apply)
   ;;(setq eide-windows-output-window-height (/ (frame-height) 5))
   ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 

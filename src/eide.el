@@ -410,6 +410,9 @@
 ;; Initialization.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
+  ;; Config must be initialized before desktop is loaded, because it reads some
+  ;; variables that might be overridden by local values in buffers.
+  (eide-config-init)
   ;; Migration from Emacs-IDE 1.5
   (if (and (not (file-exists-p eide-project-config-file))
            (file-exists-p ".emacs-ide.project"))

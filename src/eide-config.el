@@ -38,6 +38,7 @@
 (defvar eide-config-user-tool-bar-mode nil)
 (defvar eide-config-user-font-height nil)
 (defvar eide-config-user-indent-tabs-mode nil)
+(defvar eide-config-user-tab-width nil)
 (defvar eide-config-user-background-color nil)
 (defvar eide-config-user-foreground-color nil)
 (defvar eide-config-user-keyword-foreground-color nil)
@@ -341,12 +342,19 @@
 (defgroup eide-emacs-settings-coding-rules nil "Indentation for some languages."
   :tag "Coding rules"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-indent-mode nil "Indentation mode (spaces or tabs)."
+(defcustom eide-custom-indent-mode 'spaces "Indentation mode (spaces or tabs)."
   :tag "Indentation mode"
-  :type '(choice (const :tag "Spaces" nil)
-                 (const :tag "Tabs" t)
+  :type '(choice (const :tag "Spaces" spaces)
+                 (const :tag "Tabs" tabs)
                  (const :tag "Don't override indent-tabs-mode variable" ignore))
   :set 'eide-i-config-set-indent-mode
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-coding-rules)
+(defcustom eide-custom-default-tab-width 4 "Default tab width. For languages that are listed below, tab width is indentation offset."
+  :tag "Default tab width"
+  :type '(choice (const :tag "Don't override" nil)
+                 (integer :tag "Number of spaces"))
+  :set 'eide-i-config-set-default-tab-width
   :initialize 'custom-initialize-default
   :group 'eide-emacs-settings-coding-rules)
 (defcustom eide-custom-c-indent-offset 2 "Indentation offset for C/C++."
@@ -862,8 +870,23 @@
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
              (not (equal value 'ignore)))
-      (setq-default indent-tabs-mode value)
+      (setq-default indent-tabs-mode (if (equal value 'spaces) nil t))
       (setq-default indent-tabs-mode eide-config-user-indent-tabs-mode))))
+
+;; ----------------------------------------------------------------------------
+;; Set default tab width.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-config-user-tab-width : user value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-default-tab-width (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if (and eide-custom-override-emacs-settings value)
+      (setq-default tab-width value)
+      (setq-default tab-width eide-config-user-tab-width))))
 
 ;; ----------------------------------------------------------------------------
 ;; Set background color for a color theme.
@@ -983,6 +1006,7 @@
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-font-height 'eide-custom-font-height eide-custom-font-height)
       (eide-i-config-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
+      (eide-i-config-set-default-tab-width 'eide-custom-default-tab-width eide-custom-default-tab-width)
       (if eide-option-use-cscope-flag
         (eide-i-config-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))))
 
@@ -1000,6 +1024,7 @@
   (setq eide-config-user-tool-bar-mode tool-bar-mode)
   (setq eide-config-user-font-height (face-attribute 'default :height))
   (setq eide-config-user-indent-tabs-mode indent-tabs-mode)
+  (setq eide-config-user-tab-width tab-width)
   (setq eide-config-user-background-color (face-background 'default))
   (setq eide-config-user-foreground-color (face-foreground 'default))
 
@@ -1230,6 +1255,12 @@
 ;; Initialize config.
 ;; ----------------------------------------------------------------------------
 (defun eide-config-init ()
+  (eide-i-config-save-emacs-settings))
+
+;; ----------------------------------------------------------------------------
+;; Apply config.
+;; ----------------------------------------------------------------------------
+(defun eide-config-apply ()
   ;; Custom values are initialized (and set if customized) by
   ;; custom-set-variables in ~/.emacs, which may be done before or after
   ;; eide-start call.
@@ -1238,7 +1269,6 @@
   ;; Moreover, in order to avoid to set different values successively, values
   ;; are not set until eide-config-ready is set (below).
   (setq eide-config-ready t)
-  (eide-i-config-save-emacs-settings)
   (eide-i-config-apply-color-theme)
   (eide-i-config-apply-emacs-settings))
 
