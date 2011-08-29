@@ -36,6 +36,7 @@
 
 (defvar eide-config-user-menu-bar-mode nil)
 (defvar eide-config-user-tool-bar-mode nil)
+(defvar eide-config-user-scroll-bar-mode nil)
 (defvar eide-config-user-font-height nil)
 (defvar eide-config-user-indent-tabs-mode nil)
 (defvar eide-config-user-tab-width nil)
@@ -315,6 +316,15 @@
                  (const :tag "Yes" t)
                  (const :tag "Don't override" ignore))
   :set 'eide-i-config-set-tool-bar
+  :initialize 'custom-initialize-default
+  :group 'eide-emacs-settings-display)
+(defcustom eide-custom-scroll-bar-position 'right "Scroll bar position."
+  :tag "Scroll bar position"
+  :type '(choice (const :tag "No scroll bar" nil)
+                 (const :tag "Left" left)
+                 (const :tag "Right" right)
+                 (const :tag "Don't override" ignore))
+  :set 'eide-i-config-set-scroll-bar-position
   :initialize 'custom-initialize-default
   :group 'eide-emacs-settings-display)
 (defcustom eide-custom-font-height 105 "Font height (an integer in units of 1/10 point)."
@@ -842,6 +852,23 @@
         (tool-bar-mode (if eide-config-user-tool-bar-mode 1 -1))))))
 
 ;; ----------------------------------------------------------------------------
+;; Set tool bar mode.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;;          eide-custom-override-emacs-settings : override emacs settings flag.
+;;          eide-config-user-scroll-bar-mode : user value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-scroll-bar-position (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (if window-system
+      (if (and eide-custom-override-emacs-settings
+               (not (equal value 'ignore)))
+        (set-scroll-bar-mode value)
+        (set-scroll-bar-mode eide-config-user-scroll-bar-mode)))))
+
+;; ----------------------------------------------------------------------------
 ;; Set font height.
 ;;
 ;; input  : param : customization parameter.
@@ -1004,6 +1031,7 @@
       (eide-i-config-set-svn-diff-command 'eide-custom-svn-diff-command eide-custom-svn-diff-command)
       (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
+      (eide-i-config-set-scroll-bar-position 'eide-custom-scroll-bar-position eide-custom-scroll-bar-position)
       (eide-i-config-set-font-height 'eide-custom-font-height eide-custom-font-height)
       (eide-i-config-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
       (eide-i-config-set-default-tab-width 'eide-custom-default-tab-width eide-custom-default-tab-width)
@@ -1022,6 +1050,7 @@
 (defun eide-i-config-save-emacs-settings ()
   (setq eide-config-user-menu-bar-mode menu-bar-mode)
   (setq eide-config-user-tool-bar-mode tool-bar-mode)
+  (setq eide-config-user-scroll-bar-mode scroll-bar-mode)
   (setq eide-config-user-font-height (face-attribute 'default :height))
   (setq eide-config-user-indent-tabs-mode indent-tabs-mode)
   (setq eide-config-user-tab-width tab-width)

@@ -110,9 +110,6 @@
   ;; Disable beep
   ;;(setq visible-bell t)
   (setq ring-bell-function (lambda() ()))
-  ;; Vertical scroll bar on the right
-  ;; (default value: right for Windows, left for Linux)
-  (set-scroll-bar-mode 'right)
   ;; Ignore invisible lines when moving cursor in project configuration
   ;; TODO: not used anymore in project configuration => still necessary?
   (setq line-move-ignore-invisible t)
