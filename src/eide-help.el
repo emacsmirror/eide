@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.6+")
-(defvar eide-release-date "2011-08")
+(defvar eide-release-date "2011-10")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -285,12 +285,15 @@ File popup menu actions:
 If show_svn_status option is set:
 - svn diff
 - svn revert
+If show_git_status option is set:
+- git diff
+- git checkout
 
 File name colour:
 - black when file is read/write.
 - grey when file is read only.
-If show_svn_status option is set:
-- blue when file is modified compared to svn repository.
+If show_svn_status or show_git_status option is set:
+- blue when file is modified compared to repository.
 ")
 
   (eide-i-help-insert-header-1 "Actions on directories (right click on directory name)")

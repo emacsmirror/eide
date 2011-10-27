@@ -19,12 +19,16 @@
 
 (provide 'eide-config)
 
+(require 'eide-menu)
+(require 'eide-svn)
+(require 'eide-git)
+
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
 
 (defvar eide-config-ready nil)
 (defvar eide-config-show-svn-status-flag nil)
-(defvar eide-config-svn-diff-full-command nil)
+(defvar eide-config-show-git-status-flag nil)
 
 (defvar eide-config-background-color nil)
 (defvar eide-config-foreground-color nil)
@@ -104,7 +108,7 @@
 (make-face 'eide-config-menu-file-nofile-face)
 (make-face 'eide-config-menu-file-ref-face)
 (make-face 'eide-config-menu-file-new-face)
-(make-face 'eide-config-menu-file-svn-modified-face)
+(make-face 'eide-config-menu-file-vc-modified-face)
 (make-face 'eide-config-menu-function-face)
 (make-face 'eide-config-menu-function-with-highlight-face)
 (make-face 'eide-config-menu-empty-list-face)
@@ -136,7 +140,7 @@
 (make-face-bold 'eide-config-menu-file-ref-face)
 (set-face-foreground 'eide-config-menu-file-new-face "medium sea green")
 (make-face-bold 'eide-config-menu-file-new-face)
-(make-face-bold 'eide-config-menu-file-svn-modified-face)
+(make-face-bold 'eide-config-menu-file-vc-modified-face)
 
 (make-face-italic 'eide-config-menu-empty-list-face)
 
@@ -234,10 +238,24 @@
   :set 'eide-i-config-set-show-svn-status
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
-(defcustom eide-custom-svn-diff-command "" "Svn diff command (--diff-cmd argument). Use default (no --diff-cmd option) if empty."
+(defcustom eide-custom-svn-diff-command "" "Svn diff command (svn diff --diff-cmd=<command>). Use default (svn diff) if empty."
   :tag "Svn diff command"
   :type 'string
   :set 'eide-i-config-set-svn-diff-command
+  :initialize 'custom-initialize-default
+  :group 'eide-version-control)
+(defcustom eide-custom-show-git-status 'auto "Show git status of files in menu."
+  :tag "Show git status"
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Always" t)
+                 (const :tag "If root directory contains .git directory" auto))
+  :set 'eide-i-config-set-show-git-status
+  :initialize 'custom-initialize-default
+  :group 'eide-version-control)
+(defcustom eide-custom-git-diff-command "" "Git diff command (git difftool -y --extcmd=<command>). Use default (git diff) if empty."
+  :tag "Git diff command"
+  :type 'string
+  :set 'eide-i-config-set-git-diff-command
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
 
@@ -613,7 +631,7 @@
           (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
           (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
           (setq eide-config-menu-file-highlight-background-color "dark red")
-          (set-face-foreground 'eide-config-menu-file-svn-modified-face "deep sky blue")
+          (set-face-foreground 'eide-config-menu-file-vc-modified-face "deep sky blue")
           ;; Menu: functions
           (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
           (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
@@ -653,7 +671,7 @@
           (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
           (set-face-foreground 'eide-config-menu-file-nofile-face "black")
           (setq eide-config-menu-file-highlight-background-color "yellow")
-          (set-face-foreground 'eide-config-menu-file-svn-modified-face "blue")
+          (set-face-foreground 'eide-config-menu-file-vc-modified-face "blue")
           ;; Menu: functions
           (set-face-foreground 'eide-config-menu-function-face "blue")
           (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
@@ -686,7 +704,7 @@
       (set-face-background 'eide-config-menu-file-nofile-face eide-config-menu-background-color)
       (set-face-background 'eide-config-menu-file-ref-face eide-config-menu-background-color)
       (set-face-background 'eide-config-menu-file-new-face eide-config-menu-background-color)
-      (set-face-background 'eide-config-menu-file-svn-modified-face eide-config-menu-background-color)
+      (set-face-background 'eide-config-menu-file-vc-modified-face eide-config-menu-background-color)
 
       ;; Menu: current file
       (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
@@ -694,13 +712,13 @@
       (copy-face 'eide-config-menu-file-nofile-face 'eide-config-menu-current-file-nofile-face)
       (copy-face 'eide-config-menu-file-ref-face 'eide-config-menu-current-file-ref-face)
       (copy-face 'eide-config-menu-file-new-face 'eide-config-menu-current-file-new-face)
-      (copy-face 'eide-config-menu-file-svn-modified-face 'eide-config-menu-current-file-svn-modified-face)
+      (copy-face 'eide-config-menu-file-vc-modified-face 'eide-config-menu-current-file-vc-modified-face)
       (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
       (set-face-background 'eide-config-menu-current-file-ro-face eide-config-menu-file-highlight-background-color)
       (set-face-background 'eide-config-menu-current-file-nofile-face eide-config-menu-file-highlight-background-color)
       (set-face-background 'eide-config-menu-current-file-ref-face eide-config-menu-file-highlight-background-color)
       (set-face-background 'eide-config-menu-current-file-new-face eide-config-menu-file-highlight-background-color)
-      (set-face-background 'eide-config-menu-current-file-svn-modified-face eide-config-menu-file-highlight-background-color)
+      (set-face-background 'eide-config-menu-current-file-vc-modified-face eide-config-menu-file-highlight-background-color)
 
       (set-face-background 'eide-config-menu-function-face eide-config-menu-background-color)
       (set-face-background 'eide-config-menu-empty-list-face eide-config-menu-background-color)
@@ -804,14 +822,40 @@
 ;;
 ;; input  : param : customization parameter.
 ;;          value : customization value.
-;; output : eide-config-svn-diff-full-command : svn diff command.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-svn-diff-command (param value)
   (set-default param value)
   (if eide-config-ready
-    (if (string-equal value "")
-      (setq eide-config-svn-diff-full-command "svn diff ")
-      (setq eide-config-svn-diff-full-command (concat "svn diff --diff-cmd=" value " ")))))
+    (eide-svn-set-diff-command value)))
+
+;; ----------------------------------------------------------------------------
+;; Set show git status.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;; output : eide-config-show-git-status-flag : show git status.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-show-git-status (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (progn
+      (if (equal value 'auto)
+        (if (file-exists-p (concat eide-root-directory ".git"))
+          (setq eide-config-show-git-status-flag t)
+          (setq eide-config-show-git-status-flag nil))
+        (setq eide-config-show-git-status-flag value))
+      (eide-menu-update t t))))
+
+;; ----------------------------------------------------------------------------
+;; Set git diff command.
+;;
+;; input  : param : customization parameter.
+;;          value : customization value.
+;; ----------------------------------------------------------------------------
+(defun eide-i-config-set-git-diff-command (param value)
+  (set-default param value)
+  (if eide-config-ready
+    (eide-git-set-diff-command value)))
 
 ;; ----------------------------------------------------------------------------
 ;; Set menu bar mode.
@@ -1029,6 +1073,8 @@
       (eide-i-config-apply-extended-color-theme)
       (eide-i-config-set-show-svn-status 'eide-custom-show-svn-status eide-custom-show-svn-status)
       (eide-i-config-set-svn-diff-command 'eide-custom-svn-diff-command eide-custom-svn-diff-command)
+      (eide-i-config-set-show-git-status 'eide-custom-show-git-status eide-custom-show-git-status)
+      (eide-i-config-set-git-diff-command 'eide-custom-git-diff-command eide-custom-git-diff-command)
       (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-scroll-bar-position 'eide-custom-scroll-bar-position eide-custom-scroll-bar-position)

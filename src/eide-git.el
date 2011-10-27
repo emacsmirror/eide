@@ -1,4 +1,4 @@
-;;; eide-svn.el --- Emacs-IDE, svn
+;;; eide-git.el --- Emacs-IDE, git
 
 ;; Copyright (C) 2008-2011 Cédric Marie
 
@@ -17,35 +17,35 @@
 
 ;;; Code:
 
-(provide 'eide-svn)
+(provide 'eide-git)
 
-(defvar eide-svn-diff-full-command nil)
+(defvar eide-git-diff-full-command nil)
 
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
 
 ;; ----------------------------------------------------------------------------
-;; Check if current buffer is modified compared to svn repository.
+;; Check if current buffer is modified compared to git repository.
 ;;
 ;; return : t or nil.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-is-current-buffer-modified-p ()
-  (if eide-config-show-svn-status-flag
+(defun eide-git-is-current-buffer-modified-p ()
+  (if eide-config-show-git-status-flag
     (if (file-exists-p buffer-file-name)
-      (not (string-equal (shell-command-to-string (concat "svn st -q " buffer-file-name)) ""))
+      (not (string-equal (shell-command-to-string (concat "git status " buffer-file-name " | grep modified")) ""))
       nil)
     nil))
 
 ;; ----------------------------------------------------------------------------
-;; Update buffers svn status (modified or not).
+;; Update buffers git status (modified or not).
 ;;
 ;; input  : p-files-list : list of files to update (overrides
 ;;              eide-menu-files-list).
 ;;          eide-menu-files-list : list of opened files.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-update-files-status (&optional p-files-list)
-  (if eide-config-show-svn-status-flag
+(defun eide-git-update-files-status (&optional p-files-list)
+  (if eide-config-show-git-status-flag
     (save-excursion
       (let ((l-files-list nil))
         (if p-files-list
@@ -53,48 +53,48 @@
           (setq l-files-list eide-menu-files-list))
         (dolist (l-buffer-name l-files-list)
           (set-buffer l-buffer-name)
-          (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-          (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))))
+          (make-local-variable 'eide-menu-local-git-modified-status-flag)
+          (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))))
 
 ;; ----------------------------------------------------------------------------
-;; Set svn diff command.
+;; Set git diff command.
 ;;
 ;; input  : p-cmd : diff program.
-;; output : eide-svn-diff-full-command : svn diff command.
+;; output : eide-git-diff-full-command : git diff command.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-set-diff-command (p-cmd)
+(defun eide-git-set-diff-command (p-cmd)
   (if (string-equal p-cmd "")
-    (setq eide-svn-diff-full-command "svn diff ")
-    (setq eide-svn-diff-full-command (concat "svn diff --diff-cmd=" p-cmd " "))))
+    (setq eide-git-diff-full-command "git diff ")
+    (setq eide-git-diff-full-command (concat "git difftool -y --extcmd=" p-cmd " "))))
 
 ;; ----------------------------------------------------------------------------
-;; Execute "svn diff" on current buffer.
+;; Execute "git diff" on current buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-diff ()
-  (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
-    (shell-command (concat eide-svn-diff-full-command buffer-file-name))))
+(defun eide-git-diff ()
+  (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
+    (shell-command (concat eide-git-diff-full-command buffer-file-name))))
 
 ;; ----------------------------------------------------------------------------
-;; Execute "svn diff" on a directory.
+;; Execute "git diff" on a directory.
 ;;
 ;; input  : p-directory-name : directory name.
 ;;          p-files-list-string : string containing files list.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-diff-files-in-directory (p-directory-name p-files-list-string)
-  (if eide-config-show-svn-status-flag
+(defun eide-git-diff-files-in-directory (p-directory-name p-files-list-string)
+  (if eide-config-show-git-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
         (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
-      (shell-command (concat "cd " l-full-directory-name " && " eide-svn-diff-full-command p-files-list-string)))))
+      (shell-command (concat "cd " l-full-directory-name " && " eide-git-diff-full-command p-files-list-string)))))
 
 ;; ----------------------------------------------------------------------------
-;; Execute "svn revert" on current buffer.
+;; Execute "git checkout" on current buffer.
 ;; ----------------------------------------------------------------------------
-(defun eide-svn-revert ()
-  (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+(defun eide-git-checkout ()
+  (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (progn
-      (shell-command (concat "svn revert " buffer-file-name))
+      (shell-command (concat "git checkout " buffer-file-name))
       (revert-buffer))))
 
-;;; eide-svn.el ends here
+;;; eide-git.el ends here

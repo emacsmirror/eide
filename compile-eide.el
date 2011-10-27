@@ -35,6 +35,7 @@
 (byte-compile-file "src/eide-project.el")
 (byte-compile-file "src/eide-search.el")
 (byte-compile-file "src/eide-svn.el")
+(byte-compile-file "src/eide-git.el")
 (byte-compile-file "src/eide-windows.el")
 (byte-compile-file "src/eide.el")
 

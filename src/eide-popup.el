@@ -226,7 +226,10 @@
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Close all files from this directory" (concat "(eide-menu-directory-close \"" l-directory-name "\")") t)
 
-    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil) (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil) (l-buffer-svn-modified-flag nil) (l-svn-modified-files-list-string ""))
+    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil)
+          (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil)
+          (l-buffer-svn-modified-flag nil) (l-svn-modified-files-list-string "")
+          (l-buffer-git-modified-flag nil) (l-git-modified-files-list-string ""))
       ;; Parse list of opened buffers, and find the ones located in this
       ;; directory, to check, for every possible property (read only, REF file,
       ;; ...) if at least one of them matches.
@@ -255,8 +258,18 @@
                       (if l-index
                         (setq l-file-name (substring l-buffer 0 l-index))
                         (setq l-file-name l-buffer))
-                      (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-file-name))))))))))
+                      (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-file-name)))))
+                (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
+                  (progn
+                    (setq l-buffer-git-modified-flag t)
+                    ;; Get file name from buffer name (remove <n> if present)
+                    (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
+                      (if l-index
+                        (setq l-file-name (substring l-buffer 0 l-index))
+                        (setq l-file-name l-buffer))
+                      (setq l-git-modified-files-list-string (concat l-git-modified-files-list-string " " l-file-name))))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
+      ;; "Edit" action list
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
       (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Backup original files (REF) to work on copies (NEW)" (concat "(eide-edit-action-on-directory 'eide-edit-make-ref-file \"" l-directory-name "\")") l-buffer-status-none-flag)
@@ -267,17 +280,26 @@
       (eide-i-popup-menu-add-action "Discard NEW files" (concat "(eide-edit-action-on-directory 'eide-edit-discard-new-file \"" l-directory-name "\" \"discard all NEW files\")") l-buffer-status-ref-flag)
       (eide-i-popup-menu-close-action-list "Edit")
 
+      ;; "Clean" action list
       (eide-i-popup-menu-add-action "Untabify and indent all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-untabify-and-indent \"" l-directory-name "\" \"untabify and indent all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Delete trailing spaces in all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-delete-trailing-spaces \"" l-directory-name "\" \"delete trailing spaces in all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Convert end of line in all read/write files: DOS to UNIX" (concat "(eide-edit-action-on-directory 'eide-edit-dos-to-unix \"" l-directory-name "\" \"convert end of line (DOS to UNIX) in all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Convert end of line in all read/write files: UNIX to DOS" (concat "(eide-edit-action-on-directory 'eide-edit-unix-to-dos \"" l-directory-name "\" \"convert end of line (UNIX to DOS) in all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-close-action-list "Clean")
 
+      ;; "svn" action list
       (if eide-config-show-svn-status-flag
         (progn
           (eide-i-popup-menu-add-action "svn diff" (concat "(eide-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
-          (eide-i-popup-menu-close-action-list "svn"))))
+          (eide-i-popup-menu-close-action-list "svn")))
+
+      ;; "git" action list
+      (if eide-config-show-git-status-flag
+        (progn
+          (eide-i-popup-menu-add-action "git diff" (concat "(eide-git-diff-files-in-directory \"" l-directory-name "\" \"" l-git-modified-files-list-string "\")") l-buffer-git-modified-flag)
+          (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-git-checkout \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-git-modified-flag)
+          (eide-i-popup-menu-close-action-list "git"))))
 
     (eide-i-popup-menu-open l-directory-name-in-title)))
 
@@ -293,7 +315,7 @@
   (move-to-window-line (cdr (last (mouse-position))))
 
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line))
-        (l-buffer-status nil) (l-buffer-rw-flag t) (l-buffer-svn-modified-flag nil))
+        (l-buffer-status nil) (l-buffer-rw-flag t) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     (eide-i-popup-menu-init)
 
     (save-excursion
@@ -303,21 +325,22 @@
       ;; Check buffer status (r/w)
       (if buffer-read-only
         (setq l-buffer-rw-flag nil))
-      ;; check version control status
+      ;; Check version control status
       (if eide-config-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
+        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
+      (if eide-config-show-git-status-flag
+        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
 
+    ;; "Edit" action list
     (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
 
     (if (not (string-equal l-buffer-status "nofile"))
       (progn
 
-        ;; Option "Set read/write"
         (if l-buffer-rw-flag
           (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
           (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
 
-        ;; Option for "edit"
         (if (string-equal l-buffer-status "ref")
           (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
           (if (string-equal l-buffer-status "new")
@@ -335,6 +358,7 @@
 
     (if (not (string-equal l-buffer-status "nofile"))
       (progn
+        ;; "Clean" action list
         (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
         (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
 
@@ -343,7 +367,7 @@
 
         (eide-i-popup-menu-close-action-list "Clean")
 
-        ;; Option for "compare"
+        ;; "Compare" action list
         (if (string-equal l-buffer-status "ref")
           (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-new-file \"" l-buffer "\")") t)
           (if (string-equal l-buffer-status "new")
@@ -354,13 +378,19 @@
 
         (eide-i-popup-menu-close-action-list "Compare")
 
-        ;; Option "svn diff"
+        ;; "svn" action list
         (if l-buffer-svn-modified-flag
           (progn
             (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
             (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
+        (eide-i-popup-menu-close-action-list "svn")
 
-        (eide-i-popup-menu-close-action-list "svn")))
+        ;; "git" action list
+        (if l-buffer-git-modified-flag
+          (progn
+            (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-git-diff \"" l-buffer "\")") t)
+            (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-git-checkout \"" l-buffer "\" \"checkout this file\")") t)))
+        (eide-i-popup-menu-close-action-list "git")))
 
     (eide-i-popup-menu-open l-buffer)))
 

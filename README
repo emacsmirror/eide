@@ -1,5 +1,5 @@
 /------------------------------------------\
-| Emacs-IDE version 1.6+ (2011-08)         |
+| Emacs-IDE version 1.6+ (2011-10)         |
 |                                          |
 | Homepage: http://home.gna.org/emacs-ide/ |
 \------------------------------------------/
@@ -18,6 +18,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-------------------------------------------------------------------------------
+Contributions
+-------------------------------------------------------------------------------
+
+Thanks to all users for their feedback, bug reports, and suggestions.
+
+Contributors:
+- Cédric Chépied (git support)
 
 -------------------------------------------------------------------------------
 Description

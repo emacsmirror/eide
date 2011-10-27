@@ -24,11 +24,13 @@
 (require 'eide-edit)
 (require 'eide-popup)
 (require 'eide-svn)
+(require 'eide-git)
 
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-symbols-list nil)
 (setq eide-menu-local-unfolded-symbols-folders-list nil)
 (setq eide-menu-local-svn-modified-status-flag nil)
+(setq eide-menu-local-git-modified-status-flag nil)
 (setq eide-menu-local-edit-status nil)
 
 (defvar eide-current-buffer nil)
@@ -113,19 +115,22 @@
 (defun eide-i-menu-insert-file (p-string)
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
-        (l-buffer-rw-flag t) (l-buffer-modified-flag nil) (l-buffer-svn-modified-flag nil)
+        (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
+        (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil)
         (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
     (save-excursion
       (set-buffer p-string)
       (setq l-buffer-status eide-menu-local-edit-status)
       (setq l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
-      ;; Check buffer status (r/w, modified, svn status)
+      ;; Check buffer status (r/w, modified, svn or git status)
       (if buffer-read-only
         (setq l-buffer-rw-flag nil))
       (if (buffer-modified-p)
         (setq l-buffer-modified-flag t))
       (if eide-config-show-svn-status-flag
         (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
+      (if eide-config-show-git-status-flag
+        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag))
       ;; If the buffer is unfolded, get functions list
       (if l-functions-unfolded-flag
         (save-excursion
@@ -153,8 +158,8 @@
             (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
             (if (string-equal l-buffer-status "new")
               (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
-              (if l-buffer-svn-modified-flag
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-svn-modified-face)
+              (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-vc-modified-face)
                 (if l-buffer-rw-flag
                   (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
                   (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face))))))
@@ -165,8 +170,8 @@
             (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
             (if (string-equal l-buffer-status "new")
               (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
-              (if l-buffer-svn-modified-flag
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-svn-modified-face)
+              (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
+                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-vc-modified-face)
                 (if l-buffer-rw-flag
                   (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
                   (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ro-face)))))))
@@ -176,7 +181,7 @@
     ;; emacs, property applies on whole line ("\n")
     (eide-i-menu-insert-text " ")
 
-    (if l-buffer-svn-modified-flag
+    (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
       (eide-i-menu-insert-text "(M) "))
     (if l-buffer-modified-flag
       (eide-i-menu-insert-text "*"))
@@ -377,7 +382,10 @@
         (eide-edit-update-files-status)
         ;; Update svn modified status of all files
         (if eide-config-show-svn-status-flag
-          (eide-svn-update-files-status)))
+          (eide-svn-update-files-status))
+        ;; Update git modified status of all files
+        (if eide-config-show-git-status-flag
+          (eide-git-update-files-status)))
       ;; Retrieve status of new opened files, but do not update status of other files
       (let ((eide-menu-files-old-list eide-menu-files-list) (l-new-files nil))
         (eide-menu-build-files-lists)
@@ -391,7 +399,10 @@
             (eide-edit-update-files-status l-new-files)
             ;; Retrieve svn modified status of new opened files
             (if eide-config-show-svn-status-flag
-              (eide-svn-update-files-status l-new-files))))))
+              (eide-svn-update-files-status l-new-files))
+            ;; Retrieve git modified status of new opened files
+            (if eide-config-show-git-status-flag
+              (eide-git-update-files-status l-new-files))))))
 
     ;; Insert all files
     (if eide-menu-files-list
@@ -657,6 +668,10 @@
         (progn
           (make-local-variable 'eide-menu-local-svn-modified-status-flag)
           (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+      (if eide-config-show-git-status-flag
+        (progn
+          (make-local-variable 'eide-menu-local-git-modified-status-flag)
+          (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p))))
       (set-buffer eide-menu-buffer-name)
       (save-excursion
         ;; Case sensitive search is necessary for buffer name
@@ -712,15 +727,18 @@
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-file-close (p-buffer-name)
-  (let ((l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil))
+  (let ((l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     (save-excursion
       (set-buffer p-buffer-name)
       (setq l-buffer-edit-status eide-menu-local-edit-status)
       (if eide-config-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
+        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
+      (if eide-config-show-git-status-flag
+        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
     (if (or (string-equal l-buffer-edit-status "new")
             (string-equal l-buffer-edit-status "ref")
-            l-buffer-svn-modified-flag)
+            l-buffer-svn-modified-flag
+            l-buffer-git-modified-flag)
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
     (if l-do-it-flag
       (progn
@@ -753,7 +771,7 @@
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-close (p-directory-name)
-  (let ((l-ask-flag nil) (l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil))
+  (let ((l-ask-flag nil) (l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     ;; Check if at least one file has been edited (REF or NEW)
     (dolist (l-buffer eide-menu-files-list)
       (if (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
@@ -762,10 +780,13 @@
             (set-buffer l-buffer)
             (setq l-buffer-edit-status eide-menu-local-edit-status)
             (if eide-config-show-svn-status-flag
-              (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag)))
+              (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
+            (if eide-config-show-git-status-flag
+              (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
           (if (or (string-equal l-buffer-edit-status "new")
                   (string-equal l-buffer-edit-status "ref")
-                  l-buffer-svn-modified-flag)
+                  l-buffer-svn-modified-flag
+                  l-buffer-git-modified-flag)
             (setq l-ask-flag t)))))
     (if l-ask-flag
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files in " p-directory-name " have been edited. Do you really want to close them?"))))
@@ -831,7 +852,11 @@
     (if eide-config-show-svn-status-flag
       (progn
         (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))
+        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+    (if eide-config-show-git-status-flag
+      (progn
+        (make-local-variable 'eide-menu-local-git-modified-status-flag)
+        (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
@@ -903,7 +928,11 @@
         (if eide-config-show-svn-status-flag
           (progn
             (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-            (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))))
+            (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+        (if eide-config-show-git-status-flag
+          (progn
+            (make-local-variable 'eide-menu-local-git-modified-status-flag)
+            (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
@@ -963,7 +992,11 @@
     (if eide-config-show-svn-status-flag
       (progn
         (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p)))))
+        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+    (if eide-config-show-git-status-flag
+      (progn
+        (make-local-variable 'eide-menu-local-git-modified-status-flag)
+        (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))
   ;; Update menu (complete refresh, in case file has changed (read/write status...)
   (eide-menu-update t t))
 

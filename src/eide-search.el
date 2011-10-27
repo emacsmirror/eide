@@ -28,6 +28,7 @@
 
 ;; grep commands should exclude following files:
 ;; .svn: Subversion directory
+;; .git: Git directory
 ;; *.d: Dependency files
 ;; *.o.cmd: Kbuild files
 ;; *.map: Mapping files
@@ -35,7 +36,7 @@
 ;; .emacs.desktop: Emacs files
 ;; TAGS: Ctags file
 ;; cscope.files, cscope.output: Cscope files
-(defvar eide-search-grep-exclude-options "--devices=skip --exclude-dir=.svn --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out")
+(defvar eide-search-grep-exclude-options "--devices=skip --exclude-dir=.svn --exclude-dir=.git --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out")
 
 (defvar eide-search-tag-string nil)
 
