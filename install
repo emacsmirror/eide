@@ -17,13 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-printf "\033[1mCheck dependencies\033[0m\n"
+printf "\033[1mCheck root privileges:\033[0m "
+touch root-test
+if chown root:root root-test 2> /dev/null ; then
+  printf "\033[1;32mOK\033[0m\n"
+  rm -f root-test
+else
+  printf "\033[1;31mFAILED: You need root privileges to install\033[0m\n"
+  rm -f root-test
+  exit 1
+fi
+
+printf "\n\033[1mCheck dependencies\033[0m\n"
 printf "ctags: "
 if which ctags > /dev/null ; then
   if ctags --version | grep -q Exuberant ; then
     printf "\033[1;32mOK\033[0m\n"
   else
-    printf "\033[1;31mFAILED: your version of ctags is not \"Exuberant Ctags\"\033[0m\n"
+    printf "\033[1;31mFAILED: Your version of ctags is not \"Exuberant Ctags\"\033[0m\n"
     exit 1
   fi
 else
@@ -62,9 +73,9 @@ fi
 
 printf "\n\033[1mInstall Emacs-IDE\033[0m\n"
 if [ -d /usr/local/share/emacs/site-lisp ]; then
-  sudo cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
+  cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
 elif [ -d /usr/share/emacs/site-lisp ]; then
-  sudo cp -vf src/*.elc /usr/share/emacs/site-lisp/
+  cp -vf src/*.elc /usr/share/emacs/site-lisp/
 else
   printf "\033[1;31mERROR: Neither /usr/local/share/emacs/site-lisp nor /usr/share/emacs/site-lisp exists\033[0m\n"
   exit 1

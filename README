@@ -54,7 +54,7 @@ Supported OS: GNU/Linux.
 Installation
 -------------------------------------------------------------------------------
 
-Execute ./install in a terminal.
+Execute ./install (with root privileges) in a terminal.
 
 Add these two lines in your ~/.emacs:
 (require 'eide)
