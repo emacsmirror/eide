@@ -201,7 +201,7 @@
 (defgroup eide nil "Customization of Emacs-IDE."
   :tag "Emacs-IDE"
   :group 'emacs)
-(defcustom eide-custom-override-emacs-settings nil "Enable or disable \"Emacs settings\" group. If disabled, Emacs-IDE will not override any default or user setting. If enabled, Emacs-IDE will override some default or user settings, in order to provide a more user-friendly interface, and each setting can be enabled or disabled individually in \"Emacs settings\" group."
+(defcustom eide-custom-override-emacs-settings t "Enable or disable \"Emacs settings\" group. If disabled, Emacs-IDE will not override any default or user setting. If enabled, Emacs-IDE will override some default or user settings, in order to provide a more user-friendly interface, and each setting can be enabled or disabled individually in \"Emacs settings\" group."
   :tag "Override Emacs settings"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))

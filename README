@@ -94,14 +94,18 @@ window, and select "Help" in popup menu.
 Configuration
 -------------------------------------------------------------------------------
 
-Default configuration does not override default or user Emacs settings, in
-order to be compliant with Emacs Lisp conventions.
+Default configuration overrides some Emacs settings (including your own
+settings in ~/.emacs), in order to take advantage of all user-friendly
+features.
 
-Nevertheless, in order to take advantage of all user-friendly features, it is
-recommended to enable "Override Emacs settings" option in customization: click
-on right button over "menu" window, select "Configuration" in popup menu,
-enable "Override Emacs settings" option, click on "Save for future
-sessions", and click on right button to exit customization.
+If you don't want to override these settings, you can disable "Override Emacs
+settings" option in customization: click on right button over "menu" window,
+select "Configuration" in popup menu, disable "Override Emacs settings" option,
+click on "Save for future sessions", and click on right button to exit
+customization.
+
+You can also disable only the settings that you don't want to override (in
+"Emacs settings" group).
 
 -------------------------------------------------------------------------------
 Quick start
