@@ -1,5 +1,5 @@
 /------------------------------------------\
-| Emacs-IDE version 1.6+ (2011-10)         |
+| Emacs-IDE version 1.6+ (2011-11)         |
 |                                          |
 | Homepage: http://home.gna.org/emacs-ide/ |
 \------------------------------------------/
@@ -26,7 +26,7 @@ Contributions
 Thanks to all users for their feedback, bug reports, and suggestions.
 
 Contributors:
-- Cédric Chépied (git support)
+- Cédric Chépied (git support, local install)
 
 -------------------------------------------------------------------------------
 Description
@@ -54,11 +54,14 @@ Supported OS: GNU/Linux.
 Installation
 -------------------------------------------------------------------------------
 
-Execute ./install (with root privileges) in a terminal.
+You can install Emacs-IDE:
+- for all users:
+  Execute "./install" (with root privileges) in a terminal.
+- for this user only:
+  Execute "./install -l" in a terminal.
 
-Add these two lines in your ~/.emacs:
-(require 'eide)
-(eide-start)
+At the end of installation, instructions are given for enabling Emacs-IDE in
+your ~/.emacs.
 
 -------------------------------------------------------------------------------
 Instructions

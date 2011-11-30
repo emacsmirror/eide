@@ -17,18 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-printf "\033[1mCheck root privileges:\033[0m "
-touch root-test
-if chown root:root root-test 2> /dev/null ; then
-  printf "\033[1;32mOK\033[0m\n"
-  rm -f root-test
-else
-  printf "\033[1;31mFAILED: You need root privileges to install\033[0m\n"
-  rm -f root-test
-  exit 1
+option_local=0
+while getopts l OPT
+do
+  case $OPT in
+    l) option_local=1;;
+    *) exit 1;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ $option_local -eq 0 ]; then
+  printf "\033[1mCheck root privileges:\033[0m "
+  if [ $(id -u) -eq 0 ]; then
+    printf "\033[1;32mOK\033[0m\n\n"
+  else
+    printf "\033[1;31mFAILED: You need root privileges to install\033[0m\n"
+    printf "Alternatively, you can use -l option to install locally, i.e. for this user only\n"
+    exit 1
+  fi
 fi
 
-printf "\n\033[1mCheck dependencies\033[0m\n"
+printf "\033[1mCheck dependencies\033[0m\n"
 printf "ctags: "
 if which ctags > /dev/null ; then
   if ctags --version | grep -q Exuberant ; then
@@ -67,24 +77,31 @@ for file in `ls src/*.el`; do
     compilation_ok=0
   fi
 done
-if [ $compilation_ok = 0 ]; then
+if [ $compilation_ok -eq 0 ]; then
   exit 1
 fi
 
 printf "\n\033[1mInstall Emacs-IDE\033[0m\n"
-if [ -d /usr/local/share/emacs/site-lisp ]; then
-  cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
-elif [ -d /usr/share/emacs/site-lisp ]; then
-  cp -vf src/*.elc /usr/share/emacs/site-lisp/
+if [ $option_local -eq 0 ]; then
+  if [ -d /usr/local/share/emacs/site-lisp ]; then
+    cp -vf src/*.elc /usr/local/share/emacs/site-lisp/
+  elif [ -d /usr/share/emacs/site-lisp ]; then
+    cp -vf src/*.elc /usr/share/emacs/site-lisp/
+  else
+    printf "\033[1;31mERROR: Neither /usr/local/share/emacs/site-lisp nor /usr/share/emacs/site-lisp exists\033[0m\n"
+    exit 1
+  fi
 else
-  printf "\033[1;31mERROR: Neither /usr/local/share/emacs/site-lisp nor /usr/share/emacs/site-lisp exists\033[0m\n"
-  exit 1
+  mkdir -p ~/.emacs.d/site-lisp
+  cp -vf src/*.elc ~/.emacs.d/site-lisp/
 fi
-
 printf "\n\033[1mRemove .elc files\033[0m\n"
 rm -vf src/*.elc
 
 printf "\n\033[1mInstructions for enabling Emacs-IDE\033[0m\n"
-printf "You must add these two lines in your ~/.emacs:\n"
+printf "You must add following lines in your ~/.emacs:\n\n"
+if [ $option_local -eq 1 ]; then
+  printf "(add-to-list 'load-path \"~/.emacs.d/site-lisp/\")\n"
+fi
 printf "(require 'eide)\n"
 printf "(eide-start)\n"
