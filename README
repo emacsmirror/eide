@@ -1,5 +1,5 @@
 /------------------------------------------\
-| Emacs-IDE version 1.6+ (2011-11)         |
+| Emacs-IDE version 1.7 (2011-12)          |
 |                                          |
 | Homepage: http://home.gna.org/emacs-ide/ |
 \------------------------------------------/
@@ -26,7 +26,7 @@ Contributions
 Thanks to all users for their feedback, bug reports, and suggestions.
 
 Contributors:
-- Cédric Chépied (git support, local install)
+- Cédric Chépied (git support, local installation)
 
 -------------------------------------------------------------------------------
 Description

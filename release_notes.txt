@@ -18,56 +18,80 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 -------------------------------------------------------------------------------
-Version 1.0 (2008-12, Sourceforge)
+Version 1.7 (2011-12, Gna)
 -------------------------------------------------------------------------------
-First release.
+Enhancements:
+- Changes in dark theme colors
+- Use of Emacs customization (instead of ~/.emacs-ide.cfg) for configuration
+- New options:
+  - show menu bar
+  - show tool bar
+  - scroll bar position
+  - cscope database update (always, never, or auto)
+  - indentation offset
+  - indentation mode (spaces or tabs)
+  - default tab width
+- Git support (status, diff, checkout)
+- Local installation
+Bug fixes:
+- Unwanted scrolling when clicking in the margin (because of scroll-margin)
+- Compilation output doesn't scroll
+Warning: Configuration is not migrated from previous versions. If you have
+modified some options, you will have to do it again with the new configuration
+system (customization). Old configuration file (~/.emacs-ide.cfg) is not
+deleted: you can check the values.
+
+-------------------------------------------------------------------------------
+Version 1.6 (2011-04, Gna)
+-------------------------------------------------------------------------------
+- Keep default font (change size only)
+- Support of imenu folders in menu
+- Distinguish Emacs options from Emacs-IDE options
+- Create tags and cscope list of files in subprocesses
+- Add search for man pages
+
+-------------------------------------------------------------------------------
+Version 1.5 (2010-11, Gna)
+-------------------------------------------------------------------------------
+- Support of several "source" windows (split)
+- Provide Emacs-IDE as a package to install
+- Remove Emacs-IDE update in menu (impossible with installed package)
+- Option to keep user colors
+
+-------------------------------------------------------------------------------
+Version 1.4 (2010-07, Gna)
+-------------------------------------------------------------------------------
+- Use gdb graphical interface
+
+-------------------------------------------------------------------------------
+Version 1.3 (2010-03, Sourceforge)
+-------------------------------------------------------------------------------
+- Support of spaces in file and directory names
+- Show svn modified status of files in menu
+- Add Emacs-IDE update in menu (if Emacs-IDE is under svn)
+- Improve performance:
+  - reduce useless disk accesses and menu rebuilds
+  - use recursive grep instead of find/grep
+
+-------------------------------------------------------------------------------
+Version 1.2 (2009-08, Sourceforge)
+-------------------------------------------------------------------------------
+- Use ctags instead of etags
+- Updates for emacs22-gtk
+- Remove toolbar (quite useless and not well supported on emacs22-gtk)
+- Use dired mode instead of speedbar for file browsing
 
 -------------------------------------------------------------------------------
 Version 1.1 (2009-04, Sourceforge)
 -------------------------------------------------------------------------------
 - Generic project type:
-    - tags are built for all languages,
-    - cscope is available if C/C++ files are present.
-- Project deletion.
-- Customizable dark and light color themes.
-- Popup menu on directories (actions on several files at once).
+  - tags are built for all languages
+  - cscope is available if C/C++ files are present
+- Project deletion
+- Customizable dark and light color themes
+- Popup menu on directories (actions on several files at once)
 
 -------------------------------------------------------------------------------
-Version 1.2 (2009-08, Sourceforge)
+Version 1.0 (2008-12, Sourceforge)
 -------------------------------------------------------------------------------
-- Use ctags instead of etags.
-- Updates for emacs22-gtk.
-- Remove toolbar (quite useless and not well supported on emacs22-gtk).
-- Use dired mode instead of speedbar for file browsing.
-
--------------------------------------------------------------------------------
-Version 1.3 (2010-03, Sourceforge)
--------------------------------------------------------------------------------
-- Support of spaces in file and directory names.
-- Show svn modified status of files in menu.
-- Add Emacs-IDE update in menu (if Emacs-IDE is under svn).
-- Improve performance:
-    - reduce useless disk accesses and menu rebuilds,
-    - use recursive grep instead of find/grep.
-
--------------------------------------------------------------------------------
-Version 1.4 (2010-07, Gna)
--------------------------------------------------------------------------------
-- Use gdb graphical interface.
-
--------------------------------------------------------------------------------
-Version 1.5 (2010-11, Gna)
--------------------------------------------------------------------------------
-- Support of several "source" windows (split).
-- Provide Emacs-IDE as a package to install.
-- Remove Emacs-IDE update in menu (impossible with installed package).
-- Option to keep user colors.
-
--------------------------------------------------------------------------------
-Version 1.6 (2011-04, Gna)
--------------------------------------------------------------------------------
-- Keep default font (change size only).
-- Support of imenu folders in menu.
-- Distinguish Emacs options from Emacs-IDE options.
-- Create tags and cscope list of files in subprocesses.
-- Add search for man pages.
+First release.
