@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE, project
 
-;; Copyright (C) 2008-2011 Cédric Marie
+;; Copyright (C) 2008-2012 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 
 (provide 'eide-project)
 
-(require 'desktop) ; for all desktop-* functions
+(require 'desktop)
 
 (require 'eide-config)
 (require 'eide-search)

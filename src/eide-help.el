@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE, help
 
-;; Copyright (C) 2008-2011 Cédric Marie
+;; Copyright (C) 2008-2012 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,8 +19,8 @@
 
 (provide 'eide-help)
 
-(defvar eide-version "1.7")
-(defvar eide-release-date "2011-12")
+(defvar eide-version "1.7+")
+(defvar eide-release-date "2012-01")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS

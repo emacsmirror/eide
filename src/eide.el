@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE
 
-;; Copyright (C) 2008-2011 Cédric Marie
+;; Copyright (C) 2008-2012 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -405,6 +405,15 @@
           (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
 
 ;; ----------------------------------------------------------------------------
+;; Hook to be called at startup (after after-init-hook).
+;; It is used to force to read the desktop when after-init-hook is not called.
+;; ----------------------------------------------------------------------------
+(defun eide-i-force-desktop-read-hook ()
+  (if (not desktop-file-modtime)
+    ;; Desktop has not been read: read it now.
+    (desktop-read)))
+
+;; ----------------------------------------------------------------------------
 ;; Initialization.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
@@ -421,7 +430,14 @@
   (if (file-exists-p eide-project-config-file)
     (progn
       (find-file-noselect eide-project-config-file)
-      (eide-project-start-with-project)))
+      (eide-project-start-with-project)
+      ;; When ~/.emacs is not loaded - or does not exist - and Emacs-IDE is
+      ;; loaded from another init file (with "emacs -q -l file.el"),
+      ;; after-init-hook is not called, and desktop is not read.
+      ;; In that case, we need to force to read it.
+      ;; The solution is to register a hook on emacs-startup-hook, which is
+      ;; always called (after after-init-hook).
+      (add-hook 'emacs-startup-hook 'eide-i-force-desktop-read-hook)))
   ;; Update frame title and menu
   (eide-project-update-frame-title)
   ;; Start with "editor" mode
