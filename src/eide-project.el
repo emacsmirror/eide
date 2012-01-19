@@ -24,6 +24,11 @@
 (require 'eide-config)
 (require 'eide-search)
 
+;; Check --no-desktop option before it is removed from command-line-args by desktop in after-init-hook
+(defvar eide-no-desktop-option nil)
+(if (member "--no-desktop" command-line-args)
+  (setq eide-no-desktop-option t))
+
 (defvar eide-root-directory nil)
 
 ;; Test if xcscope is available
@@ -144,6 +149,11 @@
         (kill-buffer "TAGS"))
       (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide-project.*"))
       ;; Delete desktop file and disable automatic saving
+      (if eide-no-desktop-option
+        (progn
+          ;; desktop-remove needs desktop-save-mode to be enabled
+          (desktop-save-mode 1)
+          (setq desktop-dirname eide-root-directory)))
       (desktop-remove)
       (desktop-save-mode -1)
       ;; Update frame title and menu (project is inactive now)
@@ -204,12 +214,14 @@
   ;; Tag file name with full path
   (setq tags-file-name (concat eide-root-directory "TAGS"))
 
-  ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
-  (desktop-save-mode 1)
-  ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
-  (setq desktop-save t)
-  ;; Set desktop directory (set to nil when desktop save mode is disabled)
-  (setq desktop-dirname eide-root-directory))
+  (if (not eide-no-desktop-option)
+    (progn
+      ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
+      (desktop-save-mode 1)
+      ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
+      (setq desktop-save t)
+      ;; Set desktop directory (set to nil when desktop save mode is disabled)
+      (setq desktop-dirname eide-root-directory))))
 
 ;; ----------------------------------------------------------------------------
 ;; Update frame title with project name (or root directory if no project)
