@@ -206,7 +206,7 @@
 ;; Insert all files from a directory - in "menu" buffer.
 ;;
 ;; input  : p-directory-name : name of directory.
-;;          eide-menu-files-list : list of opened files.
+;;          eide-menu-files-list : list of open files.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-directory (p-directory-name)
   (let ((buffer-read-only nil) (l-directory-short (eide-project-get-short-directory p-directory-name)) (l-begin-point nil))
@@ -238,7 +238,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Insert all files - grouped by directory - in "menu" buffer.
 ;;
-;; input  : eide-menu-files-list : list of opened files.
+;; input  : eide-menu-files-list : list of open files.
 ;; output : eide-menu-current-buffer-marker : marker on current file in "menu"
 ;;              buffer.
 ;; ----------------------------------------------------------------------------
@@ -353,7 +353,7 @@
 ;;              update.
 ;;          eide-project-name : project name.
 ;;          eide-root-directory : project root directory.
-;; output : eide-menu-files-list : list of opened files.
+;; output : eide-menu-files-list : list of open files.
 ;;          eide-menu-current-buffer-marker : marker on current file in "menu"
 ;;              buffer.
 ;; ----------------------------------------------------------------------------
@@ -386,21 +386,21 @@
         ;; Update git modified status of all files
         (if eide-config-show-git-status-flag
           (eide-git-update-files-status)))
-      ;; Retrieve status of new opened files, but do not update status of other files
+      ;; Retrieve status of new open files, but do not update status of other files
       (let ((eide-menu-files-old-list eide-menu-files-list) (l-new-files nil))
         (eide-menu-build-files-lists)
-        ;; Build a list (l-new-files) with new opened files
+        ;; Build a list (l-new-files) with new open files
         (dolist (l-file eide-menu-files-list)
           (if (not (member l-file eide-menu-files-old-list))
             (setq l-new-files (cons l-file l-new-files))))
         (if l-new-files
           (progn
-            ;; Retrieve edit status (REF/NEW) of new opened files
+            ;; Retrieve edit status (REF/NEW) of new open files
             (eide-edit-update-files-status l-new-files)
-            ;; Retrieve svn modified status of new opened files
+            ;; Retrieve svn modified status of new open files
             (if eide-config-show-svn-status-flag
               (eide-svn-update-files-status l-new-files))
-            ;; Retrieve git modified status of new opened files
+            ;; Retrieve git modified status of new open files
             (if eide-config-show-git-status-flag
               (eide-git-update-files-status l-new-files))))))
 
@@ -542,6 +542,26 @@
     (goto-char (marker-position (eide-i-menu-get-symbol-marker l-symbol-name)))
     (recenter)))
 
+;; ----------------------------------------------------------------------------
+;; Check if a file has been edited (REF/NEW or version control).
+;;
+;; input  : p-buffer-name : buffer name.
+;; return : t or nil.
+;; ----------------------------------------------------------------------------
+(defun eide-i-menu-is-file-edited-p (p-buffer-name)
+  (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
+    (save-excursion
+      (set-buffer p-buffer-name)
+      (setq l-buffer-edit-status eide-menu-local-edit-status)
+      (if eide-config-show-svn-status-flag
+        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
+      (if eide-config-show-git-status-flag
+        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
+    (or (string-equal l-buffer-edit-status "new")
+        (string-equal l-buffer-edit-status "ref")
+        l-buffer-svn-modified-flag
+        l-buffer-git-modified-flag)))
+
 ;;;; ==========================================================================
 ;;;; FUNCTIONS
 ;;;; ==========================================================================
@@ -621,7 +641,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Build the lists of buffers.
 ;;
-;; output : eide-menu-files-list : list of opened files.
+;; output : eide-menu-files-list : list of open files.
 ;;          eide-menu-grep-results-list : list of grep results buffers.
 ;;          eide-menu-cscope-results-list : list of cscope results buffers.
 ;;          eide-menu-man-pages-list : list of man pages buffers.
@@ -727,18 +747,8 @@
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-file-close (p-buffer-name)
-  (let ((l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
-    (save-excursion
-      (set-buffer p-buffer-name)
-      (setq l-buffer-edit-status eide-menu-local-edit-status)
-      (if eide-config-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (if eide-config-show-git-status-flag
-        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
-    (if (or (string-equal l-buffer-edit-status "new")
-            (string-equal l-buffer-edit-status "ref")
-            l-buffer-svn-modified-flag
-            l-buffer-git-modified-flag)
+  (let ((l-do-it-flag t))
+    (if (eide-i-menu-is-file-edited-p p-buffer-name)
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
     (if l-do-it-flag
       (progn
@@ -767,27 +777,16 @@
 ;; Close all files in selected directory.
 ;;
 ;; input  : p-directory-name : directory name.
-;;          eide-menu-files-list : list of opened files.
+;;          eide-menu-files-list : list of open files.
 ;; output : eide-current-buffer : current buffer name (may have changed).
 ;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-close (p-directory-name)
-  (let ((l-ask-flag nil) (l-do-it-flag t) (l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
-    ;; Check if at least one file has been edited (REF or NEW)
+  (let ((l-ask-flag nil) (l-do-it-flag t))
+    ;; Check if at least one file has been edited
     (dolist (l-buffer eide-menu-files-list)
       (if (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
-        (progn
-          (save-excursion
-            (set-buffer l-buffer)
-            (setq l-buffer-edit-status eide-menu-local-edit-status)
-            (if eide-config-show-svn-status-flag
-              (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-            (if eide-config-show-git-status-flag
-              (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
-          (if (or (string-equal l-buffer-edit-status "new")
-                  (string-equal l-buffer-edit-status "ref")
-                  l-buffer-svn-modified-flag
-                  l-buffer-git-modified-flag)
-            (setq l-ask-flag t)))))
+        (if (eide-i-menu-is-file-edited-p l-buffer)
+          (setq l-ask-flag t))))
     (if l-ask-flag
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files in " p-directory-name " have been edited. Do you really want to close them?"))))
     (if l-do-it-flag
@@ -801,6 +800,32 @@
           ;; Current buffer has not been closed: just remove this directory
           (eide-i-menu-remove-directory)
           (progn
+            ;; Current buffer has been closed: display another one
+            (eide-windows-skip-unwanted-buffers-in-source-window)
+            ;; Update menu to focus on new current buffer
+            (eide-menu-update t)))))))
+
+;; ----------------------------------------------------------------------------
+;; Close all files.
+;;
+;; input  : eide-menu-files-list : list of open files.
+;; output : eide-current-buffer : current buffer name (should be "*scratch*").
+;; ----------------------------------------------------------------------------
+(defun eide-menu-close-all-files ()
+  (if (eide-popup-question-yes-or-no-p (concat "Do you really want to close all files?"))
+    (progn
+      (let ((l-ask-flag nil) (l-do-it-flag t))
+        ;; Check if at least one file has been edited
+        (dolist (l-buffer eide-menu-files-list)
+          (if (eide-i-menu-is-file-edited-p l-buffer)
+            (setq l-ask-flag t)))
+        (if l-ask-flag
+          (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files have been edited. Do you really want to close them?"))))
+        (if l-do-it-flag
+          (progn
+            (dolist (l-buffer eide-menu-files-list)
+              (kill-buffer l-buffer)
+              (setq eide-menu-files-list (remove l-buffer eide-menu-files-list)))
             ;; Current buffer has been closed: display another one
             (eide-windows-skip-unwanted-buffers-in-source-window)
             ;; Update menu to focus on new current buffer

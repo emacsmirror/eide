@@ -156,6 +156,10 @@
 (defun eide-popup-open-menu ()
   (let ((popup-header ""))
     (eide-i-popup-menu-init)
+
+    (eide-i-popup-menu-add-action "Close all files" "(eide-menu-close-all-files)" (if eide-menu-files-list t nil))
+    (eide-i-popup-menu-close-action-list "Files")
+
     (if eide-project-name
       ;; Project already created
       (progn
@@ -212,7 +216,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Open a popup menu related to selected directory.
 ;;
-;; input  : eide-menu-files-list : list of opened files.
+;; input  : eide-menu-files-list : list of open files.
 ;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-directory ()
   (interactive)
@@ -230,7 +234,7 @@
           (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil)
           (l-buffer-svn-modified-flag nil) (l-svn-modified-files-list-string "")
           (l-buffer-git-modified-flag nil) (l-git-modified-files-list-string ""))
-      ;; Parse list of opened buffers, and find the ones located in this
+      ;; Parse list of open files, and find the ones located in this
       ;; directory, to check, for every possible property (read only, REF file,
       ;; ...) if at least one of them matches.
       (dolist (l-buffer eide-menu-files-list)

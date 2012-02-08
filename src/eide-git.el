@@ -42,7 +42,7 @@
 ;;
 ;; input  : p-files-list : list of files to update (overrides
 ;;              eide-menu-files-list).
-;;          eide-menu-files-list : list of opened files.
+;;          eide-menu-files-list : list of open files.
 ;; ----------------------------------------------------------------------------
 (defun eide-git-update-files-status (&optional p-files-list)
   (if eide-config-show-git-status-flag

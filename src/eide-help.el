@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.7+")
-(defvar eide-release-date "2012-01")
+(defvar eide-release-date "2012-02")
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -111,6 +111,7 @@ In 'source' window:
 
 In 'menu' window:
     Open project popup menu:
+    - close all files
     - project creation/configuration
     - project commands (compile, run, debug)
     - tags and cscope update
@@ -299,10 +300,10 @@ If show_svn_status or show_git_status option is set:
   (eide-i-help-insert-header-1 "Actions on directories (right click on directory name)")
 
   (insert "
-Actions on files (see above) can be applied to several files - opened files
+Actions on files (see above) can be applied to several files - open files
 located in the same directory - at once.
-An action is enabled in popup menu if it is allowed for at least one opened
-file, and will be applied to all files for which it is allowed.
+An action is enabled in popup menu if it is allowed for at least one open file,
+and will be applied to all files for which it is allowed.
 ")
 
   (eide-i-help-insert-header-1 "Standard key bindings")

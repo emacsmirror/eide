@@ -44,7 +44,7 @@
 ;;
 ;; input  : p-files-list : list of files to update (overrides
 ;;              eide-menu-files-list)
-;;          eide-menu-files-list : list of opened files.
+;;          eide-menu-files-list : list of open files.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-update-files-status (&optional p-files-list)
   (save-excursion
@@ -218,13 +218,13 @@
       (eide-menu-buffer-update-stop p-buffer-name))))
 
 ;; ----------------------------------------------------------------------------
-;; Do an action on all opened files in a directory.
+;; Do an action on all open files in a directory.
 ;;
 ;; input  : p-function : function to call when buffer is current.
 ;;          p-directory-name : directory name.
 ;;          p-confirmation-message : string for confirmation message, nil if
 ;;              confirmation is not required.
-;;          eide-menu-files-list : list of opened files.
+;;          eide-menu-files-list : list of open files.
 ;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)
   (if (or (not p-confirmation-message)
