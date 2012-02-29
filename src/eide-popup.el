@@ -157,8 +157,10 @@
   (let ((popup-header ""))
     (eide-i-popup-menu-init)
 
-    (eide-i-popup-menu-add-action "Close all files" "(eide-menu-close-all-files)" (if eide-menu-files-list t nil))
-    (eide-i-popup-menu-close-action-list "Files")
+    (if eide-menu-files-list
+      (progn
+        (eide-i-popup-menu-add-action "Close all files" "(eide-menu-close-all-files)" t)
+        (eide-i-popup-menu-close-action-list "Files")))
 
     (if eide-project-name
       ;; Project already created

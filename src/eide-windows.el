@@ -423,7 +423,8 @@
 
   (setq eide-windows-output-window-height 9)
   (setq eide-windows-menu-window-width 40)
-  (eide-windows-layout-build)
+  (if window-system
+    (eide-windows-layout-build))
   (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
