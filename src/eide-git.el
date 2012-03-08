@@ -19,6 +19,8 @@
 
 (provide 'eide-git)
 
+(require 'vc)
+
 (defvar eide-git-diff-full-command nil)
 
 ;;;; ==========================================================================
@@ -64,7 +66,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-git-set-diff-command (p-cmd)
   (if (string-equal p-cmd "")
-    (setq eide-git-diff-full-command "git diff ")
+    (setq eide-git-diff-full-command nil)
     (setq eide-git-diff-full-command (concat "git difftool -y --extcmd=" p-cmd " "))))
 
 ;; ----------------------------------------------------------------------------
@@ -72,7 +74,12 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-git-diff ()
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
-    (shell-command (concat eide-git-diff-full-command buffer-file-name))))
+    (if eide-git-diff-full-command
+      (shell-command (concat eide-git-diff-full-command buffer-file-name))
+      (progn
+        ;; Switch to Git backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'Git)
+        (vc-diff nil)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "git diff" on a directory.
@@ -86,7 +93,9 @@
       (if (string-match "^/" p-directory-name)
         (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
-      (shell-command (concat "cd " l-full-directory-name " && " eide-git-diff-full-command p-files-list-string)))))
+      (if eide-git-diff-full-command
+        (shell-command (concat "cd " l-full-directory-name " && " eide-git-diff-full-command p-files-list-string))
+        (shell-command (concat "cd " l-full-directory-name " && git diff " p-files-list-string))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "git checkout" on current buffer.

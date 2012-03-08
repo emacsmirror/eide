@@ -19,6 +19,8 @@
 
 (provide 'eide-svn)
 
+(require 'vc)
+
 (defvar eide-svn-diff-full-command nil)
 
 ;;;; ==========================================================================
@@ -64,7 +66,7 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-set-diff-command (p-cmd)
   (if (string-equal p-cmd "")
-    (setq eide-svn-diff-full-command "svn diff ")
+    (setq eide-svn-diff-full-command nil)
     (setq eide-svn-diff-full-command (concat "svn diff --diff-cmd=" p-cmd " "))))
 
 ;; ----------------------------------------------------------------------------
@@ -72,7 +74,12 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-diff ()
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
-    (shell-command (concat eide-svn-diff-full-command buffer-file-name))))
+    (if eide-svn-diff-full-command
+      (shell-command (concat eide-svn-diff-full-command buffer-file-name))
+      (progn
+        ;; Switch to SVN backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'SVN)
+        (vc-diff nil)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn diff" on a directory.
@@ -86,7 +93,9 @@
       (if (string-match "^/" p-directory-name)
         (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
-      (shell-command (concat "cd " l-full-directory-name " && " eide-svn-diff-full-command p-files-list-string)))))
+      (if eide-svn-diff-full-command
+        (shell-command (concat "cd " l-full-directory-name " && " eide-svn-diff-full-command p-files-list-string))
+        (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list-string))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn revert" on current buffer.
