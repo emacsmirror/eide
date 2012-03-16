@@ -389,6 +389,8 @@
           (progn
             (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
             (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
+        (if eide-config-show-svn-status-flag
+          (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-svn-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "svn")
 
         ;; "git" action list
@@ -396,6 +398,8 @@
           (progn
             (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-git-diff \"" l-buffer "\")") t)
             (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-git-checkout \"" l-buffer "\" \"checkout this file\")") t)))
+        (if eide-config-show-git-status-flag
+          (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-git-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "git")))
 
     (eide-i-popup-menu-open l-buffer)))

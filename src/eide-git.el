@@ -98,6 +98,16 @@
         (shell-command (concat "cd " l-full-directory-name " && git diff " p-files-list-string))))))
 
 ;; ----------------------------------------------------------------------------
+;; Execute "git blame" on current buffer.
+;; ----------------------------------------------------------------------------
+(defun eide-git-blame ()
+  (if eide-config-show-git-status-flag
+    (progn
+      ;; Switch to Git backend (in case the file is under several version control systems)
+      (vc-switch-backend buffer-file-name 'Git)
+      (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))))
+
+;; ----------------------------------------------------------------------------
 ;; Execute "git checkout" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-git-checkout ()

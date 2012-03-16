@@ -98,6 +98,16 @@
         (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list-string))))))
 
 ;; ----------------------------------------------------------------------------
+;; Execute "svn blame" on current buffer.
+;; ----------------------------------------------------------------------------
+(defun eide-svn-blame ()
+  (if eide-config-show-svn-status-flag
+    (progn
+      ;; Switch to SVN backend (in case the file is under several version control systems)
+      (vc-switch-backend buffer-file-name 'SVN)
+      (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))))
+
+;; ----------------------------------------------------------------------------
 ;; Execute "svn revert" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-revert ()
