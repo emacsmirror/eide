@@ -990,39 +990,42 @@
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
 
 ;; ----------------------------------------------------------------------------
-;; Revert current file from disk.
+;; Revert all open files from disk.
 ;; ----------------------------------------------------------------------------
-(defun eide-menu-revert-buffer ()
+(defun eide-menu-revert-buffers ()
   (interactive)
   (eide-windows-select-source-window nil)
-  (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
-        (l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
-        (l-functions-with-highlight eide-menu-local-highlighted-symbols-list))
-    (revert-buffer)
+  (save-excursion
+    (dolist (l-buffer-name eide-menu-files-list)
+      (set-buffer l-buffer-name)
+      (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
+            (l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
+            (l-functions-with-highlight eide-menu-local-highlighted-symbols-list))
+        (revert-buffer)
 
-    ;; NB: This part of code was in find-file-hook, which has been moved to
-    ;; switch-to-buffer advice. But with revert-buffer, switch-to-buffer is not
-    ;; called (while find-file-hook was). Therefore, this part of code has been
-    ;; moved here.
+        ;; NB: This part of code was in find-file-hook, which has been moved to
+        ;; switch-to-buffer advice. But with revert-buffer, switch-to-buffer is not
+        ;; called (while find-file-hook was). Therefore, this part of code has been
+        ;; moved here.
 
-    ;; Preserve local variables (necessary for menu update)
-    (make-local-variable 'eide-menu-local-functions-unfolded-flag)
-    (setq eide-menu-local-functions-unfolded-flag l-functions-unfolded-flag)
-    (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
-    (setq eide-menu-local-unfolded-symbols-folders-list l-unfolded-symbols-folders-list)
-    (make-local-variable 'eide-menu-local-highlighted-symbols-list)
-    (setq eide-menu-local-highlighted-symbols-list l-functions-with-highlight)
-    (make-local-variable 'eide-menu-local-edit-status)
-    (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-    (if eide-config-show-svn-status-flag
-      (progn
-        (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-    (if eide-config-show-git-status-flag
-      (progn
-        (make-local-variable 'eide-menu-local-git-modified-status-flag)
-        (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))
-  ;; Update menu (complete refresh, in case file has changed (read/write status...)
+        ;; Preserve local variables (necessary for menu update)
+        (make-local-variable 'eide-menu-local-functions-unfolded-flag)
+        (setq eide-menu-local-functions-unfolded-flag l-functions-unfolded-flag)
+        (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
+        (setq eide-menu-local-unfolded-symbols-folders-list l-unfolded-symbols-folders-list)
+        (make-local-variable 'eide-menu-local-highlighted-symbols-list)
+        (setq eide-menu-local-highlighted-symbols-list l-functions-with-highlight)
+        (make-local-variable 'eide-menu-local-edit-status)
+        (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+        (if eide-config-show-svn-status-flag
+          (progn
+            (make-local-variable 'eide-menu-local-svn-modified-status-flag)
+            (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
+        (if eide-config-show-git-status-flag
+          (progn
+            (make-local-variable 'eide-menu-local-git-modified-status-flag)
+            (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))))
+  ;; Update menu (complete refresh, in case a file has changed (read/write status...)
   (eide-menu-update t t))
 
 ;; ----------------------------------------------------------------------------

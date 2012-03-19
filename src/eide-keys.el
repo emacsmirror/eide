@@ -184,7 +184,7 @@
   ;;(global-set-key [C-f4] 'hs-show-all)
 
   ;; Display
-  (global-set-key [f5] 'eide-menu-revert-buffer)
+  (global-set-key [f5] 'eide-menu-revert-buffers)
   (global-set-key [S-f5] 'eide-menu-kill-buffer)
 
   ;; Unix Shell commands
