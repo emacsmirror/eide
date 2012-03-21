@@ -24,18 +24,8 @@
     (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
     (kill-emacs)))
 
-;; Project directory
-;; On Windows: it is necessary to open a temporary file for the directory path
-;; to be correct (Windows standard vs Unix)
-;; On Linux: it is also useful to expand path (~ => /home/xxx/).
-;; NB: "temp" was first used as a temporary filename, but it causes the project
-;; directory to be changed to "temp" if "temp" already exists and is a
-;; directory!... Hence a filename that can not exist! :-)
-
-(let ((l-temp-file "this-is-a-temporary-file-for-emacs-ide"))
-  (find-file l-temp-file)
-  (setq eide-root-directory default-directory)
-  (kill-buffer l-temp-file))
+;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+(setq eide-root-directory (expand-file-name default-directory))
 
 ;; Emacs modules
 (require 'desktop)

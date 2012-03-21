@@ -364,7 +364,7 @@ Control - mouse 3 ..... Paste
   (eide-i-help-insert-header-2 "Display")
 
   (insert "
-          F5 .......... Reload current buffer (and update display)
+          F5 .......... Reload all buffers (and update display)
   Shift - F5 .......... Close current buffer
 ")
 
