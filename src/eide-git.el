@@ -34,8 +34,15 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-git-is-current-buffer-modified-p ()
   (if eide-config-show-git-status-flag
-    (if (file-exists-p buffer-file-name)
-      (not (string-equal (shell-command-to-string (concat "git status " buffer-file-name " | grep modified")) ""))
+    (if (and (file-exists-p buffer-file-name) (vc-git-registered buffer-file-name))
+      (let ((l-vc-backend (vc-backend buffer-file-name)) (l-state nil))
+        ;; Temporary switch to Git backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'Git)
+        ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
+        (setq l-state (not (vc-workfile-unchanged-p buffer-file-name)))
+        ;; Switch back to previous backend
+        (vc-switch-backend buffer-file-name l-vc-backend)
+        l-state)
       nil)
     nil))
 
@@ -76,10 +83,14 @@
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (if eide-git-diff-full-command
       (shell-command (concat eide-git-diff-full-command buffer-file-name))
-      (progn
-        ;; Switch to Git backend (in case the file is under several version control systems)
+      (let ((l-vc-backend (vc-backend buffer-file-name)))
+        ;; Temporary switch to Git backend (in case the file is under several version control systems)
         (vc-switch-backend buffer-file-name 'Git)
-        (vc-diff nil)))))
+        (save-excursion
+          ;; git diff
+          (vc-diff nil))
+        ;; Switch back to previous backend
+        (vc-switch-backend buffer-file-name l-vc-backend)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "git diff" on a directory.
@@ -102,18 +113,27 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-git-blame ()
   (if eide-config-show-git-status-flag
-    (progn
-      ;; Switch to Git backend (in case the file is under several version control systems)
+    (let ((l-vc-backend (vc-backend buffer-file-name)))
+      ;; Temporary switch to Git backend (in case the file is under several version control systems)
       (vc-switch-backend buffer-file-name 'Git)
-      (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))))
+      (save-excursion
+        ;; git blame
+        (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))
+      ;; Switch back to previous backend
+      (vc-switch-backend buffer-file-name l-vc-backend))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "git checkout" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-git-checkout ()
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
-    (progn
-      (shell-command (concat "git checkout " buffer-file-name))
-      (revert-buffer))))
+    (let ((l-vc-backend (vc-backend buffer-file-name)))
+      ;; Temporary switch to Git backend (in case the file is under several version control systems)
+      (vc-switch-backend buffer-file-name 'Git)
+      (save-excursion
+        ;; git checkout
+        (vc-revert-file buffer-file-name))
+      ;; Switch back to previous backend
+      (vc-switch-backend buffer-file-name l-vc-backend))))
 
 ;;; eide-git.el ends here

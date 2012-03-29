@@ -34,8 +34,15 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-is-current-buffer-modified-p ()
   (if eide-config-show-svn-status-flag
-    (if (file-exists-p buffer-file-name)
-      (not (string-equal (shell-command-to-string (concat "svn st -q " buffer-file-name)) ""))
+    (if (and (file-exists-p buffer-file-name) (vc-svn-registered buffer-file-name))
+      (let ((l-vc-backend (vc-backend buffer-file-name)) (l-state nil))
+        ;; Temporary switch to SVN backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'SVN)
+        ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
+        (setq l-state (not (vc-workfile-unchanged-p buffer-file-name)))
+        ;; Switch back to previous backend
+        (vc-switch-backend buffer-file-name l-vc-backend)
+        l-state)
       nil)
     nil))
 
@@ -76,10 +83,14 @@
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (if eide-svn-diff-full-command
       (shell-command (concat eide-svn-diff-full-command buffer-file-name))
-      (progn
-        ;; Switch to SVN backend (in case the file is under several version control systems)
+      (let ((l-vc-backend (vc-backend buffer-file-name)))
+        ;; Temporary switch to SVN backend (in case the file is under several version control systems)
         (vc-switch-backend buffer-file-name 'SVN)
-        (vc-diff nil)))))
+        (save-excursion
+          ;; svn diff
+          (vc-diff nil))
+        ;; Switch back to previous backend
+        (vc-switch-backend buffer-file-name l-vc-backend)))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn diff" on a directory.
@@ -102,18 +113,27 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-blame ()
   (if eide-config-show-svn-status-flag
-    (progn
-      ;; Switch to SVN backend (in case the file is under several version control systems)
+    (let ((l-vc-backend (vc-backend buffer-file-name)))
+      ;; Temporary switch to SVN backend (in case the file is under several version control systems)
       (vc-switch-backend buffer-file-name 'SVN)
-      (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))))
+      (save-excursion
+        ;; svn blame
+        (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))
+      ;; Switch back to previous backend
+      (vc-switch-backend buffer-file-name l-vc-backend))))
 
 ;; ----------------------------------------------------------------------------
 ;; Execute "svn revert" on current buffer.
 ;; ----------------------------------------------------------------------------
 (defun eide-svn-revert ()
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
-    (progn
-      (shell-command (concat "svn revert " buffer-file-name))
-      (revert-buffer))))
+    (let ((l-vc-backend (vc-backend buffer-file-name)))
+      ;; Temporary switch to SVN backend (in case the file is under several version control systems)
+      (vc-switch-backend buffer-file-name 'SVN)
+      (save-excursion
+        ;; svn revert
+        (vc-revert-file buffer-file-name))
+      ;; Switch back to previous backend
+      (vc-switch-backend buffer-file-name l-vc-backend))))
 
 ;;; eide-svn.el ends here
