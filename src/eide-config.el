@@ -20,8 +20,7 @@
 (provide 'eide-config)
 
 (require 'eide-menu)
-(require 'eide-svn)
-(require 'eide-git)
+(require 'eide-vc)
 
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
@@ -238,12 +237,6 @@
   :set 'eide-i-config-set-show-svn-status
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
-(defcustom eide-custom-svn-diff-command "" "Svn diff command (svn diff --diff-cmd=<command>). Use default (svn diff) if empty."
-  :tag "Svn diff command"
-  :type 'string
-  :set 'eide-i-config-set-svn-diff-command
-  :initialize 'custom-initialize-default
-  :group 'eide-version-control)
 (defcustom eide-custom-show-git-status 'auto "Show git status of files in menu."
   :tag "Show git status"
   :type '(choice (const :tag "Never" nil)
@@ -252,10 +245,10 @@
   :set 'eide-i-config-set-show-git-status
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
-(defcustom eide-custom-git-diff-command "" "Git diff command (git difftool -y --extcmd=<command>). Use default (git diff) if empty."
-  :tag "Git diff command"
+(defcustom eide-custom-vc-diff-command "" "Version control diff command (svn diff --diff-cmd=<command>, git difftool -y --extcmd=<command>). Use default (svn diff, git diff) if empty."
+  :tag "Version control diff command"
   :type 'string
-  :set 'eide-i-config-set-git-diff-command
+  :set 'eide-i-config-set-vc-diff-command
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
 
@@ -818,17 +811,6 @@
       (eide-menu-update t t))))
 
 ;; ----------------------------------------------------------------------------
-;; Set svn diff command.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-set-svn-diff-command (param value)
-  (set-default param value)
-  (if eide-config-ready
-    (eide-svn-set-diff-command value)))
-
-;; ----------------------------------------------------------------------------
 ;; Set show git status.
 ;;
 ;; input  : param : customization parameter.
@@ -847,15 +829,15 @@
       (eide-menu-update t t))))
 
 ;; ----------------------------------------------------------------------------
-;; Set git diff command.
+;; Set vc diff command.
 ;;
 ;; input  : param : customization parameter.
 ;;          value : customization value.
 ;; ----------------------------------------------------------------------------
-(defun eide-i-config-set-git-diff-command (param value)
+(defun eide-i-config-set-vc-diff-command (param value)
   (set-default param value)
   (if eide-config-ready
-    (eide-git-set-diff-command value)))
+    (eide-vc-set-diff-command value)))
 
 ;; ----------------------------------------------------------------------------
 ;; Set menu bar mode.
@@ -1072,9 +1054,8 @@
     (progn
       (eide-i-config-apply-extended-color-theme)
       (eide-i-config-set-show-svn-status 'eide-custom-show-svn-status eide-custom-show-svn-status)
-      (eide-i-config-set-svn-diff-command 'eide-custom-svn-diff-command eide-custom-svn-diff-command)
       (eide-i-config-set-show-git-status 'eide-custom-show-git-status eide-custom-show-git-status)
-      (eide-i-config-set-git-diff-command 'eide-custom-git-diff-command eide-custom-git-diff-command)
+      (eide-i-config-set-vc-diff-command 'eide-custom-vc-diff-command eide-custom-vc-diff-command)
       (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-scroll-bar-position 'eide-custom-scroll-bar-position eide-custom-scroll-bar-position)

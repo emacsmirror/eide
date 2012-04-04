@@ -45,8 +45,7 @@
 (require 'eide-popup)
 (require 'eide-project)
 (require 'eide-search)
-(require 'eide-svn)
-(require 'eide-git)
+(require 'eide-vc)
 (require 'eide-windows)
 
 (defvar eide-cc-imenu-c-generic-expression nil)

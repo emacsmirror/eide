@@ -23,8 +23,7 @@
 
 (require 'eide-edit)
 (require 'eide-popup)
-(require 'eide-svn)
-(require 'eide-git)
+(require 'eide-vc)
 
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-symbols-list nil)
@@ -380,12 +379,8 @@
         (eide-menu-build-files-lists)
         ;; Update edit status (REF/NEW) of all files
         (eide-edit-update-files-status)
-        ;; Update svn modified status of all files
-        (if eide-config-show-svn-status-flag
-          (eide-svn-update-files-status))
-        ;; Update git modified status of all files
-        (if eide-config-show-git-status-flag
-          (eide-git-update-files-status)))
+        ;; Update vc modified status of all files
+        (eide-vc-update-files-status))
       ;; Retrieve status of new open files, but do not update status of other files
       (let ((eide-menu-files-old-list eide-menu-files-list) (l-new-files nil))
         (eide-menu-build-files-lists)
@@ -397,12 +392,8 @@
           (progn
             ;; Retrieve edit status (REF/NEW) of new open files
             (eide-edit-update-files-status l-new-files)
-            ;; Retrieve svn modified status of new open files
-            (if eide-config-show-svn-status-flag
-              (eide-svn-update-files-status l-new-files))
-            ;; Retrieve git modified status of new open files
-            (if eide-config-show-git-status-flag
-              (eide-git-update-files-status l-new-files))))))
+            ;; Retrieve vc modified status of new open files
+            (eide-vc-update-files-status l-new-files)))))
 
     ;; Insert all files
     (if eide-menu-files-list
@@ -684,14 +675,7 @@
       ;; in file system for the first time (status changes from "nofile" to "")
       (make-local-variable 'eide-menu-local-edit-status)
       (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-      (if eide-config-show-svn-status-flag
-        (progn
-          (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-          (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-      (if eide-config-show-git-status-flag
-        (progn
-          (make-local-variable 'eide-menu-local-git-modified-status-flag)
-          (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p))))
+      (eide-vc-update-current-buffer-status)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
         ;; Case sensitive search is necessary for buffer name
@@ -874,14 +858,7 @@
     (setq eide-menu-local-highlighted-symbols-list eide-menu-local-highlighted-symbols-list-backup)
     (make-local-variable 'eide-menu-local-edit-status)
     (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-    (if eide-config-show-svn-status-flag
-      (progn
-        (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-        (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-    (if eide-config-show-git-status-flag
-      (progn
-        (make-local-variable 'eide-menu-local-git-modified-status-flag)
-        (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))
+    (eide-vc-update-current-buffer-status))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
@@ -950,14 +927,7 @@
         (setq eide-menu-local-highlighted-symbols-list (pop eide-menu-local-highlighted-symbols-lists-list))
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-        (if eide-config-show-svn-status-flag
-          (progn
-            (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-            (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-        (if eide-config-show-git-status-flag
-          (progn
-            (make-local-variable 'eide-menu-local-git-modified-status-flag)
-            (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))))
+        (eide-vc-update-current-buffer-status))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
@@ -1017,14 +987,7 @@
         (setq eide-menu-local-highlighted-symbols-list l-functions-with-highlight)
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-        (if eide-config-show-svn-status-flag
-          (progn
-            (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-            (setq eide-menu-local-svn-modified-status-flag (eide-svn-is-current-buffer-modified-p))))
-        (if eide-config-show-git-status-flag
-          (progn
-            (make-local-variable 'eide-menu-local-git-modified-status-flag)
-            (setq eide-menu-local-git-modified-status-flag (eide-git-is-current-buffer-modified-p)))))))
+        (eide-vc-update-current-buffer-status))))
   ;; Update menu (complete refresh, in case a file has changed (read/write status...)
   (eide-menu-update t t))
 
