@@ -33,7 +33,6 @@
 (require 'imenu)
 (require 'mwheel)
 (require 'ediff)
-(require 'gdb-ui)
 
 ;; Emacs-IDE modules
 (require 'eide-compare)

@@ -211,11 +211,12 @@
       ;; It happens when opening multiple files with *
       (progn
         ;;(message (concat "switch-to-buffer: " l-buffer-name))
-        (save-excursion
-          (set-buffer l-buffer-name)
-          (if (or (equal major-mode 'dired-mode)
-                  (equal major-mode 'Buffer-menu-mode))
-            (setq l-browsing-mode-flag t)))
+        (if (get-buffer l-buffer-name)
+          (save-excursion
+            (set-buffer l-buffer-name)
+            (if (or (equal major-mode 'dired-mode)
+                    (equal major-mode 'Buffer-menu-mode))
+              (setq l-browsing-mode-flag t))))
         (if l-browsing-mode-flag
           (progn
             (if (not eide-menu-browsing-mode-flag)

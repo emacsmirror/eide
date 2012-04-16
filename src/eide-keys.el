@@ -63,8 +63,10 @@
 ;;  (beginning-of-line)
 ;;  (insert "#endif\n"))
 
-;; To select text with <shift>
-(pc-selection-mode)
+;; To delete selected text
+(if (fboundp 'pc-selection-mode)
+  ;; emacs24: pc-selection-mode is deprecated (this is now the default behaviour)
+  (pc-selection-mode))
 
 ;; Cut-copy-paste
 ;; (impossible to use Windows shortcuts, because Control-c and Control-x have

@@ -40,9 +40,18 @@
 
 (defvar eide-project-name nil)
 
+(defvar eide-project-gdb-option nil)
 (defvar eide-project-tool-bar-mode-before-debug nil)
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
+
+(if (locate-library "gdb-mi")
+  (progn
+    (require 'gdb-mi)
+    (setq eide-project-gdb-option " -i=mi "))
+  (progn
+    (require 'gdb-ui) ; deprecated
+    (setq eide-project-gdb-option " --annotate=3 ")))
 
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
@@ -246,17 +255,17 @@
       (concat l-init-command " ; " (eide-config-get-project-value p-parameter)))))
 
 ;; ----------------------------------------------------------------------------
-;; Get full gdb command (gdb command + "--annotate=3" + program name).
+;; Get full gdb command (gdb command + gdb option + program name).
 ;;
 ;; input  : p-program : option parameter in project configuration for gdb
 ;;              program.
 ;; return : full command.
 ;; ----------------------------------------------------------------------------
 (defun eide-project-get-full-gdb-command (p-program)
-  (concat (eide-config-get-project-value "debug_command") " --annotate=3 " (eide-config-get-project-value p-program)))
+  (concat (eide-config-get-project-value "debug_command") eide-project-gdb-option (eide-config-get-project-value p-program)))
 
 ;; ----------------------------------------------------------------------------
-;; Get short gdb command (short gdb command + "--annotate=3" + program name)
+;; Get short gdb command (short gdb command + gdb option + program name)
 ;; for popup menu.
 ;;
 ;; input  : p-program : option parameter in project configuration for gdb
@@ -268,7 +277,7 @@
     (if (string-match "/" l-gdb-command)
       (setq l-short-gdb-command (concat "[...]/" (car (last (split-string l-gdb-command "/")))))
       (setq l-short-gdb-command l-gdb-command))
-    (concat l-short-gdb-command " --annotate=3 " (eide-config-get-project-value p-program))))
+    (concat l-short-gdb-command eide-project-gdb-option (eide-config-get-project-value p-program))))
 
 ;; ----------------------------------------------------------------------------
 ;; Get project relative path from absolute path (remove project absolute path
