@@ -1,8 +1,8 @@
-/------------------------------------------\
-| Emacs-IDE version 1.7+ (2012-04)         |
-|                                          |
-| Homepage: http://home.gna.org/emacs-ide/ |
-\------------------------------------------/
+/-------------------------------------------\
+| Emacs-IDE version 1.7+ (2012-05)          |
+|                                           |
+| Homepage: http://emacs-ide.tuxfamily.org/ |
+\-------------------------------------------/
 
 Copyright (C) 2008-2012 Cédric Marie <cedric.marie@yahoo.fr>
 
@@ -48,7 +48,7 @@ Information
 Programming language: Emacs Lisp
 License: GPLv3
 Dependencies: Emacs, Ctags, Cscope.
-Supported OS: GNU/Linux.
+Supported OS: GNU/Linux
 
 -------------------------------------------------------------------------------
 Installation
@@ -145,3 +145,6 @@ Hosting history
   Source code repository is now hosted by Gitorious:
   https://gitorious.org/emacs-ide/emacs-ide
   Everything else (homepage, download area...) is still hosted by Gna.
+
+2012-05: Change of project hosting service: http://emacs-ide.tuxfamily.org/
+  Import git repository, website, and download area.
