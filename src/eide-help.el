@@ -19,7 +19,7 @@
 
 (provide 'eide-help)
 
-(defvar eide-version "1.7+")
+(defvar eide-version "1.8")
 (defvar eide-release-date "2012-05")
 
 ;;;; ==========================================================================
