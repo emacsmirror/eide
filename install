@@ -63,10 +63,10 @@ printf "\n\033[1mRemove .elc files (if any)\033[0m\n"
 rm -vf src/*.elc
 
 printf "\n\033[1mCompile Emacs-IDE\033[0m\n"
-emacs -nw -q -l compile-eide.el
-# -nw: don't use X interface
-# -q: don't load ~/.emacs
-# -l file.el: load lisp file
+emacs --batch -l compile-eide.el
+# --batch: don't use interactive display (implies -q: don't load ~/.emacs)
+# -l file.el: load emacs lisp file
+printf "\n"
 compilation_ok=1
 for file in `ls src/*.el`; do
   printf "${file}: "
