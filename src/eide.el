@@ -47,14 +47,6 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-cc-imenu-c-generic-expression nil)
-(defvar eide-cc-imenu-c-macro nil)
-(defvar eide-cc-imenu-c-struct nil)
-(defvar eide-cc-imenu-c-enum nil)
-(defvar eide-cc-imenu-c-define nil)
-(defvar eide-cc-imenu-c-function nil)
-(defvar eide-cc-imenu-c-interrupt nil)
-
 ;;;; ==========================================================================
 ;;;; INTERNAL FUNCTIONS
 ;;;; ==========================================================================
@@ -141,116 +133,6 @@
 ;; Add hooks for major modes.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-add-hooks ()
-  ;; Construction de la liste des fonctions (imenu)
-  ;; Utilisation d'expressions régulières
-  ;; (il faut pour cela laisser imenu-extract-index-name-function = nil)
-  ;; Il faut redéfinir les expressions, car les expressions par défaut amènent
-  ;; beaucoup d'erreurs : du code est parfois interprété à tort comme une
-  ;; définition de fonction)
-
-  (let ((l-regex-word "[a-zA-Z_][a-zA-Z0-9_:<>~]*")
-        (l-regex-word-no-underscore "[a-zA-Z][a-zA-Z0-9_:<>~]*")
-        (l-regex-space "[ \t]+")
-        ;;(l-regex-space-or-crlf "[ \t\n\r]+")
-        (l-regex-space-or-crlf-or-nothing "[ \t\n\r]*")
-        (l-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[ \t\n\r]*")
-        ;;(l-regex-space-or-crlf-or-comment-or-nothing "[ \t\n\r]*\\(//\\)*[^\n\r]*[\n\r][ \t\n\r]*")
-        (l-regex-space-or-nothing "[ \t]*"))
-
-    (setq eide-cc-imenu-c-macro
-          (concat
-           "^#define" l-regex-space
-           "\\(" l-regex-word "\\)(" ))
-
-    (setq eide-cc-imenu-c-struct
-          (concat
-           "^typedef"  l-regex-space "struct" l-regex-space-or-crlf-or-nothing
-           "{[^{]+}" l-regex-space-or-nothing
-           "\\(" l-regex-word "\\)" ))
-
-    (setq eide-cc-imenu-c-enum
-          (concat
-           "^typedef" l-regex-space "enum" l-regex-space-or-crlf-or-nothing
-           "{[^{]+}" l-regex-space-or-nothing
-           "\\(" l-regex-word "\\)" ))
-
-    (setq eide-cc-imenu-c-define
-          (concat
-           "^#define" l-regex-space
-           "\\(" l-regex-word "\\)" l-regex-space ))
-
-    (setq eide-cc-imenu-c-function
-          (concat
-           "^\\(?:" l-regex-word-no-underscore "\\*?" l-regex-space "\\)*" ; void* my_function(void)
-           "\\*?" ; function may return a pointer, e.g. void *my_function(void)
-           "\\(" l-regex-word "\\)"
-           l-regex-space-or-crlf-or-nothing "("
-           l-regex-space-or-crlf-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
-           ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
-           l-regex-space-or-crlf-or-comment-or-nothing "{" ))
-
-    (if nil
-      (progn
-        ;; temp: remplace la définition au-dessus
-        (setq eide-cc-imenu-c-function
-              (concat
-               "^\\(?:" l-regex-word l-regex-space "\\)*"
-               "\\(" l-regex-word "\\)"
-               l-regex-space-or-nothing "("
-               "\\(" l-regex-space-or-crlf-or-nothing l-regex-word "\\)*)"
-               ;;l-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)"   ; the arg list must not start
-               ;;"[ \t]*[^ \t;(]"                       ; with an asterisk or parentheses
-               l-regex-space-or-crlf-or-nothing "{" ))
-        ))
-
-    ;;cc-imenu-c-generic-expression's value is
-    ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
-    ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-    ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-    ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
-    ;;cc-imenu-c++-generic-expression's value is
-    ;;((nil "^\\<.*[^a-zA-Z0-9_:<>~]\\(\\([a-zA-Z0-9_:<>~]*::\\)?operator\\>[   ]*\\(()\\|[^(]*\\)\\)[  ]*([^)]*)[  ]*[^  ;]" 1)
-    ;; (nil "^\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-    ;; (nil "^\\<[^()]*[^a-zA-Z0-9_:<>~]\\([a-zA-Z_][a-zA-Z0-9_:<>~]*\\)[   ]*([  ]*\\([^   (*][^)]*\\)?)[  ]*[^  ;(]" 1)
-    ;; ("Class" "^\\(template[  ]*<[^>]+>[  ]*\\)?\\(class\\|struct\\)[   ]+\\([a-zA-Z0-9_]+\\(<[^>]+>\\)?\\)[  \n]*[:{]" 3))
-
-    (setq eide-cc-imenu-c-interrupt
-          (concat
-           "\\(__interrupt"  l-regex-space
-           "\\(" l-regex-word l-regex-space "\\)*"
-           l-regex-word "\\)"
-           l-regex-space-or-nothing "("
-           l-regex-space-or-nothing "\\([^ \t(*][^)]*\\)?)" ; the arg list must not start
-           "[ \t]*[^ \t;(]"            ; with an asterisk or parentheses
-           ))
-
-    (setq eide-cc-imenu-c-generic-expression
-          `(
-            ;; General functions
-            (nil          , eide-cc-imenu-c-function 1)
-
-            ;; Interrupts
-            ;;("--function" , eide-cc-imenu-c-interrupt 1)
-            ;;("Interrupts" , eide-cc-imenu-c-interrupt 1)
-            ;;(nil          , eide-cc-imenu-c-interrupt 1)
-
-            ;; Macros
-            ;;("--function" , eide-cc-imenu-c-macro 1)
-            ;;("Macros"     , eide-cc-imenu-c-macro 1)
-
-            ;; struct
-            ;;("--var"      , eide-cc-imenu-c-struct 1)
-            ;;("struct"     , eide-cc-imenu-c-struct 1)
-
-            ;; enum
-            ;;("--var"      , eide-cc-imenu-c-enum 1)
-            ;;("enum"       , eide-cc-imenu-c-enum 1)
-
-            ;; Defines
-            ;;("--var"      , eide-cc-imenu-c-define 1)
-            ;;("#define"    , eide-cc-imenu-c-define 1)
-            )))
-
   ;; C major mode
   (add-hook
    'c-mode-hook
@@ -275,10 +157,6 @@
 
       ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
       (hide-ifdef-mode 1)
-
-      ;; Imenu regex
-      (setq cc-imenu-c++-generic-expression eide-cc-imenu-c-generic-expression)
-      (setq cc-imenu-c-generic-expression   eide-cc-imenu-c-generic-expression)
 
       ;; Pour savoir si du texte est sélectionné ou non
       (setq mark-even-if-inactive nil)))
@@ -307,10 +185,6 @@
 
       ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
       (hide-ifdef-mode 1)
-
-      ;; Imenu regex
-      (setq cc-imenu-c++-generic-expression eide-cc-imenu-c-generic-expression)
-      (setq cc-imenu-c-generic-expression   eide-cc-imenu-c-generic-expression)
 
       ;; Pour savoir si du texte est sélectionné ou non
       (setq mark-even-if-inactive nil)))
