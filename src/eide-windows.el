@@ -414,16 +414,14 @@
 ;; ----------------------------------------------------------------------------
 (defun eide-i-windows-window-setup-hook ()
   (eide-config-apply)
-  ;;(setq eide-windows-output-window-height (/ (frame-height) 5))
-  ;;(setq eide-windows-menu-window-width (/ (frame-width) 4))
 
   ;; Close buffer "*Buffer List*" (created when emacs is launched with files as
   ;; parameters)
   (if (string-equal (buffer-name) "*Buffer List*")
     (kill-this-buffer))
 
-  (setq eide-windows-output-window-height 9)
-  (setq eide-windows-menu-window-width 40)
+  (setq eide-windows-output-window-height (/ (frame-height) 5))
+  (setq eide-windows-menu-window-width (/ (frame-width) 5))
   (if window-system
     (eide-windows-layout-build))
   (ad-activate 'select-window)

@@ -103,13 +103,6 @@
   (setq tags-revert-without-query t)
   ;; Highlight matching parentheses (when cursor on "(" or just after ")")
   (show-paren-mode 1)
-  ;; Frame size and position
-  (if window-system
-    (if (eq system-type 'windows-nt)
-      ;; Windows
-      (setq initial-frame-alist '((top . 0) (left . 0) (width . 122) (height . 39)))
-      ;; Linux
-      (setq initial-frame-alist '((top . 30) (left . 0) (width . 120) (height . 48)))))
 
   ;;(make-frame '((fullscreen . fullboth)))
   ;;(modify-frame-parameters nil '((fullscreen . nil)))
