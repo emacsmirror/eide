@@ -63,7 +63,9 @@
 ;; input  : p-string : string to insert.
 ;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-text (p-string)
-  (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-menu-default-face))
+  (if eide-config-menu-use-specific-background-color
+    (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-menu-default-face)
+    (insert p-string)))
 
 ;; ----------------------------------------------------------------------------
 ;; Insert imenu elements list (recursive function).
@@ -399,12 +401,13 @@
     (if eide-menu-files-list
       (eide-i-menu-insert-all-files))
 
-    ;; 80 blank lines, so that "menu" window seems to have specific background
-    (let ((l-loop-count 0))
-      (save-excursion
-        (while (< l-loop-count 80)
-          (eide-i-menu-insert-text "\n")
-          (setq l-loop-count (+ l-loop-count 1)))))
+    (if eide-config-menu-use-specific-background-color
+      ;; Add 80 blank lines, so that "menu" window seems to have specific background
+      (let ((l-loop-count 0))
+        (save-excursion
+          (while (< l-loop-count 80)
+            (eide-i-menu-insert-text "\n")
+            (setq l-loop-count (+ l-loop-count 1))))))
 
     ;; Move cursor to current buffer
     (if eide-menu-current-buffer-marker
@@ -716,13 +719,7 @@
   (forward-char 4)
   (buffer-substring-no-properties
    (point)
-   (progn
-     (end-of-line)
-     (backward-char)
-     (while (equal (get-text-property (point) 'face) 'eide-config-menu-default-face)
-       (backward-char))
-     (forward-char)
-     (point))))
+   (next-property-change (point) (current-buffer) (line-end-position))))
 
 ;; ----------------------------------------------------------------------------
 ;; Close selected file.
