@@ -47,14 +47,12 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Global settings.
-;; ----------------------------------------------------------------------------
 (defun eide-i-global-settings ()
+  "Global settings."
   ;; Do not display startup message
   (setq inhibit-startup-message t)
   ;; Disable warning for large files (especially for TAGS)
@@ -122,10 +120,8 @@
   ;; gdb: Use graphical interface
   (setq gdb-many-windows t))
 
-;; ----------------------------------------------------------------------------
-;; Add hooks for major modes.
-;; ----------------------------------------------------------------------------
 (defun eide-i-add-hooks ()
+  "Add hooks for major modes."
   ;; C major mode
   (add-hook
    'c-mode-hook
@@ -259,19 +255,15 @@
           (setq tab-width eide-custom-sgml-indent-offset)
           (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
 
-;; ----------------------------------------------------------------------------
-;; Hook to be called at startup, to force to read the desktop when
-;; after-init-hook has already been called.
-;; ----------------------------------------------------------------------------
 (defun eide-i-force-desktop-read-hook ()
+  "Hook to be called at startup, to force to read the desktop when after-init-hook
+has already been called."
   (if (not desktop-file-modtime)
     ;; Desktop has not been read: read it now.
     (desktop-read)))
 
-;; ----------------------------------------------------------------------------
-;; Initialization.
-;; ----------------------------------------------------------------------------
 (defun eide-i-init ()
+  "Initialization."
   ;; Config must be initialized before desktop is loaded, because it reads some
   ;; variables that might be overridden by local values in buffers.
   (eide-config-init)
@@ -313,16 +305,12 @@
   (eide-menu-init)
   (eide-windows-init))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Open shell.
-;;
-;; output : eide-windows-update-output-buffer-id : "s" for "shell".
-;; ----------------------------------------------------------------------------
 (defun eide-shell-open ()
+  "Open a shell."
   (interactive)
   ;; Force to open a new shell (in current directory)
   (if eide-shell-buffer
@@ -332,10 +320,8 @@
   (setq eide-windows-update-output-buffer-id "s")
   (shell))
 
-;; ----------------------------------------------------------------------------
-;; Start Emacs-IDE.
-;; ----------------------------------------------------------------------------
 (defun eide-start ()
+  "Start Emacs-IDE."
   (eide-i-global-settings)
   (eide-i-add-hooks)
   (eide-i-init))

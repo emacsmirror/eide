@@ -53,29 +53,23 @@
 (defvar eide-menu-browsing-mode-flag nil)
 (defvar eide-i-menu-layout-should-be-built-after-browsing-mode-flag nil)
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Insert text in "menu" buffer (with specific background).
-;;
-;; input  : p-string : string to insert.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-text (p-string)
+  "Insert text in \"menu\" buffer (with specific background if necessary).
+- p-string: string to insert."
   (if eide-config-menu-use-specific-background-color
     (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-menu-default-face)
     (insert p-string)))
 
-;; ----------------------------------------------------------------------------
-;; Insert imenu elements list (recursive function).
-;;
-;; input  : p-elements-list : imenu elements list.
-;;          p-unfolded-symbols-folders-list : list of unfolded symbols folders.
-;;          p-highlighted-symbols-list : list of highlighted symbols.
-;;          p-prefix : tabulation prefix string (for recursive calls).
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-imenu-elements-list (p-elements-list p-unfolded-symbols-folders-list p-highlighted-symbols-list p-prefix)
+  "Insert imenu elements list in \"menu\" buffer (recursive function).
+- p-elements-list: imenu elements list.
+- p-unfolded-symbols-folders-list: list of unfolded symbols folders.
+- p-highlighted-symbols-list: list of highlighted symbols.
+- p-prefix: tabulation prefix string (for recursive calls)."
   (dolist (l-element p-elements-list)
     (eide-i-menu-insert-text p-prefix)
     (let ((l-begin-point (point)))
@@ -105,22 +99,16 @@
             ;; applies on whole line ("\n")
             (eide-i-menu-insert-text " \n")))))))
 
-;; ----------------------------------------------------------------------------
-;; Insert a file name - and its functions if unfolded - in "menu" buffer.
-;;
-;; input  : p-string : name of file buffer.
-;;          eide-current-buffer : current buffer name.
-;;          eide-menu-current-buffer-marker : marker on current file in "menu"
-;;              buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-i-menu-insert-file (p-string)
+(defun eide-i-menu-insert-file (p-buffer-name)
+  "Insert a file name - and its functions if unfolded - in \"menu\" buffer.
+- p-buffer-name: buffer name."
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
         (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil)
         (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
     (save-excursion
-      (set-buffer p-string)
+      (set-buffer p-buffer-name)
       (setq l-buffer-status eide-menu-local-edit-status)
       (setq l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
       ;; Check buffer status (r/w, modified, svn or git status)
@@ -140,7 +128,7 @@
           (setq l-highlighted-symbols-list eide-menu-local-highlighted-symbols-list))))
 
     ;; Check if this is current buffer
-    (if (string-equal eide-current-buffer p-string)
+    (if (string-equal eide-current-buffer p-buffer-name)
       (setq l-is-current t)
       (setq l-is-current nil))
 
@@ -150,7 +138,7 @@
         (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
       (put-text-property l-begin-point (point) 'mouse-face 'highlight)
       (eide-i-menu-insert-text " ")
-      (put-text-property (setq l-begin-point (point)) (progn (insert p-string) (point)) 'keymap file-name-map)
+      (put-text-property (setq l-begin-point (point)) (progn (insert p-buffer-name) (point)) 'keymap file-name-map)
       (if l-is-current
         ;; Current file
         (if (string-equal l-buffer-status "nofile")
@@ -203,13 +191,9 @@
           (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-config-menu-empty-list-face)
           (eide-i-menu-insert-text "\n"))))))
 
-;; ----------------------------------------------------------------------------
-;; Insert all files from a directory - in "menu" buffer.
-;;
-;; input  : p-directory-name : name of directory.
-;;          eide-menu-files-list : list of open files.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-directory (p-directory-name)
+  "Insert all files from a directory in \"menu\" buffer.
+- p-directory-name: directory name."
   (let ((buffer-read-only nil) (l-directory-short (eide-project-get-short-directory p-directory-name)) (l-begin-point nil))
     (if (string-equal p-directory-name l-directory-short)
       (setq l-directory-short nil)
@@ -236,14 +220,8 @@
     ;; Insert an empty line between two directories
     (eide-i-menu-insert-text "\n")))
 
-;; ----------------------------------------------------------------------------
-;; Insert all files - grouped by directory - in "menu" buffer.
-;;
-;; input  : eide-menu-files-list : list of open files.
-;; output : eide-menu-current-buffer-marker : marker on current file in "menu"
-;;              buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-insert-all-files ()
+  "Insert all files - grouped by directory - in \"menu\" buffer."
   (let ((l-directory-list nil))
     ;; First, parse the list of buffers to built the list of directories
     (dolist (l-buffer eide-menu-files-list)
@@ -258,19 +236,9 @@
     (dolist (l-directory l-directory-list)
       (eide-i-menu-insert-directory l-directory))))
 
-;; ----------------------------------------------------------------------------
-;; Change current file (select the one on current line in "menu" buffer).
-;;
-;; input  : p-buffer-name : new current buffer name.
-;;          eide-current-buffer : current buffer name.
-;;          eide-menu-current-buffer-marker : marker on current file in "menu"
-;;              buffer.
-;;          eide-root-directory : project root directory.
-;; output : eide-current-buffer : new current buffer name.
-;;          eide-menu-current-buffer-marker : marker on new current file in
-;;              "menu" buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-update-current-buffer (p-buffer-name)
+  "Change current file (eide-current-buffer).
+- p-buffer-name: new current buffer name."
   (save-excursion
     (beginning-of-line)
     ;; Current position might not be on the line of buffer name: in that case
@@ -296,69 +264,44 @@
     (eide-i-menu-remove-file)
     (eide-i-menu-insert-file eide-current-buffer)))
 
-;; ----------------------------------------------------------------------------
-;; Remove a file from "menu" buffer (beginning on current line).
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-remove-file ()
+  "Remove a file from \"menu\" buffer (beginning on current line)."
   (let ((buffer-read-only nil))
     (beginning-of-line)
     (delete-region (point) (progn (forward-line) (while (string-equal (char-to-string (char-after)) " ") (forward-line)) (point)))))
 
-;; ----------------------------------------------------------------------------
-;; Remove a directory from "menu" buffer (beginning on current line).
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-remove-directory ()
+  "Remove a directory from \"menu\" buffer (beginning on current line)."
   (let ((buffer-read-only nil))
     (beginning-of-line)
     (delete-region (point) (progn (forward-line) (while (not (string-equal (char-to-string (char-after)) "\n")) (forward-line)) (progn (forward-line) (point))))))
 
-;; ----------------------------------------------------------------------------
-;; Get symbol name on current line in "menu" buffer.
-;;
-;; return : symbol name.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-get-symbol-name-on-current-line ()
+  "Get symbol name on current line in \"menu\" buffer."
   (beginning-of-line)
   (search-forward "> " nil t)
   (buffer-substring-no-properties
    (point)
    (progn (end-of-line) (backward-char) (point))))
 
-;; ----------------------------------------------------------------------------
-;; Get folder name on current line in "menu" buffer.
-;;
-;; return : symbol name.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-get-folder-name-on-current-line ()
+  "Get folder name on current line in \"menu\" buffer."
   (beginning-of-line)
   (search-forward ") " nil t)
   (buffer-substring-no-properties
    (point)
    (progn (end-of-line) (backward-char) (point))))
 
-;; ----------------------------------------------------------------------------
-;; Get buffer name on previous lines in "menu" buffer.
-;;
-;; return : buffer name.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-get-buffer-name-on-previous-lines ()
+  "Get buffer name on previous lines in \"menu\" buffer."
   (beginning-of-line)
   (save-excursion
     (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
     (eide-menu-get-buffer-name-on-current-line)))
 
-;; ----------------------------------------------------------------------------
-;; Rebuild "menu" buffer.
-;;
-;; input  : p-force-update-status-flag : t = update files status, nil = do not
-;;              update.
-;;          eide-project-name : project name.
-;;          eide-root-directory : project root directory.
-;; output : eide-menu-files-list : list of open files.
-;;          eide-menu-current-buffer-marker : marker on current file in "menu"
-;;              buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-rebuild (p-force-update-status-flag)
+  "Rebuild \"menu\" buffer.
+- p-force-update-status-flag: t = update files status, nil = do not update."
   (let ((buffer-read-only nil) (l-position-marker nil))
     (erase-buffer)
     (setq eide-menu-current-buffer-marker nil)
@@ -415,20 +358,16 @@
         (goto-char (marker-position eide-menu-current-buffer-marker))
         (recenter)))))
 
-;; ----------------------------------------------------------------------------
-;; Switch to selected file.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-file-open ()
+  "Switch to selected file."
   (interactive)
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line)))
     (eide-i-menu-update-current-buffer l-buffer)
     (eide-windows-select-source-window t)
     (switch-to-buffer l-buffer)))
 
-;; ----------------------------------------------------------------------------
-;; Fold / unfold list of functions for selected file.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-file-unfold-functions ()
+  "Fold / unfold list of functions for selected file."
   (interactive)
   (let ((l-buffer-name (eide-menu-get-buffer-name-on-current-line)))
     (save-excursion
@@ -442,10 +381,8 @@
     (save-excursion
       (eide-i-menu-insert-file l-buffer-name))))
 
-;; ----------------------------------------------------------------------------
-;; Fold / unfold symbols folder for selected file.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-file-unfold-symbols-folder ()
+  "Fold / unfold symbols folder for selected file."
   (interactive)
   ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
   (save-excursion
@@ -466,13 +403,10 @@
       (eide-i-menu-remove-file)
       (eide-i-menu-insert-file l-buffer-name))))
 
-;; ----------------------------------------------------------------------------
-;; Get symbol marker in imenu list (recursive function).
-;;
-;; input  : p-symbol : symbol.
-;; return : marker to symbol.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-get-symbol-marker-in-imenu-list (p-symbol p-list)
+  "Get symbol marker in imenu list (recursive function).
+- p-symbol: symbol.
+- p-list: imenu list."
   (let ((l-marker-found nil))
     (dolist (l-element p-list)
       (if (not l-marker-found)
@@ -485,24 +419,13 @@
           (setq l-marker-found (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol (cdr l-element))))))
     l-marker-found))
 
-;; ----------------------------------------------------------------------------
-;; Get symbol marker in current buffer.
-;;
-;; input  : p-symbol : symbol.
-;; return : marker to symbol.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-get-symbol-marker (p-symbol)
+  "Get symbol marker in current buffer.
+- p-symbol: symbol."
   (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol (imenu--generic-function imenu-generic-expression)))
 
-;; ----------------------------------------------------------------------------
-;; Enable / disable highlight on selected function.
-;;
-;; input  : eide-menu-local-highlighted-symbols-list : list of highlighted
-;;              symbols.
-;; output : eide-menu-local-highlighted-symbols-list : updated list of
-;;              highlighted symbols.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-file-highlight-function ()
+  "Enable / disable highlight on selected function."
   (interactive)
   ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
   (save-excursion
@@ -523,10 +446,8 @@
       (eide-i-menu-remove-file)
       (eide-i-menu-insert-file l-buffer-name))))
 
-;; ----------------------------------------------------------------------------
-;; Go to selected function.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-goto-function ()
+  "Go to selected function."
   (interactive)
   (let ((l-symbol-name (eide-i-menu-get-symbol-name-on-current-line))
         (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
@@ -536,13 +457,9 @@
     (goto-char (marker-position (eide-i-menu-get-symbol-marker l-symbol-name)))
     (recenter)))
 
-;; ----------------------------------------------------------------------------
-;; Check if a file has been edited (REF/NEW or version control).
-;;
-;; input  : p-buffer-name : buffer name.
-;; return : t or nil.
-;; ----------------------------------------------------------------------------
 (defun eide-i-menu-is-file-edited-p (p-buffer-name)
+  "Check if a file has been edited (REF/NEW or version control).
+- p-buffer-name: buffer name."
   (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     (save-excursion
       (set-buffer p-buffer-name)
@@ -556,34 +473,25 @@
         l-buffer-svn-modified-flag
         l-buffer-git-modified-flag)))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Init "menu" buffer.
-;;
-;; output : eide-menu-buffer-name : "menu" buffer name.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-init ()
+  "Initialize \"menu\" buffer."
   ;; Menu buffer is created empty (content will be built by eide-menu-update)
   (setq eide-menu-buffer-name (buffer-name (get-buffer-create "* Menu *")))
   (save-excursion
     (set-buffer eide-menu-buffer-name)
     (setq buffer-read-only t)))
 
-;; ----------------------------------------------------------------------------
-;; Update "menu" buffer.
-;;
-;; input  : p-force-rebuild-flag : t = always rebuild menu, nil = rebuild only
-;;              if current buffer has changed.
-;;          p-force-update-status-flag : t = update files status, nil = do not
-;;              update.
-;; output : eide-current-buffer : current buffer name.
-;;          eide-windows-menu-update-request-pending-flag : t = update is
-;;              postponed until next time "menu" buffer is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-update (p-force-rebuild-flag &optional p-force-update-status-flag)
+  "Update \"menu\" buffer (may be postponed until next time \"menu\" buffer is
+shown, with eide-windows-menu-update-request-pending-flag).
+- p-force-rebuild-flag: t = always rebuild menu, nil = rebuild only if current
+  buffer has changed.
+- p-force-update-status-flag (optional): t = update files status, nil = do not
+  update."
   (if eide-windows-is-layout-visible-flag
     (progn
       ;; Cancel pending request
@@ -632,15 +540,9 @@
       (if p-force-update-status-flag
         (setq eide-windows-menu-update-request-pending-force-update-status-flag t)))))
 
-;; ----------------------------------------------------------------------------
-;; Build the lists of buffers.
-;;
-;; output : eide-menu-files-list : list of open files.
-;;          eide-menu-grep-results-list : list of grep results buffers.
-;;          eide-menu-cscope-results-list : list of cscope results buffers.
-;;          eide-menu-man-pages-list : list of man pages buffers.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-build-files-lists ()
+  "Build the lists of buffers (open files, grep results, cscope results, and man
+pages)."
   (setq eide-menu-files-list nil)
   (setq eide-menu-grep-results-list nil)
   (setq eide-menu-cscope-results-list nil)
@@ -668,10 +570,8 @@
             (if (string-match "^\*Man .*" l-buffer-name)
               (setq eide-menu-man-pages-list (cons l-buffer-name eide-menu-man-pages-list)))))))))
 
-;; ----------------------------------------------------------------------------
-;; Update current buffer "modified" status (in menu).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-update-current-buffer-modified-status ()
+  "Update current buffer \"modified\" status (in menu)."
   (save-excursion
     (let ((l-buffer (buffer-name)))
       ;; eide-menu-local-edit-status update is useful when a new buffer is saved
@@ -692,12 +592,8 @@
             (eide-i-menu-remove-file)
             (eide-i-menu-insert-file l-buffer)))))))
 
-;; ----------------------------------------------------------------------------
-;; Get directory name on current line in "menu" buffer.
-;;
-;; return : directory name.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-get-directory-name-on-current-line ()
+  "Get directory name on current line in \"menu\" buffer."
   (beginning-of-line)
   (buffer-substring-no-properties
    (point)
@@ -709,25 +605,17 @@
      (forward-char)
      (point))))
 
-;; ----------------------------------------------------------------------------
-;; Get buffer name on current line in "menu" buffer.
-;;
-;; return : buffer name.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-get-buffer-name-on-current-line ()
+  "Get buffer name on current line in \"menu\" buffer."
   (beginning-of-line)
   (forward-char 4)
   (buffer-substring-no-properties
    (point)
    (next-property-change (point) (current-buffer) (line-end-position))))
 
-;; ----------------------------------------------------------------------------
-;; Close selected file.
-;;
-;; input  : p-buffer-name : buffer name.
-;; output : eide-current-buffer : current buffer name (may have changed).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-file-close (p-buffer-name)
+  "Close selected file.
+- p-buffer-name: buffer name."
   (let ((l-do-it-flag t))
     (if (eide-i-menu-is-file-edited-p p-buffer-name)
       (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
@@ -754,14 +642,9 @@
                     (let ((buffer-read-only nil))
                       (delete-region (point) (progn (forward-line 2) (point))))))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close all files in selected directory.
-;;
-;; input  : p-directory-name : directory name.
-;;          eide-menu-files-list : list of open files.
-;; output : eide-current-buffer : current buffer name (may have changed).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-close (p-directory-name)
+  "Close all files in selected directory.
+- p-directory-name: directory name."
   (let ((l-ask-flag nil) (l-do-it-flag t))
     ;; Check if at least one file has been edited
     (dolist (l-buffer eide-menu-files-list)
@@ -786,13 +669,8 @@
             ;; Update menu to focus on new current buffer
             (eide-menu-update t)))))))
 
-;; ----------------------------------------------------------------------------
-;; Close all files.
-;;
-;; input  : eide-menu-files-list : list of open files.
-;; output : eide-current-buffer : current buffer name (should be "*scratch*").
-;; ----------------------------------------------------------------------------
 (defun eide-menu-close-all-files ()
+  "Close all files."
   (if (eide-popup-question-yes-or-no-p (concat "Do you really want to close all files?"))
     (progn
       (let ((l-ask-flag nil) (l-do-it-flag t))
@@ -812,39 +690,20 @@
             ;; Update menu to focus on new current buffer
             (eide-menu-update t)))))))
 
-;; ----------------------------------------------------------------------------
-;; Prepare update of a file in "menu" buffer.
-;;
-;; input  : p-buffer-name : buffer name.
-;; output : eide-menu-local-functions-unfolded-flag-backup : backup of
-;;              functions unfolded status (local variable will be lost on file
-;;              update).
-;;          eide-menu-local-unfolded-symbols-folders-list-backup : backup of
-;;              list of unfolded symbols folders (local variable will be lost
-;;              on file update).
-;;          eide-menu-local-highlighted-symbols-list-backup : backup of list of
-;;              highlighted symbols (local variable will be lost on file
-;;              update).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-buffer-update-start (p-buffer-name)
+  "Prepare update of a file in \"menu\" buffer (save lists of unfolded and
+highlighted items).
+- p-buffer-name: buffer name."
   (save-excursion
     (set-buffer p-buffer-name)
     (setq eide-menu-local-functions-unfolded-flag-backup eide-menu-local-functions-unfolded-flag)
     (setq eide-menu-local-unfolded-symbols-folders-list-backup eide-menu-local-unfolded-symbols-folders-list)
     (setq eide-menu-local-highlighted-symbols-list-backup eide-menu-local-highlighted-symbols-list)))
 
-;; ----------------------------------------------------------------------------
-;; Update a file in "menu" buffer.
-;;
-;; input  : p-buffer-name : buffer name.
-;;          eide-menu-local-functions-unfolded-flag-backup : backup of
-;;              functions unfolded status (to restore local variable).
-;;          eide-menu-local-unfolded-symbols-folders-list-backup : backup of
-;;              list of unfolded symbols folders (to restore local variable).
-;;          eide-menu-local-highlighted-symbols-list-backup : backup of list of
-;;              of highlighted symbols (to restore local variable).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-buffer-update-stop (p-buffer-name)
+  "Update a file in \"menu\" buffer (restore lists of unfolded and highlighted
+items).
+- p-buffer-name: buffer name."
   (save-excursion
     (set-buffer p-buffer-name)
     (make-local-variable 'eide-menu-local-functions-unfolded-flag)
@@ -872,18 +731,10 @@
   ;; "menu" to be selected anyway.
   (eide-windows-select-source-window t))
 
-;; ----------------------------------------------------------------------------
-;; Prepare update of a directory in "menu" buffer.
-;;
-;; input  : p-directory-name : directory name.
-;; output : eide-menu-local-functions-unfolded-flags-list : list of unfolded
-;;              status for all files.
-;;          eide-menu-local-unfolded-symbols-folders-lists-list : list of lists
-;;              of unfolded symbols folders for all files.
-;;          eide-menu-local-highlighted-symbols-lists-list : list of lists of
-;;              highlighted symbols for all files.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-update-start (p-directory-name)
+  "Prepare update of a directory in \"menu\" buffer (save lists of unfolded and
+highlighted items).
+- p-directory-name: directory name."
   (setq eide-menu-local-functions-unfolded-flags-list nil)
   (setq eide-menu-local-unfolded-symbols-folders-lists-list nil)
   (setq eide-menu-local-highlighted-symbols-lists-list nil)
@@ -899,18 +750,10 @@
   (setq eide-menu-local-unfolded-symbols-folders-lists-list (reverse eide-menu-local-unfolded-symbols-folders-lists-list))
   (setq eide-menu-local-highlighted-symbols-lists-list (reverse eide-menu-local-highlighted-symbols-lists-list)))
 
-;; ----------------------------------------------------------------------------
-;; Update a directory in "menu" buffer.
-;;
-;; input  : p-directory-name : directory name.
-;;          eide-menu-local-functions-unfolded-flags-list : list of unfolded
-;;              status for all files.
-;;          eide-menu-local-unfolded-symbols-folders-lists-list : list of lists
-;;              of unfolded symbols folders for all files.
-;;          eide-menu-local-highlighted-symbols-lists-list : list of lists of
-;;              highlighted symbols for all files.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-directory-update-stop (p-directory-name)
+  "Update a directory in \"menu\" buffer (restore lists of unfolded and highlighted
+items).
+- p-directory-name: directory name."
   ;; Restore unfolded status and highlighted functions for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
     (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
@@ -945,21 +788,15 @@
   ;; "menu" to be selected anyway.
   (eide-windows-select-source-window t))
 
-;; ----------------------------------------------------------------------------
-;; Load a file without using advice (when "menu" buffer must not be updated).
-;;
-;; input  : p-buffer-name : buffer name.
-;;          p-directory-name : directory name.
-;; return : t or nil.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-is-file-in-directory-p (p-buffer-name p-directory-name)
+  "Check if a file is in a directory.
+- p-buffer-name: buffer name.
+- p-directory-name: directory name."
   ;; Extract the "short" directory from the buffer file name
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
 
-;; ----------------------------------------------------------------------------
-;; Revert all open files from disk.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-revert-buffers ()
+  "Revert all open files from disk."
   (interactive)
   (eide-windows-select-source-window nil)
   (save-excursion
@@ -989,26 +826,20 @@
   ;; Update menu (complete refresh, in case a file has changed (read/write status...)
   (eide-menu-update t t))
 
-;; ----------------------------------------------------------------------------
-;; Close current file.
-;; ----------------------------------------------------------------------------
 (defun eide-menu-kill-buffer ()
+  "Close current file."
   (interactive)
   (eide-windows-select-source-window nil)
   (kill-this-buffer)
   (eide-windows-skip-unwanted-buffers-in-source-window))
 
-;; ----------------------------------------------------------------------------
-;; Open directory (dired mode).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-dired-open ()
+  "Open directory (dired mode)."
   (eide-windows-select-source-window nil)
   (find-file default-directory))
 
-;; ----------------------------------------------------------------------------
-;; Start browsing mode (dired and buffer menu modes).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-browsing-mode-start ()
+  "Start browsing mode (dired and buffer menu modes)."
   (if eide-windows-is-layout-visible-flag
     (progn
       (setq eide-i-menu-layout-should-be-built-after-browsing-mode-flag t)
@@ -1016,10 +847,8 @@
   (eide-keys-configure-for-special-buffer)
   (setq eide-menu-browsing-mode-flag t))
 
-;; ----------------------------------------------------------------------------
-;; Stop browsing mode (dired and buffer menu modes).
-;; ----------------------------------------------------------------------------
 (defun eide-menu-browsing-mode-stop ()
+  "Stop browsing mode (dired and buffer menu modes)."
   (eide-keys-configure-for-editor) ;; must be done first, for eide-i-windows-get-window-for-buffer
   (eide-windows-skip-unwanted-buffers-in-source-window)
   (if eide-i-menu-layout-should-be-built-after-browsing-mode-flag
@@ -1036,10 +865,9 @@
         (kill-buffer l-buffer-name))))
   (setq eide-menu-browsing-mode-flag nil))
 
-
-;;;; ==========================================================================
-;;;; KEYMAPS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; KEYMAPS
+;; ----------------------------------------------------------------------------
 
 (setq directory-name-map (make-sparse-keymap))
 (define-key directory-name-map [mouse-3] 'eide-popup-open-menu-for-directory)

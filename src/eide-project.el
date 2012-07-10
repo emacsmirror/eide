@@ -53,19 +53,13 @@
     (require 'gdb-ui) ; deprecated
     (setq eide-project-gdb-option " --annotate=3 ")))
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Compile project.
-;;
-;; input  : p-parameter : option parameter in project configuration for
-;;              compile command.
-;;          eide-root-directory : project root directory.
-;; output : eide-windows-update-output-buffer-id : "c" for "compile".
-;; ----------------------------------------------------------------------------
 (defun eide-i-project-compile (p-parameter)
+  "Compile project.
+- p-parameter: option parameter in project configuration for compile command."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
@@ -82,15 +76,9 @@
   (end-of-buffer)
   (eide-windows-select-source-window t))
 
-;; ----------------------------------------------------------------------------
-;; Run project.
-;;
-;; input  : p-parameter : option parameter in project configuration for
-;;              run command.
-;;          eide-root-directory : project root directory.
-;; output : eide-windows-update-output-buffer-id : "r" for "run".
-;; ----------------------------------------------------------------------------
 (defun eide-i-project-run (p-parameter)
+  "Run project.
+- p-parameter: option parameter in project configuration for run command."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
@@ -103,14 +91,9 @@
     (setq eide-windows-update-output-buffer-id "r")
     (shell-command l-run-command)))
 
-;; ----------------------------------------------------------------------------
-;; Debug project.
-;;
-;; input  : p-program : option parameter in project configuration for gdb
-;;              program.
-;;          eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-i-project-debug (p-program)
+  "Debug project.
+- p-program: option parameter in project configuration for gdb program."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
@@ -120,17 +103,12 @@
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Create a project.
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-project-name : project name.
-;; ----------------------------------------------------------------------------
 (defun eide-project-create ()
+  "Create a project."
   (if (eide-popup-question-yes-or-no-p (concat "Create project in " eide-root-directory " ?"))
     (progn
       (eide-windows-select-source-window t)
@@ -143,13 +121,8 @@
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
 
-;; ----------------------------------------------------------------------------
-;; Delete current project.
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-project-name : project name (nil).
-;; ----------------------------------------------------------------------------
 (defun eide-project-delete ()
+  "Delete current project."
   (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
     (progn
       (setq eide-project-name nil)
@@ -171,17 +144,8 @@
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
 
-;; ----------------------------------------------------------------------------
-;; Start with current project.
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-search-tags-available-flag : t if tags are already available.
-;;          eide-search-cscope-available-flag : t if cscope is already
-;;              available.
-;;          eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request.
-;; ----------------------------------------------------------------------------
 (defun eide-project-start-with-project ()
+  "Start with current project."
   ;; Get project name from directory
   ;; eide-root-directory:                                                     <...>/current_project/
   ;; directory-file-name removes last "/":                                    <...>/current_project
@@ -232,116 +196,76 @@
       ;; Set desktop directory (set to nil when desktop save mode is disabled)
       (setq desktop-dirname eide-root-directory))))
 
-;; ----------------------------------------------------------------------------
-;; Update frame title with project name (or root directory if no project)
-;;
-;; input  : eide-project-name : project name.
-;; ----------------------------------------------------------------------------
 (defun eide-project-update-frame-title ()
+  "Update frame title with project name (or root directory if no project)."
   (if eide-project-name
     (setq frame-title-format (concat eide-project-name " - Emacs"))
     (setq frame-title-format (concat eide-root-directory " - Emacs"))))
 
-;; ----------------------------------------------------------------------------
-;; Get full command (init command + compile/run command).
-;;
-;; input  : p-parameter : option parameter in project configuration.
-;; return : full command.
-;; ----------------------------------------------------------------------------
 (defun eide-project-get-full-command (p-parameter)
+  "Get full command (init command + compile/run command).
+- p-parameter: option parameter in project configuration."
   (let ((l-init-command (eide-config-get-project-value "init_command")))
     (if (string-equal l-init-command "")
       (eide-config-get-project-value p-parameter)
       (concat l-init-command " ; " (eide-config-get-project-value p-parameter)))))
 
-;; ----------------------------------------------------------------------------
-;; Get full gdb command (gdb command + gdb option + program name).
-;;
-;; input  : p-program : option parameter in project configuration for gdb
-;;              program.
-;; return : full command.
-;; ----------------------------------------------------------------------------
 (defun eide-project-get-full-gdb-command (p-program)
+  "Get full gdb command (gdb command + gdb option + program name).
+- p-program: option parameter in project configuration for gdb program."
   (concat (eide-config-get-project-value "debug_command") eide-project-gdb-option (eide-config-get-project-value p-program)))
 
-;; ----------------------------------------------------------------------------
-;; Get short gdb command (short gdb command + gdb option + program name)
-;; for popup menu.
-;;
-;; input  : p-program : option parameter in project configuration for gdb
-;;              program.
-;; return : short command (hide gdb command path).
-;; ----------------------------------------------------------------------------
 (defun eide-project-get-short-gdb-command (p-program)
+  "Get short gdb command (short gdb command + gdb option + program name) for popup
+menu (hide gdb command path).
+- p-program: option parameter in project configuration for gdb program."
   (let ((l-gdb-command (eide-config-get-project-value "debug_command")) (l-short-gdb-command nil))
     (if (string-match "/" l-gdb-command)
       (setq l-short-gdb-command (concat "[...]/" (car (last (split-string l-gdb-command "/")))))
       (setq l-short-gdb-command l-gdb-command))
     (concat l-short-gdb-command eide-project-gdb-option (eide-config-get-project-value p-program))))
 
-;; ----------------------------------------------------------------------------
-;; Get project relative path from absolute path (remove project absolute path
-;; from directory).
-;;
-;; input  : p-directory : directory (absolute path).
-;;          eide-root-directory : project root directory.
-;; return : directory (project relative path).
-;; ----------------------------------------------------------------------------
 (defun eide-project-get-short-directory (p-directory)
+  "Get the path relative to project root directory from absolute path if it is
+part of the project (remove root directory from absolute path).
+- p-directory: directory (absolute path)."
   ;; Remove project base path if the file is part of it (otherwise display full path)
   (if (and (<= (length eide-root-directory) (length p-directory)) (string-equal eide-root-directory (substring p-directory 0 (length eide-root-directory))))
     (substring p-directory (length eide-root-directory))
     p-directory))
 
-;; ----------------------------------------------------------------------------
-;; Compile project (1st compile command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-compile-1 ()
+  "Compile project (1st compile command)."
   (interactive)
   (eide-i-project-compile "compile_command_1"))
 
-;; ----------------------------------------------------------------------------
-;; Compile project (2nd compile command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-compile-2 ()
+  "Compile project (2nd compile command)."
   (interactive)
   (eide-i-project-compile "compile_command_2"))
 
-;; ----------------------------------------------------------------------------
-;; Compile project (3rd compile command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-compile-3 ()
+  "Compile project (3rd compile command)."
   (interactive)
   (eide-i-project-compile "compile_command_3"))
 
-;; ----------------------------------------------------------------------------
-;; Compile project (4th compile command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-compile-4 ()
+  "Compile project (4th compile command)."
   (interactive)
   (eide-i-project-compile "compile_command_4"))
 
-;; ----------------------------------------------------------------------------
-;; Run project (1st run command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-run-1 ()
+  "Run project (1st run command)."
   (interactive)
   (eide-i-project-run "run_command_1"))
 
-;; ----------------------------------------------------------------------------
-;; Run project (2nd run command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-run-2 ()
+  "Run project (2nd run command)."
   (interactive)
   (eide-i-project-run "run_command_2"))
 
-;; ----------------------------------------------------------------------------
-;; Start debug mode.
-;;
-;; output : eide-project-tool-bar-mode-before-debug : tool-bar-mode previous
-;;              state.
-;; ----------------------------------------------------------------------------
 (defun eide-project-debug-mode-start ()
+  "Start debug mode."
   ;; Restore colors (in case user was reading help or config)
   (eide-config-set-colors-for-files)
   (eide-keys-configure-for-gdb)
@@ -358,13 +282,8 @@
   (setq eide-project-is-gdb-session-visible-flag t)
   (setq eide-project-is-gdb-session-running-flag t))
 
-;; ----------------------------------------------------------------------------
-;; Stop debug mode.
-;;
-;; input  : eide-project-tool-bar-mode-before-debug : tool-bar-mode state to
-;;              restore.
-;; ----------------------------------------------------------------------------
 (defun eide-project-debug-mode-stop ()
+  "Stop debug mode."
   (eide-keys-configure-for-editor)
   (eide-windows-layout-build)
   (if window-system
@@ -373,17 +292,13 @@
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)
   (setq eide-project-is-gdb-session-visible-flag nil))
 
-;; ----------------------------------------------------------------------------
-;; Debug project (1st debug command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-debug-1 ()
+  "Debug project (1st debug command)."
   (interactive)
   (eide-i-project-debug "debug_program_1"))
 
-;; ----------------------------------------------------------------------------
-;; Debug project (2nd debug command).
-;; ----------------------------------------------------------------------------
 (defun eide-project-debug-2 ()
+  "Debug project (2nd debug command)."
   (interactive)
   (eide-i-project-debug "debug_program_2"))
 

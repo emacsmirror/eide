@@ -32,48 +32,31 @@
 (defvar eide-message-dialog
   '(("continue" . "c")))
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Initialize a popup menu.
-;;
-;; output : eide-popup-menu : empty menu.
-;;          eide-popup-menu-actions-list : empty actions list.
-;; ----------------------------------------------------------------------------
 (defun eide-i-popup-menu-init ()
+  "Initialize a popup menu."
   (setq eide-popup-menu nil)
   (setq eide-popup-menu-actions-list nil)
   (if (not eide-option-menu-buffer-popup-groups-flags)
     (setq eide-popup-menu-separator-flag nil)))
 
-;; ----------------------------------------------------------------------------
-;; Add an action in action list (for popup menu).
-;;
-;; input  : p-action-name : action name in menu.
-;;          p-action-function : action function.
-;;          p-enabled-flag : t if this action is enabled.
-;;          eide-popup-menu-actions-list : actions list.
-;; output : eide-popup-menu-actions-list : updated actions list.
-;; ----------------------------------------------------------------------------
 (defun eide-i-popup-menu-add-action (p-action-name p-action-function p-enabled-flag)
+  "Add an action in action list (for popup menu).
+- p-action-name: action name in menu.
+- p-action-function: action function.
+- p-enabled-flag: t if this action is enabled."
   (if (> (length p-action-name) 120)
     (setq p-action-name (concat (substring p-action-name 0 120) " [...]")))
   (if p-enabled-flag
     (setq eide-popup-menu-actions-list (append (list (cons p-action-name p-action-function)) eide-popup-menu-actions-list))
     (setq eide-popup-menu-actions-list (append (list p-action-name) eide-popup-menu-actions-list))))
 
-;; ----------------------------------------------------------------------------
-;; Add action list to popup menu.
-;;
-;; input  : p-actions-list-name : name of actions list.
-;;          eide-popup-menu : popup menu.
-;;          eide-popup-menu-actions-list : actions list.
-;; output : eide-popup-menu : updated popup menu.
-;;          eide-popup-menu-actions-list : empty actions list.
-;; ----------------------------------------------------------------------------
 (defun eide-i-popup-menu-close-action-list (p-actions-list-name)
+  "Add action list to popup menu.
+- p-actions-list-name: name of actions list."
   (if eide-popup-menu-actions-list
     (if eide-option-menu-buffer-popup-groups-flags
       (setq eide-popup-menu (append (list (cons p-actions-list-name eide-popup-menu-actions-list)) eide-popup-menu))
@@ -85,13 +68,9 @@
         (setq eide-popup-menu (append eide-popup-menu-actions-list eide-popup-menu)))))
   (setq eide-popup-menu-actions-list nil))
 
-;; ----------------------------------------------------------------------------
-;; Open popup menu.
-;;
-;; input  : p-menu-title : title of popup menu.
-;;          eide-popup-menu : popup menu.
-;; ----------------------------------------------------------------------------
 (defun eide-i-popup-menu-open (p-menu-title)
+  "Open popup menu.
+- p-menu-title: title of popup menu."
   (if eide-popup-menu
     (progn
       (setq eide-popup-menu (reverse eide-popup-menu))
@@ -104,12 +83,8 @@
           (switch-to-buffer l-result)
           (eval (car (read-from-string l-result))))))))
 
-;; ----------------------------------------------------------------------------
-;; Open popup menu with the list of other projects.
-;;
-;; input  : eide-compare-other-projects-list : other projects list.
-;; ----------------------------------------------------------------------------
 (defun eide-i-popup-open-menu-for-another-project ()
+  "Open popup menu with the list of other projects."
   (eide-compare-build-other-projects-list)
   (if eide-compare-other-projects-list
     (progn
@@ -123,38 +98,24 @@
     ;; file-name-directory removes last directory name: <...>/
     (eide-popup-message (concat "There is no other project in " (file-name-directory (directory-file-name eide-root-directory))))))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Prompt for a confirmation.
-;;
-;; input  : p-string : question to be answered yes or no.
-;; return : t = "yes", nil = "no".
-;; ----------------------------------------------------------------------------
 (defun eide-popup-question-yes-or-no-p (p-string)
+  "Prompt for a confirmation.
+- p-string: question to be answered yes or no."
   ;;(yes-or-no-p p-string))
   (string-equal (x-popup-dialog t (cons p-string eide-confirm-dialog)) "y"))
 
-;; ----------------------------------------------------------------------------
-;; Display a message.
-;;
-;; input  : p-string : message.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-message (p-string)
+  "Display a message.
+- p-string: message."
   (x-popup-dialog t (cons p-string eide-message-dialog)))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu related to project.
-;;
-;; input  : eide-project-name : project name.
-;;          eide-compare-other-project-name : other project name (for
-;;              comparison).
-;;          eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu ()
-  (let ((popup-header ""))
+  "Open a popup menu related to project."
+  (let ((l-popup-header ""))
     (eide-i-popup-menu-init)
 
     (if eide-menu-files-list
@@ -200,12 +161,12 @@
         (eide-i-popup-menu-close-action-list "Configuration")
         (eide-i-popup-menu-add-action "Delete project" "(eide-project-delete)" t)
         (eide-i-popup-menu-close-action-list "Destroy")
-        (setq popup-header (concat "Project: " eide-project-name)))
+        (setq l-popup-header (concat "Project: " eide-project-name)))
       ;; Project not created yet
       (progn
         (eide-i-popup-menu-add-action "Create project" "(eide-project-create)" t)
         (eide-i-popup-menu-close-action-list "Create")
-        (setq popup-header (concat "Root directory: " eide-root-directory))))
+        (setq l-popup-header (concat "Root directory: " eide-root-directory))))
 
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
@@ -213,14 +174,10 @@
     (eide-i-popup-menu-add-action "Help" "(eide-help-open)" t)
     (eide-i-popup-menu-close-action-list "About")
 
-    (eide-i-popup-menu-open popup-header)))
+    (eide-i-popup-menu-open l-popup-header)))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu related to selected directory.
-;;
-;; input  : eide-menu-files-list : list of open files.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-directory ()
+  "Open a popup menu related to selected directory."
   (interactive)
   (eide-windows-select-menu-window)
   (move-to-window-line (cdr (last (mouse-position))))
@@ -296,26 +253,21 @@
       ;; "svn" action list
       (if eide-config-show-svn-status-flag
         (progn
-          (eide-i-popup-menu-add-action "svn diff" (concat "(eide-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
-          (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
+          (eide-i-popup-menu-add-action "svn diff" (concat "(eide-vc-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
+          (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-close-action-list "svn")))
 
       ;; "git" action list
       (if eide-config-show-git-status-flag
         (progn
-          (eide-i-popup-menu-add-action "git diff" (concat "(eide-git-diff-files-in-directory \"" l-directory-name "\" \"" l-git-modified-files-list-string "\")") l-buffer-git-modified-flag)
-          (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-git-checkout \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-git-modified-flag)
+          (eide-i-popup-menu-add-action "git diff" (concat "(eide-vc-git-diff-files-in-directory \"" l-directory-name "\" \"" l-git-modified-files-list-string "\")") l-buffer-git-modified-flag)
+          (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-git-checkout \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-git-modified-flag)
           (eide-i-popup-menu-close-action-list "git"))))
 
     (eide-i-popup-menu-open l-directory-name-in-title)))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu related to selected file.
-;;
-;; input  : eide-compare-other-project-name : other project name (for
-;;              comparison).
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-file ()
+  "Open a popup menu related to selected file."
   (interactive)
   (eide-windows-select-menu-window)
   (move-to-window-line (cdr (last (mouse-position))))
@@ -387,34 +339,25 @@
         ;; "svn" action list
         (if l-buffer-svn-modified-flag
           (progn
-            (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-svn-diff \"" l-buffer "\")") t)
-            (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
+            (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-vc-svn-diff \"" l-buffer "\")") t)
+            (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-vc-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
         (if eide-config-show-svn-status-flag
-          (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-svn-blame \"" l-buffer "\")") t))
+          (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-vc-svn-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "svn")
 
         ;; "git" action list
         (if l-buffer-git-modified-flag
           (progn
-            (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-git-diff \"" l-buffer "\")") t)
-            (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-git-checkout \"" l-buffer "\" \"checkout this file\")") t)))
+            (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-vc-git-diff \"" l-buffer "\")") t)
+            (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-vc-git-checkout \"" l-buffer "\" \"checkout this file\")") t)))
         (if eide-config-show-git-status-flag
-          (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-git-blame \"" l-buffer "\")") t))
+          (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-vc-git-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "git")))
 
     (eide-i-popup-menu-open l-buffer)))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu to select a buffer to display in "output" window.
-;;
-;; input  : eide-menu-grep-results-list : list of grep results.
-;;          eide-menu-cscope-results-list : list of cscope results.
-;;          eide-menu-man-pages-list : list of man pages.
-;;          eide-compilation-buffer : compilation buffer name.
-;;          eide-execution-buffer : execution buffer name.
-;;          eide-shell-buffer : shell buffer name.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-search-results ()
+  "Open a popup menu to select a buffer to display in \"output\" window."
   (eide-i-popup-menu-init)
   (if eide-menu-grep-results-list
     (progn
@@ -441,13 +384,8 @@
   (eide-i-popup-menu-close-action-list "Debug")
   (eide-i-popup-menu-open "Switch to:"))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu to select a search result to delete.
-;;
-;; input  : eide-menu-grep-results-list : list of grep results.
-;;          eide-menu-cscope-results-list : list of cscope results.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-search-results-delete ()
+  "Open a popup menu to select a search result to delete."
   (eide-i-popup-menu-init)
   (if eide-menu-grep-results-list
     (progn
@@ -474,12 +412,8 @@
       (eide-i-popup-menu-close-action-list "Man pages")))
   (eide-i-popup-menu-open "*** DELETE *** search results"))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu to search for selected text.
-;;
-;; input  : eide-project-name : project name.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-search ()
+  "Open a popup menu to search for selected text."
   (eide-i-popup-menu-init)
   (let ((l-string (buffer-substring-no-properties (region-beginning) (region-end))))
     (if eide-project-name
@@ -501,10 +435,8 @@
     (eide-i-popup-menu-close-action-list "Man")
     (eide-i-popup-menu-open (concat "Search: " l-string))))
 
-;; ----------------------------------------------------------------------------
-;; Open a popup menu to clean selected lines.
-;; ----------------------------------------------------------------------------
 (defun eide-popup-open-menu-for-cleaning ()
+  "Open a popup menu to clean selected lines."
   (eide-i-popup-menu-init)
   (eide-i-popup-menu-add-action "Untabify" "(progn (untabify (region-beginning) (region-end)) (save-buffer))" t)
   (eide-i-popup-menu-add-action "Indent" "(progn (indent-region (region-beginning) (region-end) nil) (save-buffer))" t)

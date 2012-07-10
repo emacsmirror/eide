@@ -22,37 +22,29 @@
 (defvar eide-version "1.8+")
 (defvar eide-release-date "2012-07")
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Insert chapter title (level 1 ) in "help" buffer.
-;;
-;; input  : p-string : chapter title (string).
-;; ----------------------------------------------------------------------------
 (defun eide-i-help-insert-header-1 (p-string)
+  "Insert chapter title (level 1) in \"help\" buffer.
+- p-string: chapter title (string)."
   (insert "\n\n\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter1-face)
   (insert "\n"))
 
-;; ----------------------------------------------------------------------------
-;; Insert chapter title (level 2 ) in "help" buffer.
-;;
-;; input  : p-string : chapter title (string).
-;; ----------------------------------------------------------------------------
 (defun eide-i-help-insert-header-2 (p-string)
+  "Insert chapter title (level 2) in \"help\" buffer.
+- p-string: chapter title (string)."
   (insert "\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter2-face))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Display Help (full frame).
-;; ----------------------------------------------------------------------------
 (defun eide-help-open ()
+  "Display help (full frame)."
   ;; Close menu
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-help)

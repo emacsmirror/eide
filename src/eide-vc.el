@@ -24,16 +24,13 @@
 (defvar eide-vc-svn-diff-full-command nil)
 (defvar eide-vc-git-diff-full-command nil)
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Call vc-diff on current buffer with specific backend.
-;;
-;; input  : p-backend : vc backend.
-;; ----------------------------------------------------------------------------
 (defun eide-i-vc-diff (p-backend)
+  "Call vc-diff on current buffer with specific backend.
+- p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
     (vc-switch-backend buffer-file-name p-backend)
@@ -42,12 +39,9 @@
     ;; Switch back to previous backend
     (vc-switch-backend buffer-file-name l-vc-backend)))
 
-;; ----------------------------------------------------------------------------
-;; Call vc-annotate on current buffer with specific backend.
-;;
-;; input  : p-backend : vc backend.
-;; ----------------------------------------------------------------------------
 (defun eide-i-vc-blame (p-backend)
+  "Call vc-annotate on current buffer with specific backend.
+- p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
     (vc-switch-backend buffer-file-name p-backend)
@@ -56,12 +50,9 @@
     ;; Switch back to previous backend
     (vc-switch-backend buffer-file-name l-vc-backend)))
 
-;; ----------------------------------------------------------------------------
-;; Call vc-revert-file on current buffer with specific backend.
-;;
-;; input  : p-backend : vc backend.
-;; ----------------------------------------------------------------------------
 (defun eide-i-vc-revert (p-backend)
+  "Call vc-revert-file on current buffer with specific backend.
+- p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
     (vc-switch-backend buffer-file-name p-backend)
@@ -70,14 +61,12 @@
     ;; Switch back to previous backend
     (vc-switch-backend buffer-file-name l-vc-backend)))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Update current buffer status (modified or not compared to vc repositories).
-;; ----------------------------------------------------------------------------
 (defun eide-vc-update-current-buffer-status ()
+  "Update current buffer status (modified or not compared to vc repositories)."
   (if eide-config-show-svn-status-flag
     (progn
       (make-local-variable 'eide-menu-local-svn-modified-status-flag)
@@ -103,14 +92,10 @@
       ;; Switch back to previous backend
       (vc-switch-backend buffer-file-name l-vc-backend))))
 
-;; ----------------------------------------------------------------------------
-;; Update buffers vc status (modified or not).
-;;
-;; input  : p-files-list : list of files to update (overrides
-;;              eide-menu-files-list).
-;;          eide-menu-files-list : list of open files.
-;; ----------------------------------------------------------------------------
 (defun eide-vc-update-files-status (&optional p-files-list)
+  "Update buffers vc status (modified or not).
+- p-files-list (optional): list of files to update (overrides
+  eide-menu-files-list)."
   (if eide-config-show-svn-status-flag
     (save-excursion
       (let ((l-files-list nil))
@@ -121,14 +106,9 @@
           (set-buffer l-buffer-name)
           (eide-vc-update-current-buffer-status))))))
 
-;; ----------------------------------------------------------------------------
-;; Set svn/git diff commands.
-;;
-;; input  : p-cmd : diff program.
-;; output : eide-vc-svn-diff-full-command : svn diff command.
-;;          eide-vc-git-diff-full-command : git diff command.
-;; ----------------------------------------------------------------------------
 (defun eide-vc-set-diff-command (p-cmd)
+  "Set svn/git diff commands.
+- p-cmd: diff program."
   (if (string-equal p-cmd "")
     (progn
       (setq eide-vc-svn-diff-full-command nil)
@@ -137,22 +117,17 @@
       (setq eide-vc-svn-diff-full-command (concat "svn diff --diff-cmd=" p-cmd " "))
       (setq eide-vc-git-diff-full-command (concat "git difftool -y --extcmd=" p-cmd " ")))))
 
-;; ----------------------------------------------------------------------------
-;; Execute "svn diff" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-svn-diff ()
+(defun eide-vc-svn-diff ()
+  "Execute \"svn diff\" on current buffer."
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (if eide-vc-svn-diff-full-command
       (shell-command (concat eide-vc-svn-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'SVN))))
 
-;; ----------------------------------------------------------------------------
-;; Execute "svn diff" on a directory.
-;;
-;; input  : p-directory-name : directory name.
-;;          p-files-list-string : string containing files list.
-;; ----------------------------------------------------------------------------
-(defun eide-svn-diff-files-in-directory (p-directory-name p-files-list-string)
+(defun eide-vc-svn-diff-files-in-directory (p-directory-name p-files-list-string)
+  "Execute \"svn diff\" on a directory.
+- p-directory-name: directory name.
+- p-files-list-string: string containing files list."
   (if eide-config-show-svn-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
@@ -162,36 +137,27 @@
         (shell-command (concat "cd " l-full-directory-name " && " eide-vc-svn-diff-full-command p-files-list-string))
         (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list-string))))))
 
-;; ----------------------------------------------------------------------------
-;; Execute "svn blame" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-svn-blame ()
+(defun eide-vc-svn-blame ()
+  "Execute \"svn blame\" on current buffer."
   (if eide-config-show-svn-status-flag
     (eide-i-vc-blame 'SVN)))
 
-;; ----------------------------------------------------------------------------
-;; Execute "svn revert" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-svn-revert ()
+(defun eide-vc-svn-revert ()
+  "Execute \"svn revert\" on current buffer."
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (eide-i-vc-revert 'SVN)))
 
-;; ----------------------------------------------------------------------------
-;; Execute "git diff" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-git-diff ()
+(defun eide-vc-git-diff ()
+  "Execute \"git diff\" on current buffer."
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (if eide-vc-git-diff-full-command
       (shell-command (concat eide-vc-git-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'Git))))
 
-;; ----------------------------------------------------------------------------
-;; Execute "git diff" on a directory.
-;;
-;; input  : p-directory-name : directory name.
-;;          p-files-list-string : string containing files list.
-;; ----------------------------------------------------------------------------
-(defun eide-git-diff-files-in-directory (p-directory-name p-files-list-string)
+(defun eide-vc-git-diff-files-in-directory (p-directory-name p-files-list-string)
+  "Execute \"git diff\" on a directory.
+- p-directory-name: directory name.
+- p-files-list-string: string containing files list."
   (if eide-config-show-git-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
@@ -201,17 +167,13 @@
         (shell-command (concat "cd " l-full-directory-name " && " eide-vc-git-diff-full-command p-files-list-string))
         (shell-command (concat "cd " l-full-directory-name " && git diff " p-files-list-string))))))
 
-;; ----------------------------------------------------------------------------
-;; Execute "git blame" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-git-blame ()
+(defun eide-vc-git-blame ()
+  "Execute \"git blame\" on current buffer."
   (if eide-config-show-git-status-flag
     (eide-i-vc-blame 'Git)))
 
-;; ----------------------------------------------------------------------------
-;; Execute "git checkout" on current buffer.
-;; ----------------------------------------------------------------------------
-(defun eide-git-checkout ()
+(defun eide-vc-git-checkout ()
+  "Execute \"git checkout\" on current buffer."
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (eide-i-vc-revert 'Git)))
 

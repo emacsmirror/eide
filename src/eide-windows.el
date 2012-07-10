@@ -41,17 +41,13 @@
 
 (defvar eide-windows-update-output-buffer-id nil)
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Get the window in which a buffer should be displayed.
-;;
-;; input  : p-buffer-name : buffer name.
-;; return : buffer window (nil if not found).
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-get-window-for-buffer (p-buffer-name)
+  "Get the window in which a buffer should be displayed.
+- p-buffer-name: buffer name."
   (if eide-keys-is-editor-configuration-active-flag
     (if (string-match "^\*.*" p-buffer-name)
       (if eide-windows-is-layout-visible-flag
@@ -75,19 +71,15 @@
             eide-windows-source-window))))
     nil))
 
-;; ----------------------------------------------------------------------------
-;; Display a buffer in appropriate window.
-;; Called for:
-;; - compile, run, and shell buffers
-;; - man pages
-;;
-;; input  : p-buffer : buffer.
-;;          eide-windows-update-output-buffer-id : ID of result buffer to be
-;;              displayed (or nil).
-;; output : eide-windows-update-output-buffer-id : nil.
-;; return : buffer window.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
+  "Display a buffer in appropriate window (display-buffer-function).
+Returns the window.
+Called for: - compile, run, and shell buffers.
+            - man pages.
+Arguments are those of display-buffer function:
+- p-buffer: buffer.
+- p-not-this-window (optional): force to display in another window.
+- p-frame (optional): frame."
   (let ((l-buffer-name) (l-window)
         (l-selected-window (selected-window))
         (l-browsing-mode-flag nil))
@@ -160,15 +152,13 @@
     ;; Return buffer window
     l-window))
 
-;; ----------------------------------------------------------------------------
-;; Override select-window function (advice), to know which window is the active
-;; "source" window.
-;;
-;; input  : p-window : window.
-;;          p-norecord : norecord flag
-;; output : eide-windows-source-window : updated "source" window.
-;; ----------------------------------------------------------------------------
 (defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
+  "Override select-window function (advice), to know which window is the active
+\"source\" window.
+Arguments are those of select-window function:
+- p-window: window.
+- p-norecord (optional): don't add the buffer to the list of recently selected
+ones."
   (if (not (or (equal p-window eide-windows-source-window)
                (equal p-window eide-windows-menu-window)
                (equal p-window eide-windows-output-window)
@@ -182,23 +172,14 @@
       (eide-menu-update nil)
       (ad-activate 'select-window))))
 
-;; ----------------------------------------------------------------------------
-;; Override switch-to-buffer function (advice), to display buffer in
-;; appropriate window.
-;; Called:
-;; - when switching to compile, run or shell buffer.
-;;
-;; input  : p-buffer : buffer.
-;;          p-norecord : norecord flag.
-;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;;          eide-search-find-symbol-definition-flag : t = display update is
-;;              necessary after symbol search.
-;;          eide-root-directory : project root directory.
-;; output : eide-search-find-symbol-definition-flag : display update pending
-;;              (nil).
-;; return : p-buffer (or current buffer if it didn't switch to p-buffer).
-;; ----------------------------------------------------------------------------
 (defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord))
+  "Override switch-to-buffer function (advice), to display buffer in appropriate
+window.
+Returns the buffer.
+Arguments are those of switch-to-buffer function:
+- p-buffer: buffer.
+- p-norecord (optional): don't add the buffer to the list of recently selected
+ones."
   (let ((l-buffer-name) (l-do-it-flag t) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
       ;; Get buffer name from buffer
@@ -269,25 +250,19 @@
                     ;; Return the current buffer
                     (current-buffer)))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Override C-x C-f find-file, to get default directory from buffer in "source"
-;; window.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-find-file ()
+  "Override C-x C-f find-file, to get default directory from buffer in \"source\"
+window."
   (interactive)
   (if eide-keys-is-editor-configuration-active-flag
     (progn
       (eide-windows-select-source-window nil)
       (call-interactively 'find-file))))
 
-;; ----------------------------------------------------------------------------
-;; Override save-buffer function (advice), to save buffer in "source" window.
-;;
-;; input  : p-backup-option : backup option.
-;; output : eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request.
-;; ----------------------------------------------------------------------------
 (defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
+  "Override save-buffer function (advice), to save buffer in \"source\" window.
+Arguments are those of save-buffer function:
+- p-backup-option (optional): backup method."
   (let ((l-window (selected-window)))
     (eide-windows-select-source-window nil)
     ad-do-it
@@ -297,28 +272,21 @@
       (setq eide-search-cscope-update-database-request-pending-flag t))
     (select-window l-window)))
 
-;; ----------------------------------------------------------------------------
-;; Override revert-buffer function (advice), to update cscope database.
-;;
-;; input  : p-ignore-auto : ignore-auto flag.
-;;          p-noconfirm : noconfirm flag.
-;;          p-preserve-modes : preserve-modes flag.
-;;          eide-custom-update-cscope-database : cscope database update.
-;; output : eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request.
-;; ----------------------------------------------------------------------------
 (defadvice revert-buffer (after eide-revert-buffer-advice-after (&optional p-ignore-auto p-noconfirm p-preserve-modes))
+  "Override revert-buffer function (advice), to update cscope database.
+Arguments are those of revert-buffer function:
+- p-ignore-auto (optional): ignore auto-save file.
+- p-noconfirm (optional): don't ask for confirmation.
+- p-preserve-modes (optional): preserve file modes."
   (if (equal eide-custom-update-cscope-database 'auto)
     ;; Current buffer has been updated: we must update cscope database
     (setq eide-search-cscope-update-database-request-pending-flag t)))
 
-;; ----------------------------------------------------------------------------
-;; Override mode-line-unbury-buffer (previous buffer) function (advice), to
-;; select appropriate buffer according to selected window (for Emacs 21 only).
-;;
-;; input  : p-event : event.
-;; ----------------------------------------------------------------------------
 (defadvice mode-line-unbury-buffer (around eide-previous-buffer-advice-around (p-event))
+  "Override mode-line-unbury-buffer (previous buffer) function (advice), to select
+appropriate buffer according to selected window (for Emacs 21 only).
+Arguments are those of mode-line-unbury-buffer:
+- p-event: event."
   (interactive "e")
   ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
   (save-selected-window
@@ -335,13 +303,11 @@
       (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
 
-;; ----------------------------------------------------------------------------
-;; Override mode-line-bury-buffer (next buffer) function (advice), to select
-;; appropriate buffer according to selected window (for Emacs 21 only).
-;;
-;; input  : p-event : event.
-;; ----------------------------------------------------------------------------
 (defadvice mode-line-bury-buffer (around eide-previous-buffer-advice-around (p-event))
+  "Override mode-line-bury-buffer (next buffer) function (advice), to select
+appropriate buffer according to selected window (for Emacs 21 only).
+Arguments are those of mode-line-bury-buffer:
+- p-event: event."
   (interactive "e")
   ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
   (save-selected-window
@@ -358,11 +324,9 @@
       (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
 
-;; ----------------------------------------------------------------------------
-;; Override previous-buffer function (advice), to select appropriate buffer
-;; according to selected window.
-;; ----------------------------------------------------------------------------
 (defadvice previous-buffer (around eide-previous-buffer-advice-around)
+  "Override previous-buffer function (advice), to select appropriate buffer
+according to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
@@ -375,11 +339,9 @@
     (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
 
-;; ----------------------------------------------------------------------------
-;; Override next-buffer function (advice), to select appropriate buffer
-;; according to selected window.
-;; ----------------------------------------------------------------------------
 (defadvice next-buffer (around eide-next-buffer-advice-around)
+  "Override next-buffer function (advice), to select appropriate buffer according
+to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
@@ -392,27 +354,18 @@
     (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
 
-;; ----------------------------------------------------------------------------
-;; Override gdb-setup-windows function (advice), to unbuild windows layout
-;; before gdb builds its own.
-;; ----------------------------------------------------------------------------
 (defadvice gdb-setup-windows (before eide-gdb-setup-windows-advice-before)
+  "Override gdb-setup-windows function (advice), to unbuild windows layout before
+gdb builds its own."
   (eide-project-debug-mode-start))
 
-;; ----------------------------------------------------------------------------
-;; Override gdb-restore-windows function (advice), to unbuild windows layout
-;; before gdb builds its own.
-;; ----------------------------------------------------------------------------
 (defadvice gdb-restore-windows (before eide-gdb-setup-windows-advice-before)
+  "Override gdb-restore-windows function (advice), to unbuild windows layout
+before gdb builds its own."
   (eide-project-debug-mode-start))
 
-;; ----------------------------------------------------------------------------
-;; Hook to be called once the frame has been resized.
-;;
-;; output : eide-windows-output-window-height : height of "output" window.
-;;          eide-windows-menu-window-width : width of "menu" window.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-window-setup-hook ()
+  "Hook to be called once the frame has been resized."
   (eide-config-apply)
 
   ;; Close buffer "*Buffer List*" (created when emacs is launched with files as
@@ -446,65 +399,34 @@
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t))
 
-;; ----------------------------------------------------------------------------
-;; Select window at mouse position.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-select-window-at-mouse-position ()
+  "Select window at mouse position."
   ;; Select the window where the mouse is
   (let ((l-position (last (mouse-position))))
     (select-window (window-at (car l-position) (cdr l-position)))))
 
-;; ----------------------------------------------------------------------------
-;; Test if selected window is "source" window.
-;;
-;; return : t or nil.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-is-source-window-selected-p ()
+  "Test if selected window is \"source\" window."
   (equal (selected-window) eide-windows-source-window))
 
-;; ----------------------------------------------------------------------------
-;; Test if selected window is "menu" window.
-;;
-;; return : t or nil.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-is-menu-window-selected-p ()
+  "Test if selected window is \"menu\" window."
   (equal (selected-window) eide-windows-menu-window))
 
-;; ----------------------------------------------------------------------------
-;; Test if selected window is "output" window.
-;;
-;; return : t or nil.
-;; ----------------------------------------------------------------------------
 (defun eide-i-windows-is-output-window-selected-p ()
+  "Test if selected window is \"output\" window."
   (equal (selected-window) eide-windows-output-window))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Initialize windows.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-init ()
+  "Initialize windows."
   (add-hook 'window-setup-hook 'eide-i-windows-window-setup-hook))
 
-;; ----------------------------------------------------------------------------
-;; Build windows layout.
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;;          eide-custom-menu-window-position : menu window position.
-;;          eide-custom-menu-window-height : menu window height.
-;;          eide-windows-menu-window-width : width of "menu" window.
-;;          eide-windows-output-window-height : height of "output" window.
-;;          eide-windows-output-window-buffer : buffer in "output" window.
-;;          eide-windows-menu-update-request-pending-flag : t = menu buffer
-;;              update is necessary.
-;; output : eide-windows-source-window : "source" window.
-;;          eide-windows-menu-window : "menu" window.
-;;          eide-windows-output-window : "output" window.
-;;          eide-windows-is-layout-visible-flag : t (windows layout is shown).
-;; ----------------------------------------------------------------------------
 (defun eide-windows-layout-build ()
+  "Build windows layout."
   (if (not eide-windows-is-layout-visible-flag)
     (progn
       (ad-deactivate 'select-window)
@@ -576,17 +498,8 @@
         (eide-menu-update nil))
       (ad-activate 'select-window))))
 
-;; ----------------------------------------------------------------------------
-;; Unbuild windows layout (keep only "source" window).
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; output : eide-windows-menu-window-width : width of "menu" window.
-;;          eide-windows-output-window-height : height of "output" window.
-;;          eide-windows-output-window-buffer : buffer in "output" window.
-;;          eide-windows-is-layout-visible-flag : nil (windows layout is
-;;              hidden).
-;; ----------------------------------------------------------------------------
 (defun eide-windows-layout-unbuild ()
+  "Unbuild windows layout (keep only \"source\" window)."
   (if eide-windows-is-layout-visible-flag
     (progn
       (ad-deactivate 'select-window)
@@ -617,44 +530,30 @@
       (eide-windows-skip-unwanted-buffers-in-source-window)
       (ad-activate 'select-window))))
 
-;; ----------------------------------------------------------------------------
-;; Select "source" window.
-;;
-;; input  : p-force-build-flag : t = build windows layout if not visible.
-;;          eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-select-source-window (p-force-build-flag)
+  "Select \"source\" window.
+- p-force-build-flag: t = build windows layout if not visible."
   (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
     (progn
       (if (not eide-windows-is-layout-visible-flag)
         (eide-windows-layout-build))
       (select-window eide-windows-source-window))))
 
-;; ----------------------------------------------------------------------------
-;; Select "menu" window (build windows layout if necessary).
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-select-menu-window ()
+  "Select \"menu\" window (build windows layout if necessary)."
   (if (not eide-windows-is-layout-visible-flag)
     (eide-windows-layout-build))
   (select-window eide-windows-menu-window))
 
-;; ----------------------------------------------------------------------------
-;; Select "output" window (build windows layout if necessary).
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-select-output-window ()
+  "Select \"output\" window (build windows layout if necessary)."
   (if (not eide-windows-is-layout-visible-flag)
     (eide-windows-layout-build))
   (select-window eide-windows-output-window))
 
-;; ----------------------------------------------------------------------------
-;; Parse buffers list until an appropriate buffer is found, that can be
-;; displayed. Current buffer is kept if correct.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-skip-unwanted-buffers-in-source-window ()
+  "Parse buffers list until an appropriate buffer is found, that can be displayed,
+and display it. Current buffer is kept if correct."
   (eide-windows-select-source-window nil)
   (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-first-found-buffer-name nil) (l-iteration 0))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
@@ -692,12 +591,8 @@
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
 
-;; ----------------------------------------------------------------------------
-;; Handle mouse-3 (right click) action.
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-3 ()
+  "Handle mouse-3 (right click) action."
   (interactive)
   (if eide-project-is-gdb-session-visible-flag
     (eide-project-debug-mode-stop)
@@ -771,12 +666,8 @@
                             ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
                             (eide-windows-layout-build)))))))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Handle mouse-2 (middle click) action.
-;;
-;; input  : eide-windows-is-layout-visible-flag : t = windows layout is shown.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-mouse-2 ()
+  "Handle mouse-2 (middle click) action."
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
@@ -784,10 +675,8 @@
     (eide-menu-dired-open)
     (yank)))
 
-;; ----------------------------------------------------------------------------
-;; Handle shift + mouse-3 (right click) action.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-handle-shift-mouse-3 ()
+  "Handle shift + mouse-3 (right click) action."
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
@@ -795,12 +684,9 @@
     ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)))
 
-;; ----------------------------------------------------------------------------
-;; Load a file without using advice (when "menu" buffer must not be updated).
-;;
-;; input  : p-file : filename.
-;; ----------------------------------------------------------------------------
 (defun eide-windows-find-file-without-advice (p-file)
+  "Load a file without using advice (when \"menu\" buffer must not be updated).
+- p-file: file."
   ;; find-file advice would change eide-current-buffer
   ;; and menu buffer would be updated with temp files
   (ad-deactivate 'switch-to-buffer)

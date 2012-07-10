@@ -63,9 +63,9 @@
 
 (defvar eide-config-target-buffer nil)
 
-;;;; ==========================================================================
-;;;; OPTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; OPTIONS
+;; ----------------------------------------------------------------------------
 
 ;; Exclude "_" from word delimiters (when selecting by double-click)
 (defvar eide-option-select-whole-symbol-flag t)
@@ -76,9 +76,9 @@
 
 (defvar eide-option-menu-buffer-popup-groups-flags nil)
 
-;;;; ==========================================================================
-;;;; SETTINGS FOR MAJOR MODE "EMACS-IDE-CONFIG"
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; SETTINGS FOR MAJOR MODE "EMACS-IDE-CONFIG"
+;; ----------------------------------------------------------------------------
 
 (define-derived-mode emacs-ide-config-mode fundamental-mode "Emacs-IDE config"
   (setq font-lock-defaults '('(("\\(#.*\\)"      1 'eide-config-config-comment-face) ; comment
@@ -88,9 +88,9 @@
 
 (setq auto-mode-alist (append '(("\\.emacs-ide-project.cfg\\'" . emacs-ide-config-mode)) auto-mode-alist))
 
-;;;; ==========================================================================
-;;;; SYNTAX HIGHLIGHTING
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; SYNTAX HIGHLIGHTING
+;; ----------------------------------------------------------------------------
 
 (require 'font-lock)
 
@@ -194,9 +194,9 @@
 (set-face-background 'ediff-fine-diff-face-B "plum")
 (set-face-foreground 'ediff-fine-diff-face-B "black")
 
-;;;; ==========================================================================
-;;;; CUSTOMIZATION VARIABLES
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION VARIABLES
+;; ----------------------------------------------------------------------------
 
 (defgroup eide nil "Customization of Emacs-IDE."
   :tag "Emacs-IDE"
@@ -600,18 +600,12 @@
   :initialize 'custom-initialize-default
   :group 'eide-search)
 
-;;;; ==========================================================================
-;;;; CUSTOMIZATION FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Apply color theme (for menu).
-;;
-;; input  : eide-custom-color-theme : color theme.
-;; output : eide-config-menu-background-color : menu background color.
-;;          eide-config-menu-foreground-color : menu foreground color.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-apply-color-theme ()
+  "Apply color theme (for menu)."
   (if eide-config-ready
     (progn
       (if (equal eide-custom-color-theme 'dark)
@@ -696,16 +690,8 @@
           ;; Information line
           (set-face-background 'mode-line "wheat"))))))
 
-;; ----------------------------------------------------------------------------
-;; Apply color theme (for source code).
-;;
-;; input  : eide-custom-color-theme : color theme.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-custom-extend-color-theme-to-source-code : apply color theme
-;;              on source code flag.
-;;          eide-config-user-... : user values.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-apply-extended-color-theme ()
+  "Apply color theme (for source code)."
   (if eide-config-ready
     (progn
       (if (and eide-custom-override-emacs-settings
@@ -771,16 +757,8 @@
           (set-face-background 'region eide-config-user-selection-background-color)
           (set-face-foreground 'region eide-config-user-selection-foreground-color))))))
 
-;; ----------------------------------------------------------------------------
-;; Update menu background color.
-;;
-;; input  : eide-custom-color-theme : color theme.
-;;          eide-custom-dark-background : background color for dark color
-;;              theme.
-;;          eide-custom-light-background : background color for light color
-;;              theme.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-update-menu-background-color ()
+  "Update menu background color."
   (if eide-config-ready
     (progn
       (let ((l-menu-background-color nil))
@@ -830,14 +808,10 @@
         (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color))
       (eide-menu-update t))))
 
-;; ----------------------------------------------------------------------------
-;; Set show svn status.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;; output : eide-config-show-svn-status-flag : show svn status.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-show-svn-status (param value)
+  "Set show svn status (eide-config-show-svn-status-flag).
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (progn
@@ -848,14 +822,10 @@
         (setq eide-config-show-svn-status-flag value))
       (eide-menu-update t t))))
 
-;; ----------------------------------------------------------------------------
-;; Set show git status.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;; output : eide-config-show-git-status-flag : show git status.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-show-git-status (param value)
+  "Set show git status (eide-config-show-git-status-flag).
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (progn
@@ -866,26 +836,18 @@
         (setq eide-config-show-git-status-flag value))
       (eide-menu-update t t))))
 
-;; ----------------------------------------------------------------------------
-;; Set vc diff command.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-vc-diff-command (param value)
+  "Set vc diff command.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (eide-vc-set-diff-command value)))
 
-;; ----------------------------------------------------------------------------
-;; Set menu bar mode.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-menu-bar-mode : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-menu-bar (param value)
+  "Set menu bar mode.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if window-system
@@ -896,15 +858,10 @@
           (menu-bar-mode -1))
         (menu-bar-mode (if eide-config-user-menu-bar-mode 1 -1))))))
 
-;; ----------------------------------------------------------------------------
-;; Set tool bar mode.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-tool-bar-mode : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-tool-bar (param value)
+  "Set tool bar mode.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if window-system
@@ -915,15 +872,10 @@
           (tool-bar-mode -1))
         (tool-bar-mode (if eide-config-user-tool-bar-mode 1 -1))))))
 
-;; ----------------------------------------------------------------------------
-;; Set tool bar mode.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-scroll-bar-mode : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-scroll-bar-position (param value)
+  "Set scroll bar position
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if window-system
@@ -932,15 +884,10 @@
         (set-scroll-bar-mode value)
         (set-scroll-bar-mode eide-config-user-scroll-bar-mode)))))
 
-;; ----------------------------------------------------------------------------
-;; Set font height.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-font-height : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-font-height (param value)
+  "Set font height.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if window-system
@@ -948,15 +895,10 @@
         (set-face-attribute 'default nil :height value)
         (set-face-attribute 'default nil :height eide-config-user-font-height)))))
 
-;; ----------------------------------------------------------------------------
-;; Set indentation mode (spaces or tabs).
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-indent-tabs-mode : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-indent-mode (param value)
+  "Set indentation mode (spaces or tabs).
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -964,33 +906,21 @@
       (setq-default indent-tabs-mode (if (equal value 'spaces) nil t))
       (setq-default indent-tabs-mode eide-config-user-indent-tabs-mode))))
 
-;; ----------------------------------------------------------------------------
-;; Set default tab width.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-tab-width : user value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-default-tab-width (param value)
+  "Set default tab width.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings value)
       (setq-default tab-width value)
       (setq-default tab-width eide-config-user-tab-width))))
 
-;; ----------------------------------------------------------------------------
-;; Set background color for a color theme.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          color-theme : color theme.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-custom-extend-color-theme-to-source-code : apply color theme
-;;              on source code flag.
-;;          eide-custom-color-theme : current color theme.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-background (param value color-theme)
+  "Set background color for a color theme.
+- param: customization parameter.
+- value: customization value.
+- color-theme: color theme."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -1001,18 +931,11 @@
         (set-background-color value)
         (set-face-background 'fringe value)))))
 
-;; ----------------------------------------------------------------------------
-;; Set foreground color for a color theme.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          color-theme : color theme.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-custom-extend-color-theme-to-source-code : apply color theme
-;;              on source code flag.
-;;          eide-custom-color-theme : current color theme.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-foreground (param value color-theme)
+  "Set foreground color for a color theme.
+- param: customization parameter.
+- value: customization value.
+- color-theme: color theme."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -1024,19 +947,12 @@
         (set-face-foreground 'font-lock-string-face value)
         (set-face-foreground 'region value)))))
 
-;; ----------------------------------------------------------------------------
-;; Set background color of a face for a color theme.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          face : face.
-;;          color-theme : color theme.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-custom-extend-color-theme-to-source-code : apply color theme
-;;              on source code flag.
-;;          eide-custom-color-theme : current color theme.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-face-background (param value face color-theme)
+  "Set background color of a face for a color theme.
+- param: customization parameter.
+- value: customization value.
+- face: face.
+- color-theme: color theme."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -1044,19 +960,12 @@
              (equal eide-custom-color-theme color-theme))
       (set-face-background face value))))
 
-;; ----------------------------------------------------------------------------
-;; Set foreground color of a face for a color theme.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          face : face.
-;;          color-theme : color theme.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-custom-extend-color-theme-to-source-code : apply color theme
-;;              on source code flag.
-;;          eide-custom-color-theme : current color theme.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-face-foreground (param value face color-theme)
+  "Set foreground color of a face for a color theme.
+- param: customization parameter.
+- value: customization value.
+- face: face.
+- color-theme: color theme."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -1064,17 +973,10 @@
              (equal eide-custom-color-theme color-theme))
       (set-face-foreground face value))))
 
-;; ----------------------------------------------------------------------------
-;; Set cscope update.
-;;
-;; input  : param : customization parameter.
-;;          value : customization value.
-;;          eide-custom-override-emacs-settings : override emacs settings flag.
-;;          eide-config-user-cscope-do-not-update-database : user value.
-;; output : eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-set-cscope-update (param value)
+  "Set cscope update.
+- param: customization parameter.
+- value: customization value."
   (set-default param value)
   (if eide-config-ready
     (if (and eide-custom-override-emacs-settings
@@ -1084,10 +986,8 @@
         (setq eide-search-cscope-update-database-request-pending-flag t))
       (setq cscope-do-not-update-database eide-config-user-cscope-do-not-update-database))))
 
-;; ----------------------------------------------------------------------------
-;; Apply "Emacs settings" options.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-apply-emacs-settings ()
+  "Apply \"Emacs settings\" options."
   (if eide-config-ready
     (progn
       (eide-i-config-apply-extended-color-theme)
@@ -1104,16 +1004,12 @@
       (if eide-option-use-cscope-flag
         (eide-i-config-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))))
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Save emacs settings.
-;;
-;; output : eide-config-user-... : user values.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-save-emacs-settings ()
+  "Save emacs settings."
   (setq eide-config-user-menu-bar-mode menu-bar-mode)
   (setq eide-config-user-tool-bar-mode tool-bar-mode)
   (setq eide-config-user-scroll-bar-mode scroll-bar-mode)
@@ -1139,13 +1035,10 @@
   (if eide-option-use-cscope-flag
     (setq eide-config-user-cscope-do-not-update-database cscope-do-not-update-database)))
 
-;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in a config (current buffer).
-;;
-;; input  : p-parameter : config parameter.
-;; return : value as a string, or nil if it is not defined.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-get-value-if-defined (p-parameter)
+  "Get the value of a parameter in a config (current buffer), returns nil if
+not defined.
+- p-parameter: config parameter."
   (goto-char (point-min))
   (if (re-search-forward (concat "^" p-parameter " = ") nil t)
     (buffer-substring-no-properties (point) (line-end-position))
@@ -1157,86 +1050,53 @@
         (buffer-substring-no-properties (point) (line-end-position))
         nil))))
 
-;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in a config (current buffer).
-;;
-;; input  : p-parameter : config parameter.
-;; return : value as a string, or "" if it is not defined.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-get-value (p-parameter)
+  "Get the value of a parameter in a config (current buffer), returns empty
+string if not defined.
+- p-parameter: config parameter."
   (let ((l-value (eide-i-config-get-value-if-defined p-parameter)))
     (if l-value
       l-value
       "")))
 
-;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in config file.
-;;
-;; input  : p-parameter : config parameter.
-;; return : config value.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-get-current-value (p-parameter)
+  "Get the value of a parameter in config file.
+- p-parameter: config parameter."
   (set-buffer eide-project-config-file)
   (eide-i-config-get-value-if-defined p-parameter))
 
-;; ----------------------------------------------------------------------------
-;; Insert a line with a parameter and its value in config file.
-;;
-;; input  : p-parameter : config parameter.
-;;          p-value : config value.
-;;          eide-config-target-buffer : temporary config buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-insert-parameter (p-parameter p-value)
+  "Insert a line with a parameter and its value in config file.
+- p-parameter: config parameter.
+- p-value: config value."
   (set-buffer eide-config-target-buffer)
   (insert p-parameter)
   (insert " = ")
   (insert p-value)
   (insert "\n"))
 
-;; ----------------------------------------------------------------------------
-;; Update a line with a parameter and its value (default if not found).
-;;
-;; input  : p-parameter : config parameter.
-;;          p-default-value : config default value.
-;; ----------------------------------------------------------------------------
-(defun eide-i-config-rebuild-update-value (p-parameter p-default-value)
-  (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
-    ;; If the parameter is not present, we use default value.
-    (if (not l-value)
-      (setq l-value p-default-value))
-    (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
-
-;; ----------------------------------------------------------------------------
-;; Update a line with a parameter and its value (default from config if not
-;; found).
-;;
-;; input  : p-parameter : config parameter.
-;;          p-default-value : default value in config.
-;; ----------------------------------------------------------------------------
 (defun eide-i-config-rebuild-update-value-from-config (p-parameter p-default-value)
+  "Update a line with a parameter and its value (default from config if not
+found).
+- p-parameter: config parameter.
+- p-default-value: config default value."
   (let ((l-value (eide-i-config-rebuild-get-current-value p-parameter)))
     (if (not l-value)
       (setq l-value p-default-value))
     (eide-i-config-rebuild-insert-parameter p-parameter l-value)))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Display customization (full frame).
-;; ----------------------------------------------------------------------------
 (defun eide-config-open-customization ()
+  "Display customization (full frame)."
   (eide-windows-layout-unbuild)
   (eide-keys-configure-for-special-buffer)
   (customize-group 'eide))
 
-;; ----------------------------------------------------------------------------
-;; Update project file.
-;;
-;; input  : eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-config-rebuild-project-file ()
+  "Update project file."
   (save-excursion
     ;; Define target config file
     (setq eide-config-target-buffer (concat eide-project-config-file "_temp"))
@@ -1279,63 +1139,44 @@
     ;; Close temporary buffer
     (kill-buffer eide-config-target-buffer)))
 
-;; ----------------------------------------------------------------------------
-;; Get the value of a parameter in project config.
-;;
-;; input  : p-parameter : config parameter.
-;;          eide-root-directory : project root directory.
-;; return : config value.
-;; ----------------------------------------------------------------------------
 (defun eide-config-get-project-value (p-parameter)
+  "Get the value of a parameter in project config.
+- p-parameter: config parameter."
   (save-excursion
     (if (not (get-buffer eide-project-config-file))
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (set-buffer eide-project-config-file)
     (eide-i-config-get-value p-parameter)))
 
-;; ----------------------------------------------------------------------------
-;; Display project file (full frame).
-;;
-;; input  : eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-config-open-project-file ()
+  "Display project file (full frame)."
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
   (goto-char (point-min)))
 
-;; ----------------------------------------------------------------------------
-;; Display project notes file (full frame).
-;;
-;; input  : eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-config-open-project-notes-file ()
+  "Display project notes file (full frame)."
   (eide-windows-layout-unbuild)
   (eide-config-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
 
-;; ----------------------------------------------------------------------------
-;; Set colors for config buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-config-set-colors-for-config ()
+  "Set colors for config buffer."
   (set-background-color eide-config-config-background-color)
   (set-foreground-color eide-config-config-foreground-color)
   (set-face-background 'fringe eide-config-config-background-color))
 
-;; ----------------------------------------------------------------------------
-;; Set colors for "help" buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-config-set-colors-for-help ()
+  "Set colors for \"help\" buffer."
   (set-background-color eide-config-menu-background-color)
   (set-foreground-color eide-config-menu-foreground-color)
   (set-face-background 'fringe eide-config-menu-background-color))
 
-;; ----------------------------------------------------------------------------
-;; Set colors for edition mode.
-;; ----------------------------------------------------------------------------
 (defun eide-config-set-colors-for-files ()
+  "Set colors for edition mode."
   (if (and eide-custom-override-emacs-settings eide-custom-extend-color-theme-to-source-code)
     (progn
       (set-background-color eide-config-background-color)
@@ -1346,16 +1187,12 @@
       (set-foreground-color eide-config-user-foreground-color)
       (set-face-background 'fringe eide-config-user-background-color))))
 
-;; ----------------------------------------------------------------------------
-;; Initialize config.
-;; ----------------------------------------------------------------------------
 (defun eide-config-init ()
+  "Initialize config."
   (eide-i-config-save-emacs-settings))
 
-;; ----------------------------------------------------------------------------
-;; Apply config.
-;; ----------------------------------------------------------------------------
 (defun eide-config-apply ()
+  "Apply config."
   ;; Custom values are initialized (and set if customized) by
   ;; custom-set-variables in ~/.emacs, which may be done before or after
   ;; eide-start call.

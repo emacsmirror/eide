@@ -21,16 +21,12 @@
 
 (require 'eide-popup)
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Get current buffer status (REF, NEW or not edited).
-;;
-;; return : buffer status ("nofile", "ref", "new" or "").
-;; ----------------------------------------------------------------------------
 (defun eide-edit-get-buffer-status ()
+  "Get current buffer status (\"nofile\", \"ref\", \"new\" or \"\")."
   (if (not (file-exists-p buffer-file-name))
     "nofile"
     (if (file-exists-p (concat buffer-file-name ".ref"))
@@ -39,14 +35,10 @@
         "ref"
         ""))))
 
-;; ----------------------------------------------------------------------------
-;; Update buffers edit status (REF, NEW or not edited).
-;;
-;; input  : p-files-list : list of files to update (overrides
-;;              eide-menu-files-list)
-;;          eide-menu-files-list : list of open files.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-update-files-status (&optional p-files-list)
+  "Update buffers edit status (\"nofile\", \"ref\", \"new\" or \"\").
+- p-files-list (optional): list of files to update (overrides
+  eide-menu-files-list)."
   (save-excursion
     (let ((l-files-list nil))
       (if p-files-list
@@ -57,31 +49,22 @@
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))))))
 
-;; ----------------------------------------------------------------------------
-;; Set write permission for current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-set-rw ()
+  "Set write permission for current file."
   (if buffer-read-only
     (progn
       (shell-command (concat "chmod +w \"" buffer-file-name "\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Unset write permission for current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-set-r ()
+  "Unset write permission for current file."
   (if (not buffer-read-only)
     (progn
       (shell-command (concat "chmod -w \"" buffer-file-name "\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Create ".ref" version of current file, and use ".new".
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-make-ref-file ()
+  "Create \".ref\" version of current file, and use \".new\"."
   (if (string-equal eide-menu-local-edit-status "")
     (progn
       (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\" ; cp \"" buffer-file-name ".ref\" \"" buffer-file-name "\" ; chmod +w \"" buffer-file-name "\""))
@@ -96,11 +79,8 @@
 ;; (copy-file (concat buffer-file-name ".ref") buffer-file-name)
 ;; (set-file-modes (logior (file-modes buffer-file-name) 128)) ; = "chmod +w"
 
-;; ----------------------------------------------------------------------------
-;; Use ".ref" version of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-use-ref-file ()
+  "Use \".ref\" version of current file."
   (if (string-equal eide-menu-local-edit-status "new")
     (progn
       (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
@@ -109,11 +89,8 @@
         (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Use ".new" version of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-use-new-file ()
+  "Use \".new\" version of current file."
   (if (string-equal eide-menu-local-edit-status "ref")
     (progn
       (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
@@ -122,21 +99,15 @@
         (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Discard ".new" version of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-discard-new-file ()
+  "Discard \".new\" version of current file."
   (if (string-equal eide-menu-local-edit-status "ref")
     (progn
       (shell-command (concat "rm -f \"" buffer-file-name ".new\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Restore ".ref" version of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-restore-ref-file ()
+  "Restore \".ref\" version of current file."
   (if (string-equal eide-menu-local-edit-status "new")
     (progn
       (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
@@ -144,21 +115,15 @@
         (shell-command (concat "touch \"" buffer-file-name "\"")))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Discard ".ref" version of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-discard-ref-file ()
+  "Discard \".ref\" version of current file."
   (if (string-equal eide-menu-local-edit-status "new")
     (progn
       (shell-command (concat "rm -f \"" buffer-file-name ".ref\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Untabify and indent the content of current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-untabify-and-indent ()
+  "Untabify and indent the content of current file."
   (if (not buffer-read-only)
     (progn
       (untabify (point-min) (point-max))
@@ -167,31 +132,22 @@
       (save-buffer)
       (ad-activate 'save-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Convert current file end of line from DOS to UNIX.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-dos-to-unix ()
+  "Convert current file end of line from DOS to UNIX."
   (if (not buffer-read-only)
     (progn
       (shell-command (concat "dos2unix \"" buffer-file-name "\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Convert current file end of line from UNIX to DOS.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-unix-to-dos ()
+  "Convert current file end of line from UNIX to DOS."
   (if (not buffer-read-only)
     (progn
       (shell-command (concat "unix2dos \"" buffer-file-name "\""))
       (revert-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Delete all trailing spaces in current file.
-;; Called by eide-edit-action-on-file or eide-edit-action-on-directory.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-delete-trailing-spaces ()
+  "Delete all trailing spaces in current file."
   (if (not buffer-read-only)
     (progn
       (delete-trailing-whitespace)
@@ -199,15 +155,12 @@
       (save-buffer)
       (ad-activate 'save-buffer))))
 
-;; ----------------------------------------------------------------------------
-;; Do an action on a file.
-;;
-;; input  : p-function : function to call when buffer is current.
-;;          p-buffer-name : buffer name.
-;;          p-confirmation-message : string for confirmation message, nil if
-;;              confirmation is not required.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
+  "Do an action on a file.
+- p-function: function to call (once the buffer is current).
+- p-buffer-name: buffer name.
+- p-confirmation-message (optional): string for confirmation message, nil if
+  confirmation is not required."
   (if (or (not p-confirmation-message)
           (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn
@@ -217,16 +170,12 @@
         (funcall p-function))
       (eide-menu-buffer-update-stop p-buffer-name))))
 
-;; ----------------------------------------------------------------------------
-;; Do an action on all open files in a directory.
-;;
-;; input  : p-function : function to call when buffer is current.
-;;          p-directory-name : directory name.
-;;          p-confirmation-message : string for confirmation message, nil if
-;;              confirmation is not required.
-;;          eide-menu-files-list : list of open files.
-;; ----------------------------------------------------------------------------
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)
+  "Do an action on all open files in a directory.
+- p-function: function to call (once the buffer is current).
+- p-directory-name: directory name.
+- p-confirmation-message (optional): string for confirmation message, nil if
+  confirmation is not required."
   (if (or (not p-confirmation-message)
           (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn

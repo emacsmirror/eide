@@ -59,16 +59,12 @@
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
 (defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
 
-;;;; ==========================================================================
-;;;; INTERNAL FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Get string to search (either selected text, or word at cursor position).
-;;
-;; return : string to search.
-;; ----------------------------------------------------------------------------
 (defun eide-i-search-get-string-to-search ()
+  "Get string to search (either selected text, or word at cursor position)."
   (if (eq mark-active t)
     ;; Text is selected
     (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
@@ -84,62 +80,43 @@
           (message "No text to search at cursor position...")
           nil)))))
 
-;; ----------------------------------------------------------------------------
-;; Sentinel for "create tags" process.
-;;
-;; input  : p-process : process.
-;;          p-event : event.
-;; output : eide-search-tags-available-flag : t.
-;; ----------------------------------------------------------------------------
 (defun eide-i-search-tags-sentinel (p-process p-event)
+  "Sentinel for \"create tags\" process.
+- p-process: process.
+- p-event: event."
   (setq eide-search-tags-available-flag t)
   (message "Creating tags... done"))
 
-;; ----------------------------------------------------------------------------
-;; Sentinel for "create cscope" process.
-;;
-;; input  : p-process : process.
-;;          p-event : event.
-;; output : eide-search-cscope-available-flag : t.
-;; ----------------------------------------------------------------------------
 (defun eide-i-search-cscope-sentinel (p-process p-event)
+  "Sentinel for \"create cscope\" process.
+- p-process: process.
+- p-event: event."
   (eide-search-update-cscope-status)
   (setq eide-search-cscope-available-flag t)
   (message "Creating cscope list of files... done"))
 
-;;;; ==========================================================================
-;;;; FUNCTIONS
-;;;; ==========================================================================
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
 
-;; ----------------------------------------------------------------------------
-;; Create tags.
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-search-tags-available-flag : nil.
-;; ----------------------------------------------------------------------------
 (defun eide-search-create-tags ()
+  "Create tags."
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
   (let ((l-process (start-process-shell-command "create-tags" "*create-tags*" (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
     ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-tags-sentinel)))
 
-;; ----------------------------------------------------------------------------
-;; Go back from definition.
-;; ----------------------------------------------------------------------------
 (defun eide-search-back-from-tag ()
+  "Go back from definition."
   (interactive)
   (eide-windows-select-source-window nil)
   (call-interactively 'pop-tag-mark)
   (eide-menu-update nil))
 
-;; ----------------------------------------------------------------------------
-;; Go to definition of a symbol.
-;;
-;; input  : p-string : symbol.
-;;          eide-search-tags-available-flag : t if tags are available.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag (p-string)
+  "Go to definition of a symbol.
+- p-string: symbol."
   (if eide-search-tags-available-flag
     (progn
       (eide-windows-select-source-window nil)
@@ -147,23 +124,15 @@
       (recenter))
     (message eide-search-tags-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Go to definition of symbol at cursor position.
-;;
-;; output : eide-search-tag-string : symbol.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag-without-prompt ()
+  "Go to definition of symbol at cursor position."
   (interactive)
   (setq eide-search-tag-string (eide-i-search-get-string-to-search))
   (if eide-search-tag-string
     (eide-search-find-tag eide-search-tag-string)))
 
-;; ----------------------------------------------------------------------------
-;; Go to definition of a symbol (prompt for it).
-;;
-;; input  : eide-search-tags-available-flag : t if tags are available.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-tag-with-prompt ()
+  "Go to definition of a symbol (prompt for it)."
   (interactive)
   (if eide-search-tags-available-flag
     (progn
@@ -178,13 +147,8 @@
       (recenter))
     (message eide-search-tags-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Go to alternate definition of previously searched symbol.
-;;
-;; input  : eide-search-tags-available-flag : t if tags are available.
-;;          eide-search-tag-string : symbol.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-alternate-tag ()
+  "Go to alternate definition of previously searched symbol."
   (interactive)
   (if eide-search-tags-available-flag
     (progn
@@ -194,26 +158,14 @@
       (recenter))
     (message eide-search-tags-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Set cscope status (disabled if list of files is empty).
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-search-cscope-files-flag : t if cscope.files is not empty.
-;; ----------------------------------------------------------------------------
 (defun eide-search-update-cscope-status ()
+  "Set cscope status (disabled if list of files is empty)."
   (setq eide-search-cscope-files-flag nil)
   (if (not (equal (nth 7 (file-attributes (concat eide-root-directory "cscope.files"))) 0))
     (setq eide-search-cscope-files-flag t)))
 
-;; ----------------------------------------------------------------------------
-;; Create cscope list of files.
-;;
-;; input  : eide-root-directory : project root directory.
-;; output : eide-search-cscope-available-flag : nil.
-;;          eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request (t).
-;; ----------------------------------------------------------------------------
 (defun eide-search-create-cscope-list-of-files ()
+  "Create cscope list of files."
   (message "Creating cscope list of files...")
   (setq eide-search-cscope-available-flag nil)
   (setq eide-search-cscope-update-database-request-pending-flag t)
@@ -222,28 +174,14 @@
     (set-process-sentinel l-process 'eide-i-search-cscope-sentinel)))
 ;; (cscope-index-files nil))
 
-;; ----------------------------------------------------------------------------
-;; Update cscope database (on next search).
-;;
-;; output : eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request (t).
-;; ----------------------------------------------------------------------------
 (defun eide-search-update-cscope-database ()
+  "Update cscope database (on next search)."
   (setq eide-search-cscope-update-database-request-pending-flag t)
   (message "On next cscope search, database will be updated"))
 
-;; ----------------------------------------------------------------------------
-;; Find a symbol.
-;;
-;; input  : p-symbol : symbol.
-;;          eide-search-cscope-available-flag : t if cscope is available.
-;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
-;;          eide-search-cscope-update-database-request-pending-flag : cscope
-;;              database update pending request.
-;; output : eide-search-cscope-update-database-request-pending-flag : updated
-;;              cscope database update pending request.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol (p-symbol)
+  "Find a symbol with cscope.
+- p-symbol: symbol."
   (if eide-search-cscope-available-flag
     (if eide-search-cscope-files-flag
       (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
@@ -273,13 +211,8 @@
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Find a symbol (prompt for it).
-;;
-;; input  : eide-search-cscope-available-flag : t if cscope is available.
-;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-with-prompt ()
+  "Find a symbol with cscope (prompt for it)."
   (interactive)
   (if eide-search-cscope-available-flag
     (if eide-search-cscope-files-flag
@@ -290,13 +223,8 @@
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Find symbol at cursor position.
-;;
-;; input  : eide-search-cscope-available-flag : t if cscope is available.
-;;          eide-search-cscope-files-flag : t if cscope.files is not empty.
-;; ----------------------------------------------------------------------------
 (defun eide-search-find-symbol-without-prompt ()
+  "Find symbol at cursor position with cscope."
   (interactive)
   (if eide-search-cscope-available-flag
     (if eide-search-cscope-files-flag
@@ -306,12 +234,9 @@
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
 
-;; ----------------------------------------------------------------------------
-;; Grep a string in current directory.
-;;
-;; input  : p-string : string.
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local (p-string)
+  "Grep a string in current directory.
+- p-string: string."
   (eide-windows-select-source-window t)
   (let ((l-buffer-directory (file-name-directory (buffer-file-name)))
         (l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")"))
@@ -334,32 +259,24 @@
       (eide-search-view-output-buffer l-result-buffer-name))
     (eide-windows-select-source-window t)))
 
-;; ----------------------------------------------------------------------------
-;; Grep word at cursor position, in current directory.
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local-without-prompt ()
+  "Grep word at cursor position, in current directory."
   (interactive)
   (let ((l-string (eide-i-search-get-string-to-search)))
     (if l-string
       (eide-search-grep-local l-string))))
 
-;; ----------------------------------------------------------------------------
-;; Grep a string in current directory (prompt for it).
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-local-with-prompt ()
+  "Grep a string in current directory (prompt for it)."
   (interactive)
   (let ((l-string (read-string "Grep (in current directory): ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
       (eide-search-grep-local l-string))))
 
-;; ----------------------------------------------------------------------------
-;; Grep a string in the whole project.
-;;
-;; input  : p-string : string.
-;;          eide-root-directory : project root directory.
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global (p-string)
+  "Grep a string in the whole project.
+- p-string: string."
   ;; On Emacs 22 GTK: it is necessary to select "source" window, otherwise
   ;; current output buffer will be reused if "output" window is selected.
   (eide-windows-select-source-window t)
@@ -385,29 +302,23 @@
       (eide-search-view-output-buffer l-result-buffer-name))
     (eide-windows-select-source-window t)))
 
-;; ----------------------------------------------------------------------------
-;; Grep word at cursor position, in the whole project.
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global-without-prompt ()
+  "Grep word at cursor position, in the whole project."
   (interactive)
   (let ((l-string (eide-i-search-get-string-to-search)))
     (if l-string
       (eide-search-grep-global l-string))))
 
-;; ----------------------------------------------------------------------------
-;; Grep a string in the whole project (prompt for it).
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-global-with-prompt ()
+  "Grep a string in the whole project (prompt for it)."
   (interactive)
   (let ((l-string (read-string "Grep (in whole project): ")))
     (if (string-equal l-string "")
       (message "Cannot grep empty string...")
       (eide-search-grep-global l-string))))
 
-;; ----------------------------------------------------------------------------
-;; Go to previous grep match (or compile error).
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-go-to-previous ()
+  "Go to previous grep match (or compilation error)."
   (interactive)
   (previous-error)
   (if (not eide-windows-is-layout-visible-flag)
@@ -418,10 +329,8 @@
   (eide-menu-update nil)
   (eide-windows-select-source-window nil))
 
-;; ----------------------------------------------------------------------------
-;; Go to next grep match (or compile error).
-;; ----------------------------------------------------------------------------
 (defun eide-search-grep-go-to-next ()
+  "Go to next grep match (or compilation error)."
   (interactive)
   (next-error)
   (if (not eide-windows-is-layout-visible-flag)
@@ -432,32 +341,21 @@
   (eide-menu-update nil)
   (eide-windows-select-source-window nil))
 
-;; ----------------------------------------------------------------------------
-;; Read man page.
-;;
-;; input  : p-args : man arguments (including section number or "-a").
-;; ----------------------------------------------------------------------------
 (defun eide-search-read-man (p-args)
+  "Read man page.
+- p-args: man arguments (including section number or \"-a\")."
   (eide-windows-select-source-window t)
   (man p-args))
 
-;; ----------------------------------------------------------------------------
-;; Display a result buffer.
-;; ----------------------------------------------------------------------------
 (defun eide-search-view-output-buffer (p-result-buffer-name)
+  "Display a result buffer.
+- p-result-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (switch-to-buffer p-result-buffer-name))
 
-;; ----------------------------------------------------------------------------
-;; Close a grep result buffer.
-;;
-;; input  : p-grep-buffer-name : grep result buffer name.
-;;          eide-menu-grep-results-list : grep results list.
-;;          eide-menu-cscope-results-list : cscope results list.
-;;          eide-menu-man-pages-list : man pages list.
-;; output : eide-menu-grep-results-list : updated grep results list.
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-grep-buffer (p-grep-buffer-name)
+  "Close a grep result buffer.
+- p-grep-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (kill-buffer p-grep-buffer-name)
@@ -479,15 +377,8 @@
                   (switch-to-buffer l-buffer)
                   (switch-to-buffer "*results*"))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close all grep result buffers.
-;;
-;; input  : eide-menu-grep-results-list : grep results list.
-;;          eide-menu-cscope-results-list : cscope results list.
-;;          eide-menu-man-pages-list : man pages list.
-;; output : eide-menu-grep-results-list : updated grep results list (nil).
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-grep-buffers ()
+  "Close all grep result buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (dolist (l-grep-buffer-name eide-menu-grep-results-list)
@@ -506,16 +397,9 @@
               (switch-to-buffer l-buffer)
               (switch-to-buffer "*results*"))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close a cscope result buffer.
-;;
-;; input  : p-cscope-buffer-name : cscope result buffer name.
-;;          eide-menu-cscope-results-list : cscope results list.
-;;          eide-menu-grep-results-list : grep results list.
-;;          eide-menu-man-pages-list : man pages list.
-;; output : eide-menu-cscope-results-list : updated cscope results list.
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-cscope-buffer (p-cscope-buffer-name)
+  "Close a cscope result buffer.
+- p-cscope-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (kill-buffer p-cscope-buffer-name)
@@ -537,15 +421,8 @@
                   (switch-to-buffer l-buffer)
                   (switch-to-buffer "*results*"))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close all cscope result buffers.
-;;
-;; input  : eide-menu-cscope-results-list : cscope results list.
-;;          eide-menu-grep-results-list : grep results list.
-;;          eide-menu-man-pages-list : man pages list.
-;; output : eide-menu-cscope-results-list : updated cscope results list (nil).
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-cscope-buffers ()
+  "Close all cscope result buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (dolist (l-cscope-buffer-name eide-menu-cscope-results-list)
@@ -564,16 +441,9 @@
               (switch-to-buffer l-buffer)
               (switch-to-buffer "*results*"))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close a man page buffer.
-;;
-;; input  : p-man-buffer-name : man page buffer name.
-;;          eide-menu-man-pages-list : man pages list.
-;;          eide-menu-grep-results-list : grep results list.
-;;          eide-menu-cscope-results-list : cscope results list.
-;; output : eide-menu-man-pages-list : updated man pages list.
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-man-buffer (p-man-buffer-name)
+  "Close a man page buffer.
+- p-man-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (kill-buffer p-man-buffer-name)
@@ -595,15 +465,8 @@
                   (switch-to-buffer l-buffer)
                   (switch-to-buffer "*results*"))))))))))
 
-;; ----------------------------------------------------------------------------
-;; Close all man page buffers.
-;;
-;; input  : eide-menu-man-pages-list : man pages list.
-;;          eide-menu-grep-results-list : grep results list.
-;;          eide-menu-cscope-results-list : cscope results list.
-;; output : eide-menu-man-pages-list : updated man pages list (nil).
-;; ----------------------------------------------------------------------------
 (defun eide-search-close-all-man-buffers ()
+  "Close all man page buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
     (dolist (l-man-buffer-name eide-menu-man-pages-list)
