@@ -20,6 +20,7 @@
 (provide 'eide-popup)
 
 (require 'eide-compare)
+(require 'eide-config)
 
 (defvar eide-popup-menu nil)
 (defvar eide-popup-menu-actions-list nil)

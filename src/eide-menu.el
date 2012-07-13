@@ -21,9 +21,11 @@
 
 (require 'imenu) ; for imenu--generic-function and imenu-generic-expression
 
+(require 'eide-config)
 (require 'eide-edit)
 (require 'eide-popup)
 (require 'eide-vc)
+(require 'eide-windows)
 
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-symbols-list nil)
@@ -218,7 +220,8 @@
       (if (string-equal p-directory-name (file-name-directory (buffer-file-name (get-buffer l-buffer))))
         (eide-i-menu-insert-file l-buffer)))
     ;; Insert an empty line between two directories
-    (eide-i-menu-insert-text "\n")))
+    (if eide-custom-menu-insert-blank-line-between-directories
+      (eide-i-menu-insert-text "\n"))))
 
 (defun eide-i-menu-insert-all-files ()
   "Insert all files - grouped by directory - in \"menu\" buffer."
@@ -268,13 +271,27 @@
   "Remove a file from \"menu\" buffer (beginning on current line)."
   (let ((buffer-read-only nil))
     (beginning-of-line)
-    (delete-region (point) (progn (forward-line) (while (string-equal (char-to-string (char-after)) " ") (forward-line)) (point)))))
+    (delete-region (point)
+                   (progn
+                     (forward-line)
+                     (while (and (not (eobp))
+                                 (string-equal (char-to-string (char-after)) " "))
+                       (forward-line))
+                     (point)))))
 
 (defun eide-i-menu-remove-directory ()
   "Remove a directory from \"menu\" buffer (beginning on current line)."
   (let ((buffer-read-only nil))
     (beginning-of-line)
-    (delete-region (point) (progn (forward-line) (while (not (string-equal (char-to-string (char-after)) "\n")) (forward-line)) (progn (forward-line) (point))))))
+    (delete-region (point)
+                   (progn
+                     (forward-line)
+                     (while (and (not (eobp))
+                                 (not (or (equal (get-text-property (point) 'face) 'eide-config-menu-directory-face)
+                                          (equal (get-text-property (point) 'face) 'eide-config-menu-directory-out-of-project-face)
+                                          (string-equal (char-to-string (char-after)) "\n"))))
+                       (forward-line))
+                     (point)))))
 
 (defun eide-i-menu-get-symbol-name-on-current-line ()
   "Get symbol name on current line in \"menu\" buffer."
@@ -305,8 +322,6 @@
   (let ((buffer-read-only nil) (l-position-marker nil))
     (erase-buffer)
     (setq eide-menu-current-buffer-marker nil)
-
-    (eide-i-menu-insert-text "\n")
 
     (if eide-project-name
       (progn
@@ -553,16 +568,16 @@ pages)."
     (setq l-buffer-name-list (reverse l-buffer-name-list))
 
     (dolist (l-buffer-name l-buffer-name-list)
-      (if (not (or (string-match "^[ \*]" l-buffer-name) (string-equal "TAGS" l-buffer-name)))
+      (if (not (or (string-match "^[ \*]" l-buffer-name)
+                   (eide-windows-is-file-special-p l-buffer-name)))
         ;; This is a "useful" buffer
         (save-excursion
           (set-buffer l-buffer-name)
           (if (or (equal major-mode 'dired-mode)
                   (equal major-mode 'Buffer-menu-mode))
             (kill-buffer l-buffer-name)
-            (if (not (string-equal l-buffer-name eide-project-config-file))
-              (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list)))))
-        ;; This is a "*..." buffer
+            (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list))))
+        ;; This is a "*..." buffer (or a special file that should be ignored)
         (if (string-match "^\*grep.*" l-buffer-name)
           (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
           (if (string-match "^\*cscope\*.*" l-buffer-name)
@@ -597,17 +612,12 @@ pages)."
   (beginning-of-line)
   (buffer-substring-no-properties
    (point)
-   (progn
-     (end-of-line)
-     (backward-char)
-     (while (not (equal (get-text-property (point) 'mouse-face) 'highlight))
-       (backward-char))
-     (forward-char)
-     (point))))
+   (next-property-change (point) (current-buffer) (line-end-position))))
 
 (defun eide-menu-get-buffer-name-on-current-line ()
   "Get buffer name on current line in \"menu\" buffer."
   (beginning-of-line)
+  ;; Skip "(+) "
   (forward-char 4)
   (buffer-substring-no-properties
    (point)
@@ -631,7 +641,10 @@ pages)."
             (eide-menu-update t))
           (progn
             (eide-i-menu-remove-file)
-            (if (string-equal (char-to-string (char-after)) "\n")
+            (if (or (eobp)
+                    (equal (get-text-property (point) 'face) 'eide-config-menu-directory-face)
+                    (equal (get-text-property (point) 'face) 'eide-config-menu-directory-out-of-project-face)
+                    (string-equal (char-to-string (char-after)) "\n"))
               ;; It was the last file of the group
               (progn
                 (forward-line -1)

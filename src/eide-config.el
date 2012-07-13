@@ -209,20 +209,13 @@
   :initialize 'custom-initialize-default
   :group 'eide)
 
-(defgroup eide-display nil "Colors and windows layout."
+(defgroup eide-display nil "Colors, menu, and windows layout."
   :tag "Display"
   :group 'eide)
 (defcustom eide-custom-color-theme 'light "Color theme for menu. To extend the use of color theme to source code, see \"Emacs settings > Emacs display > Color theme for source code\" option."
   :tag "Menu color theme"
   :type '(choice (const dark) (const light))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-color-theme) (eide-i-config-apply-extended-color-theme) (eide-i-config-update-menu-background-color))
-  :initialize 'custom-initialize-default
-  :group 'eide-display)
-(defcustom eide-custom-menu-window-use-specific-background-color t "Use a specific background color (depending on color theme) in menu window."
-  :tag "Use a specific background color in menu window."
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-update-menu-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-display)
 (defcustom eide-custom-menu-window-position 'right "Menu window position."
@@ -232,6 +225,20 @@
 (defcustom eide-custom-menu-window-height 'half "Menu window height."
   :tag "Menu window height"
   :type '(choice (const half) (const full))
+  :group 'eide-display)
+(defcustom eide-custom-menu-use-specific-background-color t "Use a specific background color (depending on color theme) in menu."
+  :tag "Use a specific background color in menu"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-update-menu-background-color))
+  :initialize 'custom-initialize-default
+  :group 'eide-display)
+(defcustom eide-custom-menu-insert-blank-line-between-directories nil "Insert a blank line between directories in menu."
+  :tag "Insert a blank line between directories in menu"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set 'eide-i-config-update-menu
+  :initialize 'custom-initialize-default
   :group 'eide-display)
 
 (defgroup eide-version-control nil "Version control facilities in menu."
@@ -769,7 +776,7 @@
               (setq l-background-color eide-custom-dark-background)
               (setq l-background-color eide-custom-light-background))
             (setq l-background-color (face-background 'default)))
-          (if (or (not eide-custom-menu-window-use-specific-background-color)
+          (if (or (not eide-custom-menu-use-specific-background-color)
                   (equal eide-config-menu-background-color l-background-color))
             (progn
               (setq eide-config-menu-use-specific-background-color nil)
@@ -807,6 +814,14 @@
         (set-face-background 'eide-config-menu-empty-list-face l-menu-background-color)
         (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color))
       (eide-menu-update t))))
+
+(defun eide-i-config-update-menu (param value)
+  "Update menu.
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (if eide-config-ready
+    (eide-menu-update t)))
 
 (defun eide-i-config-set-show-svn-status (param value)
   "Set show svn status (eide-config-show-svn-status-flag).

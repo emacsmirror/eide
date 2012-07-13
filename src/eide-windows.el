@@ -19,6 +19,7 @@
 
 (provide 'eide-windows)
 
+(require 'eide-config)
 (require 'eide-menu)
 
 (defvar eide-windows-source-window nil)
@@ -64,9 +65,7 @@
         (if (or (equal major-mode 'dired-mode)
                 (equal major-mode 'Buffer-menu-mode))
           nil
-          (if (or (string-equal "TAGS" p-buffer-name)
-                  (string-equal eide-project-config-file p-buffer-name)
-                  (string-equal eide-project-notes-file p-buffer-name))
+          (if (eide-windows-is-file-special-p p-buffer-name)
             nil
             eide-windows-source-window))))
     nil))
@@ -180,7 +179,7 @@ Arguments are those of switch-to-buffer function:
 - p-buffer: buffer.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
-  (let ((l-buffer-name) (l-do-it-flag t) (l-browsing-mode-flag nil) (l-window))
+  (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
       ;; Get buffer name from buffer
       (setq l-buffer-name (buffer-name p-buffer))
@@ -205,10 +204,14 @@ ones."
             ad-do-it
             p-buffer)
           (progn
-            ;; Do not display TAGS file, and configuration files
-            (if (or (string-equal l-buffer-name "TAGS") (string-equal l-buffer-name eide-project-config-file) (string-equal l-buffer-name eide-project-notes-file))
-              (setq l-do-it-flag nil))
-            (if l-do-it-flag
+            (if (eide-windows-is-file-special-p l-buffer-name)
+              (progn
+                ;; Do not display special files
+                (if (string-equal l-buffer-name eide-project-notes-file)
+                  ;; Project notes file should not be opened with switch-to-buffer advice
+                  (kill-buffer l-buffer-name))
+                ;; Return the current buffer
+                (current-buffer))
               (progn
                 (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
                 (if l-window
@@ -241,14 +244,7 @@ ones."
                 ;; Select buffer window
                 (select-window l-window)
                 ;; Return the buffer that it switched to
-                p-buffer)
-              (progn
-                ;; Close unwanted files (except TAGS and project configuration)
-                (if (string-equal l-buffer-name eide-project-notes-file)
-                  (progn
-                    (kill-buffer l-buffer-name)
-                    ;; Return the current buffer
-                    (current-buffer)))))))))))
+                p-buffer))))))))
 
 (defun eide-windows-find-file ()
   "Override C-x C-f find-file, to get default directory from buffer in \"source\"
@@ -550,6 +546,15 @@ before gdb builds its own."
   (if (not eide-windows-is-layout-visible-flag)
     (eide-windows-layout-build))
   (select-window eide-windows-output-window))
+
+(defun eide-windows-is-file-special-p (l-buffer-name)
+  "Test if the file is special or not. A special file must not be displayed.
+Special files are : tags, cscope files, and emacs-ide hidden files."
+  (or (string-equal l-buffer-name "TAGS")
+      (string-equal l-buffer-name "cscope.files")
+      (string-equal l-buffer-name "cscope.out")
+      (string-equal l-buffer-name eide-project-config-file)
+      (string-equal l-buffer-name eide-project-notes-file)))
 
 (defun eide-windows-skip-unwanted-buffers-in-source-window ()
   "Parse buffers list until an appropriate buffer is found, that can be displayed,
