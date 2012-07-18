@@ -653,7 +653,10 @@ pages)."
                           (equal l-property 'eide-config-menu-directory-out-of-project-face))
                     ;; It was also the only one: we must delete directory line
                     (let ((buffer-read-only nil))
-                      (delete-region (point) (progn (forward-line 2) (point))))))))))))))
+                      (delete-region (point)
+                                     (progn
+                                       (forward-line (if eide-custom-menu-insert-blank-line-between-directories 2 1))
+                                       (point))))))))))))))
 
 (defun eide-menu-directory-close (p-directory-name)
   "Close all files in selected directory.
