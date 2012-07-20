@@ -102,10 +102,6 @@
   ;; Highlight matching parentheses (when cursor on "(" or just after ")")
   (show-paren-mode 1)
 
-  ;;(make-frame '((fullscreen . fullboth)))
-  ;;(modify-frame-parameters nil '((fullscreen . nil)))
-  ;;(modify-frame-parameters nil '((fullscreen . fullboth)))
-  ;;(set-frame-parameter nil 'fullscreen 'fullboth)
   (if eide-option-use-cscope-flag
     (cscope-set-initial-directory eide-root-directory))
 

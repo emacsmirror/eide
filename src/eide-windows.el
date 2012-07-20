@@ -42,6 +42,8 @@
 
 (defvar eide-windows-update-output-buffer-id nil)
 
+(defvar eide-windows-frame-fullscreen-value nil)
+
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -697,5 +699,19 @@ and display it. Current buffer is kept if correct."
   (ad-deactivate 'switch-to-buffer)
   (find-file p-file)
   (ad-activate 'switch-to-buffer))
+
+(defun eide-windows-toggle-frame-fullscreen-mode ()
+  "Toggle frame fullscreen mode between fullboth and nil or maximized (depending
+on previous state)."
+  (interactive)
+  (let ((l-frame-fullscreen-value (frame-parameter nil 'fullscreen)))
+    (if (equal l-frame-fullscreen-value 'fullboth)
+      ;; Switch back to previous state (nil or maximized)
+      (set-frame-parameter nil 'fullscreen eide-windows-frame-fullscreen-value)
+      (progn
+        ;; Save current state (nil or maximized)
+        (setq eide-windows-frame-fullscreen-value l-frame-fullscreen-value)
+        ;; Switch to fullboth mode
+        (set-frame-parameter nil 'fullscreen 'fullboth)))))
 
 ;;; eide-windows.el ends here

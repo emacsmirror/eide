@@ -96,6 +96,8 @@
 ;; Override find-file, to get default directory from "source" window
 (global-set-key "\C-x\C-f" 'eide-windows-find-file)
 
+(global-set-key [f11] 'eide-windows-toggle-frame-fullscreen-mode)
+
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -122,10 +124,7 @@
   (global-set-key [S-f9] 'eide-project-compile-2)
 
   (global-set-key [f10] 'eide-project-run-1)
-  (global-set-key [S-f10] 'eide-project-run-2)
-
-  (global-set-key [f11] 'eide-project-debug-1)
-  (global-set-key [S-f11] 'eide-project-debug-2))
+  (global-set-key [S-f10] 'eide-project-run-2))
 
 (defun eide-i-keys-disable-keys-for-project ()
   "Unset key bindings for project."
@@ -143,10 +142,7 @@
   (global-unset-key [S-f9])
 
   (global-unset-key [f10])
-  (global-unset-key [S-f10])
-
-  (global-unset-key [f11])
-  (global-unset-key [S-f11]))
+  (global-unset-key [S-f10]))
 
 (defun eide-i-keys-enable-keys-for-grep ()
   "Set key bindings that can be used without project."

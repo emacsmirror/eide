@@ -358,6 +358,7 @@ Control - mouse 3 ..... Paste
   (insert "
           F5 .......... Reload all buffers (and update display)
   Shift - F5 .......... Close current buffer
+          F11 ......... Toggle fullscreen mode
 ")
 
   (eide-i-help-insert-header-2 "Grep result browsing")
@@ -381,12 +382,11 @@ Control - mouse 3 ..... Paste
   Shift - F9 .......... Compile (2)
           F10 ......... Run (1)
   Shift - F10 ......... Run (2)
-          F11 ......... Debug (1)
-  Shift - F11 ......... Debug (2)
           F12 ......... Open shell
 
-NB: Additional compile commands (Compile (3) and Compile (4)) are not
-available from the keyboard, but only from project popup menu.
+NB: Additional compile commands (Compile (3) and Compile (4)) - as well as
+debug commands - are not available from the keyboard, but only from project
+popup menu.
 ")
 
   ;;  (eide-i-help-insert-header-2 "User defined text insertions")
