@@ -63,9 +63,11 @@ printf "\n\033[1mRemove .elc files (if any)\033[0m\n"
 rm -vf src/*.elc
 
 printf "\n\033[1mCompile Emacs-IDE\033[0m\n"
-emacs --batch -l compile-eide.el
+emacs --batch -L src -f batch-byte-compile src/*.el
 # --batch: don't use interactive display (implies -q: don't load ~/.emacs)
-# -l file.el: load emacs lisp file
+# -L DIR: add DIR to load-path
+# -f batch-byte-compile FILES: call batch-byte-compile function, which calls
+# byte-compile-file on FILES
 printf "\n"
 compilation_ok=1
 for file in `ls src/*.el`; do
