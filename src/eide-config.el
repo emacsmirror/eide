@@ -328,6 +328,11 @@
 (defgroup eide-emacs-settings-display nil "Emacs display."
   :tag "Emacs display"
   :group 'eide-emacs-settings)
+(defcustom eide-custom-start-maximized t "Start with maximized frame."
+  :tag "Start with maximized frame"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :group 'eide-emacs-settings-display)
 (defcustom eide-custom-show-menu-bar nil "Show menu bar."
   :tag "Show menu bar"
   :type '(choice (const :tag "No" nil)

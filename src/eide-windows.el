@@ -395,7 +395,10 @@ before gdb builds its own."
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)
   (eide-windows-skip-unwanted-buffers-in-source-window)
   ;; Create menu content (force to build and to retrieve files status)
-  (eide-menu-update t t))
+  (eide-menu-update t t)
+
+  (if (and eide-custom-override-emacs-settings eide-custom-start-maximized)
+    (set-frame-parameter nil 'fullscreen 'maximized)))
 
 (defun eide-i-windows-select-window-at-mouse-position ()
   "Select window at mouse position."
