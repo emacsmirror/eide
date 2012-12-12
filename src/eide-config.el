@@ -1062,13 +1062,7 @@ not defined.
   (goto-char (point-min))
   (if (re-search-forward (concat "^" p-parameter " = ") nil t)
     (buffer-substring-no-properties (point) (line-end-position))
-    ;; Migration from Emacs-IDE 1.5
-    ;; Compatibility with old syntax (":")
-    (progn
-      (goto-char (point-min))
-      (if (re-search-forward (concat "^" p-parameter ":") nil t)
-        (buffer-substring-no-properties (point) (line-end-position))
-        nil))))
+    nil))
 
 (defun eide-i-config-get-value (p-parameter)
   "Get the value of a parameter in a config (current buffer), returns empty

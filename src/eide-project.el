@@ -152,10 +152,6 @@ has already been called."
 (defun eide-project-load (p-startup-flag)
   "Load project information (depends on root directory).
 - p-startup-flag: t when called from the init."
-  ;; Migration from Emacs-IDE 1.5
-  (if (and (not (file-exists-p eide-project-config-file))
-           (file-exists-p ".emacs-ide.project"))
-    (shell-command (concat "mv .emacs-ide.project " eide-project-config-file)))
   ;; Check if a project is defined, and start it.
   ;; NB: It is important to read desktop after mode-hooks have been defined,
   ;; otherwise mode-hooks may not apply.
@@ -223,10 +219,6 @@ has already been called."
           (setq eide-search-cscope-update-database-request-pending-flag t)))
       (eide-search-create-cscope-list-of-files)))
 
-  ;; Migration from Emacs-IDE 1.5
-  (if (and (not (file-exists-p eide-project-notes-file))
-           (file-exists-p ".emacs-ide.project_notes"))
-    (shell-command (concat "mv .emacs-ide.project_notes " eide-project-notes-file)))
   (if (not (file-exists-p (concat eide-root-directory eide-project-notes-file)))
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
