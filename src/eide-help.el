@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.8+")
-(defvar eide-release-date "2012-07")
+(defvar eide-release-date "2012-12")
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -107,6 +107,7 @@ In 'menu' window:
     - project creation/configuration
     - project commands (compile, run, debug)
     - tags and cscope update
+    - change root directory
     - configuration
     - help (this page)
 
@@ -182,8 +183,9 @@ parameters for new projects (see '.emacs-ide-project.cfg' below).
   (eide-i-help-insert-header-2 "Create a project")
 
   (insert "
-Launch Emacs from your workset root directory.
-Open project popup menu and select 'Create project'.
+Either launch Emacs from your workset root directory, or launch Emacs and open
+project popup menu to change root directory.
+Then open project popup menu and select 'Create project'.
 
 In your workset root directory, several files are created:
 
@@ -214,7 +216,8 @@ select 'Project notes'.
   (eide-i-help-insert-header-2 "Open existing project")
 
   (insert "
-Launch Emacs from your workset root directory.
+Either launch Emacs from your workset root directory, or launch Emacs and open
+project popup menu to change root directory.
 Files opened during last session are opened again automatically.
 ")
 

@@ -57,6 +57,13 @@
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
+(defun eide-i-project-force-desktop-read-hook ()
+  "Hook to be called at startup, to force to read the desktop when after-init-hook
+has already been called."
+  (if (not desktop-file-modtime)
+    ;; Desktop has not been read: read it now.
+    (desktop-read eide-root-directory)))
+
 (defun eide-i-project-compile (p-parameter)
   "Compile project.
 - p-parameter: option parameter in project configuration for compile command."
@@ -114,9 +121,7 @@
       (eide-windows-select-source-window t)
       ;; Create empty project file
       (shell-command (concat "touch " eide-root-directory eide-project-config-file))
-      (eide-project-start-with-project)
-      ;; Update frame title and menu (project is active now)
-      (eide-project-update-frame-title)
+      (eide-project-start-with-project nil)
       (eide-menu-update t)
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
@@ -144,8 +149,54 @@
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
 
-(defun eide-project-start-with-project ()
-  "Start with current project."
+(defun eide-project-load (p-startup-flag)
+  "Load project information (depends on root directory).
+- p-startup-flag: t when called from the init."
+  ;; Migration from Emacs-IDE 1.5
+  (if (and (not (file-exists-p eide-project-config-file))
+           (file-exists-p ".emacs-ide.project"))
+    (shell-command (concat "mv .emacs-ide.project " eide-project-config-file)))
+  ;; Check if a project is defined, and start it.
+  ;; NB: It is important to read desktop after mode-hooks have been defined,
+  ;; otherwise mode-hooks may not apply.
+  (if (file-exists-p (concat eide-root-directory eide-project-config-file))
+    (progn
+      ;; A project is defined in this directory
+      (eide-project-start-with-project p-startup-flag)
+      ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
+      ;; the desktop is not read, because after-init-hook has already been called.
+      ;; In that case, we need to force to read it (except if --no-desktop option is set).
+      ;; The solution is to register a hook on emacs-startup-hook, which is
+      ;; called after the loading of file.el.
+      ;; Drawback: a file in argument ("emacs -l file.el main.c") will be loaded
+      ;; but not displayed, because desktop is read after the loading of main.c
+      ;; and selects its own current buffer.
+      (if (and p-startup-flag (not eide-no-desktop-option))
+        (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook)))
+    (progn
+      ;; There is no project in this directory
+      (setq eide-project-name nil)
+      (if (not eide-no-desktop-option)
+        (progn
+          (desktop-save-mode -1)
+          ;; Close all buffers
+          (desktop-clear)))))
+  ;; Start with "editor" mode
+  (eide-keys-configure-for-editor)
+  ;; Close temporary buffers from ediff sessions (if emacs has been closed during
+  ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
+  ;; files) and they have been loaded in this new emacs session).
+  (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
+    (dolist (l-buffer-name l-buffer-name-list)
+      (if (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
+        ;; this is a "useless" buffer (.ref or .new)
+        (kill-buffer l-buffer-name))))
+  ;; Set current buffer
+  (setq eide-current-buffer (buffer-name)))
+
+(defun eide-project-start-with-project (p-startup-flag)
+  "Start with current project.
+- p-startup-flag: t when called from the init."
   ;; Get project name from directory
   ;; eide-root-directory:                                                     <...>/current_project/
   ;; directory-file-name removes last "/":                                    <...>/current_project
@@ -154,9 +205,6 @@
 
   ;; "Lock" project
   ;;(shell-command (concat "touch " eide-root-directory eide-project-lock-file))
-
-  ;; Rebuild project file
-  (eide-config-rebuild-project-file)
 
   ;; Create tags if necessary
   (if (file-exists-p (concat eide-root-directory "TAGS"))
@@ -183,18 +231,63 @@
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
-  ;; TODO: sous flag
-  ;; Tag file name with full path
-  (setq tags-file-name (concat eide-root-directory "TAGS"))
-
   (if (not eide-no-desktop-option)
     (progn
-      ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
-      (desktop-save-mode 1)
-      ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
-      (setq desktop-save t)
-      ;; Set desktop directory (set to nil when desktop save mode is disabled)
-      (setq desktop-dirname eide-root-directory))))
+      (if (not p-startup-flag)
+        ;; No need to update menu for every restored buffer
+        (ad-deactivate 'switch-to-buffer))
+      (if desktop-dirname
+        ;; A desktop is already loaded: switch to the new one
+        (desktop-change-dir eide-root-directory)
+        (progn
+          ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
+          (desktop-save-mode 1)
+          ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
+          (setq desktop-save t)
+          ;; Set desktop directory (set to nil when desktop save mode is disabled)
+          (setq desktop-dirname eide-root-directory)
+          (if (not p-startup-flag)
+            (desktop-read eide-root-directory))))
+      (if (not p-startup-flag)
+        (ad-activate 'switch-to-buffer))))
+
+  ;; Update frame title
+  (eide-project-update-frame-title)
+
+  ;; Close any existing TAGS file, to make sure we will use the right one
+  (if (get-buffer "TAGS")
+    (kill-buffer "TAGS"))
+  ;; Use tags-table-list instead of tags-file-name because when switching to
+  ;; another project, Emacs asks either to append or to overwrite tags file
+  ;; name in the list, and we want to overwrite without asking
+  (setq tags-table-list (list (concat eide-root-directory "TAGS")))
+
+  ;; Set cscope root directory
+  (if eide-option-use-cscope-flag
+    (cscope-set-initial-directory eide-root-directory))
+
+  ;; Close any existing config file, to make sure we will use the right one
+  (if (get-buffer eide-project-config-file)
+    (kill-buffer eide-project-config-file))
+  ;; Rebuild project file after the desktop has been changed (in case of project switching)
+  (eide-config-rebuild-project-file))
+
+(defun eide-project-change-root ()
+  "Change root directory."
+  (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
+    ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+    ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+    ;; otherwise we get errors for non-existing windows
+    (eide-windows-layout-unbuild)
+    (call-interactively 'dired)
+    ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+    (setq eide-root-directory (expand-file-name default-directory))
+    ;; Exit browsing mode (kill dired buffer)
+    (eide-menu-browsing-mode-stop)
+    (eide-project-load nil)
+    (eide-menu-update t)
+    (if l-layout-visible-flag
+      (eide-windows-layout-build))))
 
 (defun eide-project-update-frame-title ()
   "Update frame title with project name (or root directory if no project)."

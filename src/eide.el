@@ -102,9 +102,6 @@
   ;; Highlight matching parentheses (when cursor on "(" or just after ")")
   (show-paren-mode 1)
 
-  (if eide-option-use-cscope-flag
-    (cscope-set-initial-directory eide-root-directory))
-
   ;; ediff: Highlight current diff only
   ;;(setq ediff-highlight-all-diffs nil)
   ;; ediff: Control panel in the same frame
@@ -251,53 +248,12 @@
           (setq tab-width eide-custom-sgml-indent-offset)
           (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
 
-(defun eide-i-force-desktop-read-hook ()
-  "Hook to be called at startup, to force to read the desktop when after-init-hook
-has already been called."
-  (if (not desktop-file-modtime)
-    ;; Desktop has not been read: read it now.
-    (desktop-read)))
-
 (defun eide-i-init ()
   "Initialization."
   ;; Config must be initialized before desktop is loaded, because it reads some
   ;; variables that might be overridden by local values in buffers.
   (eide-config-init)
-  ;; Migration from Emacs-IDE 1.5
-  (if (and (not (file-exists-p eide-project-config-file))
-           (file-exists-p ".emacs-ide.project"))
-    (shell-command (concat "mv .emacs-ide.project " eide-project-config-file)))
-  ;; Check if a project is defined, and start it.
-  ;; NB: It is important to read desktop after mode-hooks have been defined,
-  ;; otherwise mode-hooks may not apply.
-  (if (file-exists-p eide-project-config-file)
-    (progn
-      (find-file-noselect eide-project-config-file)
-      (eide-project-start-with-project)
-      ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
-      ;; the desktop is not read, because after-init-hook has already been called.
-      ;; In that case, we need to force to read it (except if --no-desktop option is set).
-      ;; The solution is to register a hook on emacs-startup-hook, which is
-      ;; called after the loading of file.el.
-      ;; Drawback: a file in argument ("emacs -l file.el main.c") will be loaded
-      ;; but not displayed, because desktop is read after the loading of main.c
-      ;; and selects its own current buffer.
-      (if (not eide-no-desktop-option)
-        (add-hook 'emacs-startup-hook 'eide-i-force-desktop-read-hook))))
-  ;; Update frame title and menu
-  (eide-project-update-frame-title)
-  ;; Start with "editor" mode
-  (eide-keys-configure-for-editor)
-  ;; Close temporary buffers from ediff sessions (if emacs has been closed during
-  ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
-  ;; files) and they have been loaded in this new emacs session).
-  (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
-    (dolist (l-buffer-name l-buffer-name-list)
-      (if (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
-        ;; this is a "useless" buffer (.ref or .new)
-        (kill-buffer l-buffer-name))))
-  ;; Init
-  (setq eide-current-buffer (buffer-name))
+  (eide-project-load t)
   (eide-menu-init)
   (eide-windows-init))
 

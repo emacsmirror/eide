@@ -169,6 +169,9 @@
         (eide-i-popup-menu-close-action-list "Create")
         (setq l-popup-header (concat "Root directory: " eide-root-directory))))
 
+    (eide-i-popup-menu-add-action "Change root directory" "(eide-project-change-root)" t)
+    (eide-i-popup-menu-close-action-list "Project")
+
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
 
