@@ -121,7 +121,7 @@ has already been called."
       (eide-windows-select-source-window t)
       ;; Create empty project file
       (shell-command (concat "touch " eide-root-directory eide-project-config-file))
-      (eide-project-start-with-project nil)
+      (eide-project-start-with-project nil t)
       (eide-menu-update t)
       ;; Update key bindings for project
       (eide-keys-configure-for-editor))))
@@ -158,7 +158,7 @@ has already been called."
   (if (file-exists-p (concat eide-root-directory eide-project-config-file))
     (progn
       ;; A project is defined in this directory
-      (eide-project-start-with-project p-startup-flag)
+      (eide-project-start-with-project p-startup-flag nil)
       ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
       ;; the desktop is not read, because after-init-hook has already been called.
       ;; In that case, we need to force to read it (except if --no-desktop option is set).
@@ -190,9 +190,10 @@ has already been called."
   ;; Set current buffer
   (setq eide-current-buffer (buffer-name)))
 
-(defun eide-project-start-with-project (p-startup-flag)
+(defun eide-project-start-with-project (p-startup-flag p-creation-flag)
   "Start with current project.
-- p-startup-flag: t when called from the init."
+- p-startup-flag: t when called from the init.
+- p-creation-flag: t when the project is created."
   ;; Get project name from directory
   ;; eide-root-directory:                                                     <...>/current_project/
   ;; directory-file-name removes last "/":                                    <...>/current_project
@@ -238,7 +239,7 @@ has already been called."
           (setq desktop-save t)
           ;; Set desktop directory (set to nil when desktop save mode is disabled)
           (setq desktop-dirname eide-root-directory)
-          (if (not p-startup-flag)
+          (if (not (or p-startup-flag p-creation-flag))
             (desktop-read eide-root-directory))))
       (if (not p-startup-flag)
         (ad-activate 'switch-to-buffer))))
