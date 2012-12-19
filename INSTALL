@@ -1,0 +1,14 @@
+You can install Emacs-IDE:
+
+- either for all users:
+  Execute "./install" (with root privileges) in a terminal.
+
+- or for current user only:
+  Execute "./install -l" in a terminal.
+
+At the end of installation, instructions are given for enabling Emacs-IDE in
+your ~/.emacs.
+
+Emacs-IDE can be uninstalled using "./uninstall" command (with -l option if it
+was installed for current user only).
+Instructions are given for removing Emacs-IDE from your ~/.emacs as well.

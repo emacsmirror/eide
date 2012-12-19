@@ -20,15 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 -------------------------------------------------------------------------------
-Contributions
--------------------------------------------------------------------------------
-
-Thanks to all users for their feedback, bug reports, and suggestions.
-
-Contributors:
-- Cédric Chépied (git support, local installation)
-
--------------------------------------------------------------------------------
 Description
 -------------------------------------------------------------------------------
 
@@ -49,19 +40,6 @@ Programming language: Emacs Lisp
 License: GPLv3
 Dependencies: Emacs, Ctags, Cscope.
 Supported OS: GNU/Linux
-
--------------------------------------------------------------------------------
-Installation
--------------------------------------------------------------------------------
-
-You can install Emacs-IDE:
-- for all users:
-  Execute "./install" (with root privileges) in a terminal.
-- for this user only:
-  Execute "./install -l" in a terminal.
-
-At the end of installation, instructions are given for enabling Emacs-IDE in
-your ~/.emacs.
 
 -------------------------------------------------------------------------------
 Instructions
@@ -128,23 +106,7 @@ Hosting history
 -------------------------------------------------------------------------------
 
 2008-04: First publication on Sourceforge: http://emacs-ide.sourceforge.net/
-  Initial commit in svn repository.
 
 2010-07: Change of project hosting service: http://home.gna.org/emacs-ide/
-  Import all release versions (from 1.0 to 1.3) in svn repository and download
-  area.
-
-2010-08: Creation of local git repository
-  Create git repository for local work (commit all release versions, from 1.0
-  to 1.4). All developments after version 1.4 are commited both in local git
-  repository, and svn repository on Gna.
-  Git repository should be used as the reference in the future, when git is
-  supported on hosting server.
-
-2012-03: Use of Gitorious for source code repository
-  Source code repository is now hosted by Gitorious:
-  https://gitorious.org/emacs-ide/emacs-ide
-  Everything else (homepage, download area...) is still hosted by Gna.
 
 2012-05: Change of project hosting service: http://emacs-ide.tuxfamily.org/
-  Import git repository, website, and download area.
