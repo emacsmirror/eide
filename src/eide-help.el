@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE, help
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.8+")
-(defvar eide-release-date "2012-12")
+(defvar eide-release-date "2013-01")
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -108,6 +108,7 @@ In 'menu' window:
     - project commands (compile, run, debug)
     - tags and cscope update
     - change root directory
+    - open an existing project
     - configuration
     - help (this page)
 
@@ -185,7 +186,7 @@ parameters for new projects (see '.emacs-ide-project.cfg' below).
   (insert "
 Either launch Emacs from your workset root directory, or launch Emacs and open
 project popup menu to change root directory.
-Then open project popup menu and select 'Create project'.
+Then open project popup menu and select 'Create a project in this directory'.
 
 In your workset root directory, several files are created:
 
@@ -213,12 +214,13 @@ To edit project notes ('.emacs-ide-project.txt'), open project popup menu and
 select 'Project notes'.
 ")
 
-  (eide-i-help-insert-header-2 "Open existing project")
+  (eide-i-help-insert-header-2 "Open an existing project")
 
   (insert "
-Either launch Emacs from your workset root directory, or launch Emacs and open
-project popup menu to change root directory.
+Either launch Emacs from your workset root directory, or launch Emacs, open
+project popup menu, and select 'Open an existing project'.
 Files opened during last session are opened again automatically.
+NB: If your project is not in the list, use 'Change root directory'.
 ")
 
   (eide-i-help-insert-header-2 "Tags and cscope update")

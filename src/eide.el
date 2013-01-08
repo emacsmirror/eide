@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -250,6 +250,8 @@
 
 (defun eide-i-init ()
   "Initialization."
+  (if (not (file-directory-p "~/.emacs-ide"))
+    (make-directory "~/.emacs-ide"))
   ;; Config must be initialized before desktop is loaded, because it reads some
   ;; variables that might be overridden by local values in buffers.
   (eide-config-init)

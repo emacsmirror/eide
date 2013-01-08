@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE, windows
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -609,10 +609,10 @@ and display it. Current buffer is kept if correct."
     (progn
       ;; Select the window where the mouse is
       (eide-i-windows-select-window-at-mouse-position)
-      (if (string-equal (buffer-name) "* Help *")
-        ;; Close "help"
+      (if (or (string-equal (buffer-name) "* Help *") (string-equal (buffer-name) eide-project-projects-buffer-name))
+        ;; Close "help" or projects list
         (progn
-          (kill-buffer "* Help *")
+          (kill-this-buffer)
           (eide-config-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))

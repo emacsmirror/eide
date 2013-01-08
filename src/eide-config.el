@@ -1,6 +1,6 @@
 ;;; eide-config.el --- Emacs-IDE, config
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -125,6 +125,12 @@
 (make-face 'eide-config-config-separator-face)
 (make-face 'eide-config-config-value-face)
 (make-face-bold 'eide-config-config-parameter-face)
+
+;; Projects list
+(make-face 'eide-config-project-name-face)
+(make-face-bold 'eide-config-project-name-face)
+(make-face 'eide-config-project-current-name-face)
+(make-face-bold 'eide-config-project-current-name-face)
 
 ;; Code
 (make-face-bold 'font-lock-keyword-face)
@@ -659,6 +665,10 @@
           (set-face-foreground 'eide-config-config-separator-face "orange red")
           (set-face-background 'eide-config-config-value-face "gray30")
           (set-face-foreground 'eide-config-config-value-face "white")
+          ;; Projects list
+          (set-face-foreground 'eide-config-project-name-face "sandy brown")
+          (set-face-background 'eide-config-project-current-name-face "dark red")
+          (set-face-foreground 'eide-config-project-current-name-face "sandy brown")
           ;; Information line
           (set-face-background 'mode-line "gray"))
         ;; "Light" color theme
@@ -699,6 +709,10 @@
           (set-face-foreground 'eide-config-config-separator-face "red")
           (set-face-background 'eide-config-config-value-face "white")
           (set-face-foreground 'eide-config-config-value-face "black")
+          ;; Projects list
+          (set-face-foreground 'eide-config-project-name-face "red")
+          (set-face-background 'eide-config-project-current-name-face "yellow")
+          (set-face-foreground 'eide-config-project-current-name-face "red")
           ;; Information line
           (set-face-background 'mode-line "wheat"))))))
 

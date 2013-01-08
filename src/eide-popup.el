@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE, popup
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -160,16 +160,17 @@
         (eide-i-popup-menu-add-action "Project configuration" "(eide-config-open-project-file)" t)
         (eide-i-popup-menu-add-action "Project notes" "(eide-config-open-project-notes-file)" t)
         (eide-i-popup-menu-close-action-list "Configuration")
-        (eide-i-popup-menu-add-action "Delete project" "(eide-project-delete)" t)
+        (eide-i-popup-menu-add-action "Delete this project" "(eide-project-delete)" t)
         (eide-i-popup-menu-close-action-list "Destroy")
         (setq l-popup-header (concat "Project: " eide-project-name)))
       ;; Project not created yet
       (progn
-        (eide-i-popup-menu-add-action "Create project" "(eide-project-create)" t)
+        (eide-i-popup-menu-add-action "Create a project in this directory" "(eide-project-create)" t)
         (eide-i-popup-menu-close-action-list "Create")
         (setq l-popup-header (concat "Root directory: " eide-root-directory))))
 
     (eide-i-popup-menu-add-action "Change root directory" "(eide-project-change-root)" t)
+    (eide-i-popup-menu-add-action "Open an existing project" "(eide-project-open-list)" t)
     (eide-i-popup-menu-close-action-list "Project")
 
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)

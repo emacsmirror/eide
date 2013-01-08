@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE, project
 
-;; Copyright (C) 2008-2012 Cédric Marie
+;; Copyright (C) 2008-2013 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -53,6 +53,9 @@
     (require 'gdb-ui) ; deprecated
     (setq eide-project-gdb-option " --annotate=3 ")))
 
+(defvar eide-project-projects-file "~/.emacs-ide/projects")
+(defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
+
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -63,6 +66,12 @@ has already been called."
   (if (not desktop-file-modtime)
     ;; Desktop has not been read: read it now.
     (desktop-read eide-root-directory)))
+
+(defun eide-i-project-update-frame-title ()
+  "Update frame title with project name (or root directory if no project)."
+  (if eide-project-name
+    (setq frame-title-format (concat eide-project-name " - Emacs"))
+    (setq frame-title-format (concat eide-root-directory " - Emacs"))))
 
 (defun eide-i-project-compile (p-parameter)
   "Compile project.
@@ -110,6 +119,76 @@ has already been called."
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
+(defun eide-i-project-add-project (p-startup-flag)
+  "Add current project to projects list.
+- p-startup-flag: t when called from the init."
+  (save-excursion
+    (if (get-buffer eide-project-projects-buffer-name)
+      (progn
+        (set-buffer eide-project-projects-buffer-name)
+        (setq buffer-read-only nil))
+      (let ((l-buffer-name (find-file-noselect eide-project-projects-file)))
+        (set-buffer l-buffer-name)
+        (rename-buffer eide-project-projects-buffer-name)))
+    (goto-char (point-min))
+    (if (not (re-search-forward (concat "^" eide-root-directory "$") nil t))
+      (progn
+        (goto-line 2)
+        (while (and (not (eobp))
+                    (string-lessp (buffer-substring-no-properties (point) (line-end-position)) eide-root-directory))
+          (forward-line 2))
+        (if (not (eobp))
+          (forward-line -1))
+        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
+        (insert "\n")
+        (insert eide-root-directory)
+        (insert "\n")
+        (if (not p-startup-flag)
+          (ad-deactivate 'save-buffer))
+        (save-buffer)
+        (if (not p-startup-flag)
+          (ad-activate 'save-buffer))))
+    (kill-this-buffer)))
+
+(defun eide-i-project-remove-project ()
+  "Remove current project from projects list."
+  (save-excursion
+    (if (get-buffer eide-project-projects-buffer-name)
+      (progn
+        (set-buffer eide-project-projects-buffer-name)
+        (setq buffer-read-only nil))
+      (let ((l-buffer-name (find-file-noselect eide-project-projects-file)))
+        (set-buffer l-buffer-name)
+        (rename-buffer eide-project-projects-buffer-name)))
+    (goto-char (point-min))
+    (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
+      (progn
+        (forward-line -1)
+        (delete-region (point) (progn (forward-line 2) (point)))
+        (ad-deactivate 'save-buffer)
+        (save-buffer)
+        (ad-activate 'save-buffer)))
+    (kill-this-buffer)))
+
+(defun eide-i-project-open ()
+  "Open project on current line."
+  (interactive)
+  (let ((l-project-path (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
+    ;; Close projects list (so that it can be modified by another Emacs session)
+    (kill-this-buffer)
+    ;; Restore editor configuration
+    (eide-config-set-colors-for-files)
+    (eide-keys-configure-for-editor)
+    ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+    ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+    ;; otherwise we get errors for non-existing windows
+    (eide-windows-layout-unbuild)
+    ;; Set root directory
+    (setq eide-root-directory l-project-path)
+    (eide-project-load nil)
+    (eide-menu-update t)
+    (eide-windows-layout-build)))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -144,10 +223,12 @@ has already been called."
       (desktop-remove)
       (desktop-save-mode -1)
       ;; Update frame title and menu (project is inactive now)
-      (eide-project-update-frame-title)
+      (eide-i-project-update-frame-title)
       (eide-menu-update t)
       ;; Update key bindings for project
-      (eide-keys-configure-for-editor))))
+      (eide-keys-configure-for-editor)
+      ;; Remove from projects list
+      (eide-i-project-remove-project))))
 
 (defun eide-project-load (p-startup-flag)
   "Load project information (depends on root directory).
@@ -179,6 +260,9 @@ has already been called."
           (desktop-clear)))))
   ;; Start with "editor" mode
   (eide-keys-configure-for-editor)
+  ;; Kill projects list in case it is present in desktop
+  (if (get-buffer eide-project-projects-buffer-name)
+    (kill-buffer eide-project-projects-buffer-name))
   ;; Close temporary buffers from ediff sessions (if emacs has been closed during
   ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
   ;; files) and they have been loaded in this new emacs session).
@@ -230,7 +314,8 @@ has already been called."
         ;; No need to update menu for every restored buffer
         (ad-deactivate 'switch-to-buffer))
       (if desktop-dirname
-        ;; A desktop is already loaded: switch to the new one
+        ;; A desktop is already loaded: switch to the new one.
+        ;; desktop-change-dir saves the desktop, close all buffers, and read the new desktop.
         (desktop-change-dir eide-root-directory)
         (progn
           ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
@@ -240,12 +325,15 @@ has already been called."
           ;; Set desktop directory (set to nil when desktop save mode is disabled)
           (setq desktop-dirname eide-root-directory)
           (if (not (or p-startup-flag p-creation-flag))
-            (desktop-read eide-root-directory))))
+            (progn
+              ;; It is necessary to close all buffers before loading the new desktop.
+              (desktop-clear)
+              (desktop-read eide-root-directory)))))
       (if (not p-startup-flag)
         (ad-activate 'switch-to-buffer))))
 
   ;; Update frame title
-  (eide-project-update-frame-title)
+  (eide-i-project-update-frame-title)
 
   ;; Close any existing TAGS file, to make sure we will use the right one
   (if (get-buffer "TAGS")
@@ -263,30 +351,66 @@ has already been called."
   (if (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
   ;; Rebuild project file after the desktop has been changed (in case of project switching)
-  (eide-config-rebuild-project-file))
+  (eide-config-rebuild-project-file)
+  (eide-i-project-add-project p-startup-flag))
 
 (defun eide-project-change-root ()
   "Change root directory."
-  (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
-    ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-    ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-    ;; otherwise we get errors for non-existing windows
-    (eide-windows-layout-unbuild)
-    (call-interactively 'dired)
-    ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-    (setq eide-root-directory (expand-file-name default-directory))
-    ;; Exit browsing mode (kill dired buffer)
-    (eide-menu-browsing-mode-stop)
-    (eide-project-load nil)
-    (eide-menu-update t)
-    (if l-layout-visible-flag
-      (eide-windows-layout-build))))
+  (let ((l-do-it t))
+    (if (and (not eide-project-name)
+             eide-menu-files-list
+             (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
+      (setq l-do-it nil))
+    (if l-do-it
+      (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
+        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+        ;; otherwise we get errors for non-existing windows
+        (eide-windows-layout-unbuild)
+        (call-interactively 'dired)
+        ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+        (setq eide-root-directory (expand-file-name default-directory))
+        ;; Exit browsing mode (kill dired buffer)
+        (eide-menu-browsing-mode-stop)
+        (eide-project-load nil)
+        (eide-menu-update t)
+        (if l-layout-visible-flag
+          (eide-windows-layout-build))))))
 
-(defun eide-project-update-frame-title ()
-  "Update frame title with project name (or root directory if no project)."
-  (if eide-project-name
-    (setq frame-title-format (concat eide-project-name " - Emacs"))
-    (setq frame-title-format (concat eide-root-directory " - Emacs"))))
+(defun eide-project-open-list ()
+  "Display projects list (full frame)."
+  (let ((l-do-it t))
+    (if (and (not eide-project-name)
+             eide-menu-files-list
+             (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
+      (setq l-do-it nil))
+    (if l-do-it
+      (progn
+        (eide-windows-layout-unbuild)
+        (eide-config-set-colors-for-config)
+        (eide-keys-configure-for-special-buffer)
+        (ad-deactivate 'switch-to-buffer)
+        (if (get-buffer eide-project-projects-buffer-name)
+          (switch-to-buffer eide-project-projects-buffer-name)
+          (progn
+            (find-file eide-project-projects-file)
+            (rename-buffer eide-project-projects-buffer-name)))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (if (string-equal (buffer-substring-no-properties (point) (line-end-position)) eide-project-name)
+            ;; Current project (can't be selected)
+            (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
+            ;; Other projects
+            (progn
+              (put-text-property (point) (line-end-position) 'keymap project-name-map)
+              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)
+              (put-text-property (point) (line-end-position) 'mouse-face 'highlight)))
+          (forward-line 2))
+        ;; Clear modified status (text properties don't need to be saved)
+        (set-buffer-modified-p nil)
+        (setq buffer-read-only t)
+        (goto-char (point-min))
+        (ad-activate 'switch-to-buffer)))))
 
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).
@@ -387,5 +511,12 @@ part of the project (remove root directory from absolute path).
   "Debug project (2nd debug command)."
   (interactive)
   (eide-i-project-debug "debug_program_2"))
+
+;; ----------------------------------------------------------------------------
+;; KEYMAPS
+;; ----------------------------------------------------------------------------
+
+(setq project-name-map (make-sparse-keymap))
+(define-key project-name-map [mouse-1] 'eide-i-project-open)
 
 ;;; eide-project.el ends here
