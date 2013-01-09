@@ -125,7 +125,7 @@ has already been called."
 (defun eide-i-project-add-project (p-startup-flag)
   "Add current project to projects list.
 - p-startup-flag: t when called from the init."
-  (save-excursion
+  (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
       (progn
         (set-buffer eide-project-projects-buffer-name)
@@ -155,7 +155,7 @@ has already been called."
 
 (defun eide-i-project-remove-project ()
   "Remove current project from projects list."
-  (save-excursion
+  (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
       (progn
         (set-buffer eide-project-projects-buffer-name)

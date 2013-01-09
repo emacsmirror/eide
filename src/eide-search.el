@@ -202,7 +202,7 @@
                   (setq eide-search-cscope-update-database-request-pending-flag nil))
                 (setq cscope-do-not-update-database t)))
             (cscope-find-this-symbol p-symbol)
-            (save-excursion
+            (save-current-buffer
               (set-buffer "*cscope*")
               (rename-buffer l-result-buffer-name t))
             (eide-menu-build-files-lists))
@@ -252,7 +252,7 @@
         ;; 2> /dev/null is used to hide warnings about missing files
         ;; 'cd' is used first, in case shell init changes current directory
         (grep-find (concat "echo ; cd " l-buffer-directory " ; grep -In " eide-search-grep-exclude-options " -e \"" p-string "\" * .* 2> /dev/null"))
-        (save-excursion
+        (save-current-buffer
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
@@ -295,7 +295,7 @@
           ;; 2> /dev/null is used to hide warnings about missing files
           ;; 'cd' is used first, in case shell init changes current directory
           (grep-find (concat "echo ; cd " eide-root-directory " ; grep -rIn " eide-search-grep-exclude-options " -e \"" p-string "\" . 2> /dev/null")))
-        (save-excursion
+        (save-current-buffer
           (set-buffer "*grep*")
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))

@@ -39,7 +39,7 @@
   "Update buffers edit status (\"nofile\", \"ref\", \"new\" or \"\").
 - p-files-list (optional): list of files to update (overrides
   eide-menu-files-list)."
-  (save-excursion
+  (save-current-buffer
     (let ((l-files-list nil))
       (if p-files-list
         (setq l-files-list p-files-list)
@@ -165,7 +165,7 @@
           (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn
       (eide-menu-buffer-update-start p-buffer-name)
-      (save-excursion
+      (save-current-buffer
         (set-buffer p-buffer-name)
         (funcall p-function))
       (eide-menu-buffer-update-stop p-buffer-name))))
@@ -182,7 +182,7 @@
       (eide-menu-directory-update-start p-directory-name)
       (dolist (l-buffer-name eide-menu-files-list)
         (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-          (save-excursion
+          (save-current-buffer
             (set-buffer l-buffer-name)
             (if (file-exists-p buffer-file-name)
               (funcall p-function)))))

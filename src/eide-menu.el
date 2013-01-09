@@ -109,7 +109,7 @@
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
         (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil)
         (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
-    (save-excursion
+    (save-current-buffer
       (set-buffer p-buffer-name)
       (setq l-buffer-status eide-menu-local-edit-status)
       (setq l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
@@ -385,7 +385,7 @@
   "Fold / unfold list of functions for selected file."
   (interactive)
   (let ((l-buffer-name (eide-menu-get-buffer-name-on-current-line)))
-    (save-excursion
+    (save-current-buffer
       (set-buffer l-buffer-name)
       (if eide-menu-local-functions-unfolded-flag
         (setq eide-menu-local-functions-unfolded-flag nil)
@@ -403,7 +403,7 @@
   (save-excursion
     (let ((l-folder-name (eide-i-menu-get-folder-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
-      (save-excursion
+      (save-current-buffer
         (set-buffer l-buffer-name)
         (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
         (if (member l-folder-name eide-menu-local-unfolded-symbols-folders-list)
@@ -446,7 +446,7 @@
   (save-excursion
     (let ((l-symbol-name (eide-i-menu-get-symbol-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
-      (save-excursion
+      (save-current-buffer
         (set-buffer l-buffer-name)
         (make-local-variable 'eide-menu-local-highlighted-symbols-list)
         (if (member l-symbol-name eide-menu-local-highlighted-symbols-list)
@@ -476,7 +476,7 @@
   "Check if a file has been edited (REF/NEW or version control).
 - p-buffer-name: buffer name."
   (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
-    (save-excursion
+    (save-current-buffer
       (set-buffer p-buffer-name)
       (setq l-buffer-edit-status eide-menu-local-edit-status)
       (if eide-config-show-svn-status-flag
@@ -496,7 +496,7 @@
   "Initialize \"menu\" buffer."
   ;; Menu buffer is created empty (content will be built by eide-menu-update)
   (setq eide-menu-buffer-name (buffer-name (get-buffer-create "* Menu *")))
-  (save-excursion
+  (save-current-buffer
     (set-buffer eide-menu-buffer-name)
     (setq buffer-read-only t)))
 
@@ -571,7 +571,7 @@ pages)."
       (if (not (or (string-match "^[ \*]" l-buffer-name)
                    (eide-windows-is-file-special-p l-buffer-name)))
         ;; This is a "useful" buffer
-        (save-excursion
+        (save-current-buffer
           (set-buffer l-buffer-name)
           (if (or (equal major-mode 'dired-mode)
                   (equal major-mode 'Buffer-menu-mode))
@@ -587,7 +587,7 @@ pages)."
 
 (defun eide-menu-update-current-buffer-modified-status ()
   "Update current buffer \"modified\" status (in menu)."
-  (save-excursion
+  (save-current-buffer
     (let ((l-buffer (buffer-name)))
       ;; eide-menu-local-edit-status update is useful when a new buffer is saved
       ;; in file system for the first time (status changes from "nofile" to "")
@@ -710,7 +710,7 @@ pages)."
   "Prepare update of a file in \"menu\" buffer (save lists of unfolded and
 highlighted items).
 - p-buffer-name: buffer name."
-  (save-excursion
+  (save-current-buffer
     (set-buffer p-buffer-name)
     (setq eide-menu-local-functions-unfolded-flag-backup eide-menu-local-functions-unfolded-flag)
     (setq eide-menu-local-unfolded-symbols-folders-list-backup eide-menu-local-unfolded-symbols-folders-list)
@@ -720,7 +720,7 @@ highlighted items).
   "Update a file in \"menu\" buffer (restore lists of unfolded and highlighted
 items).
 - p-buffer-name: buffer name."
-  (save-excursion
+  (save-current-buffer
     (set-buffer p-buffer-name)
     (make-local-variable 'eide-menu-local-functions-unfolded-flag)
     (setq eide-menu-local-functions-unfolded-flag eide-menu-local-functions-unfolded-flag-backup)
@@ -757,7 +757,7 @@ highlighted items).
   ;; Save unfolded status for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
     (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-      (save-excursion
+      (save-current-buffer
         (set-buffer l-buffer-name)
         (push eide-menu-local-functions-unfolded-flag eide-menu-local-functions-unfolded-flags-list)
         (push eide-menu-local-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-lists-list)
@@ -773,7 +773,7 @@ items).
   ;; Restore unfolded status and highlighted functions for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
     (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-      (save-excursion
+      (save-current-buffer
         (set-buffer l-buffer-name)
         (make-local-variable 'eide-menu-local-functions-unfolded-flag)
         (setq eide-menu-local-functions-unfolded-flag (pop eide-menu-local-functions-unfolded-flags-list))
@@ -815,7 +815,7 @@ items).
   "Revert all open files from disk."
   (interactive)
   (eide-windows-select-source-window nil)
-  (save-excursion
+  (save-current-buffer
     (dolist (l-buffer-name eide-menu-files-list)
       (set-buffer l-buffer-name)
       (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
@@ -874,7 +874,7 @@ items).
       (setq eide-i-menu-layout-should-be-built-after-browsing-mode-flag nil)))
   ;; Kill all browsing buffers
   (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
-    (save-excursion
+    (save-current-buffer
       (set-buffer l-buffer-name)
       (if (or (equal major-mode 'dired-mode)
               (equal major-mode 'Buffer-menu-mode))

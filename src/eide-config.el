@@ -1139,7 +1139,7 @@ found).
 
 (defun eide-config-rebuild-project-file ()
   "Update project file."
-  (save-excursion
+  (save-current-buffer
     ;; Define target config file
     (setq eide-config-target-buffer (concat eide-project-config-file "_temp"))
 
@@ -1184,7 +1184,7 @@ found).
 (defun eide-config-get-project-value (p-parameter)
   "Get the value of a parameter in project config.
 - p-parameter: config parameter."
-  (save-excursion
+  (save-current-buffer
     (if (not (get-buffer eide-project-config-file))
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (set-buffer eide-project-config-file)
