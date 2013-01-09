@@ -116,7 +116,7 @@
   "Update buffers vc status (modified or not).
 - p-files-list (optional): list of files to update (overrides
   eide-menu-files-list)."
-  (if eide-config-show-svn-status-flag
+  (if (or eide-config-show-svn-status-flag eide-config-show-git-status-flag)
     (save-current-buffer
       (let ((l-files-list nil))
         (if p-files-list
