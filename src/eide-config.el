@@ -854,13 +854,7 @@
 - value: customization value."
   (set-default param value)
   (if eide-config-ready
-    (progn
-      (if (equal value 'auto)
-        (if (file-exists-p (concat eide-root-directory ".svn"))
-          (setq eide-config-show-svn-status-flag t)
-          (setq eide-config-show-svn-status-flag nil))
-        (setq eide-config-show-svn-status-flag value))
-      (eide-menu-update t t))))
+    (eide-vc-update-show-svn-status)))
 
 (defun eide-i-config-set-show-git-status (param value)
   "Set show git status (eide-config-show-git-status-flag).
@@ -868,13 +862,7 @@
 - value: customization value."
   (set-default param value)
   (if eide-config-ready
-    (progn
-      (if (equal value 'auto)
-        (if (file-exists-p (concat eide-root-directory ".git"))
-          (setq eide-config-show-git-status-flag t)
-          (setq eide-config-show-git-status-flag nil))
-        (setq eide-config-show-git-status-flag value))
-      (eide-menu-update t t))))
+    (eide-vc-update-show-git-status)))
 
 (defun eide-i-config-set-vc-diff-command (param value)
   "Set vc diff command.

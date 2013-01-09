@@ -341,6 +341,10 @@ has already been called."
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
+  ;; Update version control show status
+  (eide-vc-update-show-svn-status)
+  (eide-vc-update-show-git-status)
+
   (if (not eide-no-desktop-option)
     (progn
       (if (not p-startup-flag)

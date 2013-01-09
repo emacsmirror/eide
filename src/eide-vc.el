@@ -21,6 +21,8 @@
 
 (require 'vc)
 
+(require 'eide-config)
+
 (defvar eide-vc-svn-diff-full-command nil)
 (defvar eide-vc-git-diff-full-command nil)
 
@@ -64,6 +66,24 @@
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-vc-update-show-svn-status ()
+  "Update show svn status."
+  (if (equal eide-custom-show-svn-status 'auto)
+    (if (file-exists-p (concat eide-root-directory ".svn"))
+      (setq eide-config-show-svn-status-flag t)
+      (setq eide-config-show-svn-status-flag nil))
+    (setq eide-config-show-svn-status-flag eide-custom-show-svn-status))
+  (eide-menu-update t t))
+
+(defun eide-vc-update-show-git-status ()
+  "Update show git status."
+  (if (equal eide-custom-show-git-status 'auto)
+    (if (file-exists-p (concat eide-root-directory ".git"))
+      (setq eide-config-show-git-status-flag t)
+      (setq eide-config-show-git-status-flag nil))
+    (setq eide-config-show-git-status-flag eide-custom-show-git-status))
+  (eide-menu-update t t))
 
 (defun eide-vc-update-current-buffer-status ()
   "Update current buffer status (modified or not compared to vc repositories)."
