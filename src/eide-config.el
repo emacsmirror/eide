@@ -273,9 +273,15 @@
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
 
-(defgroup eide-project nil "Commands that are set in project configuration when project is created."
-  :tag "Default commands for projects"
+(defgroup eide-project nil "Projects management and default commands that are set in project configuration when a project is created."
+  :tag "Projects"
   :group 'eide)
+(defcustom eide-custom-number-of-workspaces 2 "Number of workspaces (each workspace has got its own list of projects)."
+  :tag "Number of workspaces"
+  :type '(choice (const 1) (const 2) (const 3) (const 4) (const 5) (const 6) (const 7) (const 8))
+  :set 'eide-i-config-set-number-of-workspaces
+  :initialize 'custom-initialize-default
+  :group 'eide-project)
 (defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
   :tag "Default init command"
   :type 'string
@@ -878,6 +884,14 @@
   (if eide-config-ready
     (eide-vc-set-diff-command value)))
 
+(defun eide-i-config-set-number-of-workspaces (param value)
+  "Set number of workspaces.
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (if eide-config-ready
+    (eide-project-create-workspaces)))
+
 (defun eide-i-config-set-menu-bar (param value)
   "Set menu bar mode.
 - param: customization parameter.
@@ -1229,6 +1243,7 @@ found).
   ;; Moreover, in order to avoid to set different values successively, values
   ;; are not set until eide-config-ready is set (below).
   (setq eide-config-ready t)
+  (eide-project-create-workspaces)
   (eide-i-config-apply-color-theme)
   (eide-i-config-apply-emacs-settings))
 

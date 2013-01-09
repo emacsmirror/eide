@@ -30,6 +30,7 @@
   (setq eide-no-desktop-option t))
 
 (defvar eide-root-directory nil)
+(defvar eide-root-directory-at-startup nil)
 
 ;; Test if xcscope is available
 (defvar eide-option-use-cscope-flag nil)
@@ -37,6 +38,8 @@
   (progn
     (require 'xcscope)
     (setq eide-option-use-cscope-flag t)))
+
+(defvar eide-project-current-workspace 1)
 
 (defvar eide-project-name nil)
 
@@ -53,7 +56,7 @@
     (require 'gdb-ui) ; deprecated
     (setq eide-project-gdb-option " --annotate=3 ")))
 
-(defvar eide-project-projects-file "~/.emacs-ide/projects")
+(defvar eide-project-projects-file "~/.emacs-ide/workspace1/projects-list")
 (defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
 
 ;; ----------------------------------------------------------------------------
@@ -193,9 +196,39 @@ has already been called."
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
+(defun eide-project-create-workspaces ()
+  "Create directories for workspaces, if missing."
+  (let ((l-workspace-number 1))
+    (while (<= l-workspace-number eide-custom-number-of-workspaces)
+      (let ((l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number))))
+        (if (not (file-directory-p l-workspace-dir))
+          (make-directory l-workspace-dir)))
+      (setq l-workspace-number (+ l-workspace-number 1)))))
+
+(defun eide-project-set-current-workspace (p-workspace-number)
+  "Set current workspace.
+- p-workspace-number: new workspace number."
+  (if (<= p-workspace-number eide-custom-number-of-workspaces)
+    (progn
+      (setq eide-project-current-workspace p-workspace-number)
+      ;; Change projects list file
+      (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+      ;; Restore initial root directory
+      (setq eide-project-name nil)
+      (setq eide-root-directory eide-root-directory-at-startup)
+      (if (not eide-no-desktop-option)
+        (progn
+          ;; Clear desktop (even if a project is defined)
+          (eide-windows-layout-unbuild)
+          (desktop-save-mode -1)
+          ;; Close all buffers
+          (desktop-clear)
+          (eide-menu-update t)
+          (eide-windows-layout-build))))))
+
 (defun eide-project-create ()
   "Create a project."
-  (if (eide-popup-question-yes-or-no-p (concat "Create project in " eide-root-directory " ?"))
+  (if (eide-popup-question-yes-or-no-p (concat "Create a project in " eide-root-directory " ?"))
     (progn
       (eide-windows-select-source-window t)
       ;; Create empty project file

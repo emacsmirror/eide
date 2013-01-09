@@ -26,6 +26,7 @@
 
 ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
 (setq eide-root-directory (expand-file-name default-directory))
+(setq eide-root-directory-at-startup eide-root-directory)
 
 ;; Emacs modules
 (require 'desktop)

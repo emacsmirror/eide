@@ -170,8 +170,17 @@
         (setq l-popup-header (concat "Root directory: " eide-root-directory))))
 
     (eide-i-popup-menu-add-action "Change root directory" "(eide-project-change-root)" t)
-    (eide-i-popup-menu-add-action "Open an existing project" "(eide-project-open-list)" t)
+    (eide-i-popup-menu-add-action "Open an existing project" "(eide-project-open-list)" (and (file-exists-p eide-project-projects-file) (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0))))
     (eide-i-popup-menu-close-action-list "Project")
+
+    (if (> eide-custom-number-of-workspaces 1)
+      (progn
+        (let ((l-workspace-number 1))
+          (while (<= l-workspace-number eide-custom-number-of-workspaces)
+            (let ((l-workspace-number-string (number-to-string l-workspace-number)))
+              (eide-i-popup-menu-add-action (concat "Switch to workspace " l-workspace-number-string) (concat "(eide-project-set-current-workspace " l-workspace-number-string ")") (not (equal l-workspace-number eide-project-current-workspace))))
+            (setq l-workspace-number (+ l-workspace-number 1))))
+        (eide-i-popup-menu-close-action-list "Workspaces")))
 
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
