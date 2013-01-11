@@ -40,6 +40,7 @@
     (setq eide-option-use-cscope-flag t)))
 
 (defvar eide-project-current-workspace 1)
+(defvar eide-project-current-projects-list nil)
 
 (defvar eide-project-name nil)
 
@@ -122,74 +123,36 @@ has already been called."
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
-(defun eide-i-project-add-project (p-startup-flag)
-  "Add current project to projects list.
-- p-startup-flag: t when called from the init."
+(defun eide-i-update-internal-projects-list ()
+  ;; Create internal projects list
+  (setq eide-project-current-projects-list nil)
   (save-current-buffer
-    (if (get-buffer eide-project-projects-buffer-name)
-      (progn
-        (set-buffer eide-project-projects-buffer-name)
-        (setq buffer-read-only nil))
-      (let ((l-buffer-name (find-file-noselect eide-project-projects-file)))
-        (set-buffer l-buffer-name)
-        (rename-buffer eide-project-projects-buffer-name)))
-    (goto-char (point-min))
-    (if (not (re-search-forward (concat "^" eide-root-directory "$") nil t))
-      (progn
-        (goto-line 2)
-        (while (and (not (eobp))
-                    (string-lessp (buffer-substring-no-properties (point) (line-end-position)) eide-root-directory))
-          (forward-line 2))
-        (if (not (eobp))
-          (forward-line -1))
-        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
-        (insert "\n")
-        (insert eide-root-directory)
-        (insert "\n")
-        (if (not p-startup-flag)
-          (ad-deactivate 'save-buffer))
-        (save-buffer)
-        (if (not p-startup-flag)
-          (ad-activate 'save-buffer))))
+    (set-buffer (find-file-noselect eide-project-projects-file))
+    (goto-line 2)
+    (while (not (eobp))
+      (push (buffer-substring-no-properties (point) (line-end-position)) eide-project-current-projects-list)
+      (forward-line 2))
     (kill-this-buffer)))
 
-(defun eide-i-project-remove-project ()
-  "Remove current project from projects list."
-  (save-current-buffer
-    (if (get-buffer eide-project-projects-buffer-name)
-      (progn
-        (set-buffer eide-project-projects-buffer-name)
-        (setq buffer-read-only nil))
-      (let ((l-buffer-name (find-file-noselect eide-project-projects-file)))
-        (set-buffer l-buffer-name)
-        (rename-buffer eide-project-projects-buffer-name)))
-    (goto-char (point-min))
-    (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
-      (progn
-        (forward-line -1)
-        (delete-region (point) (progn (forward-line 2) (point)))
-        (ad-deactivate 'save-buffer)
-        (save-buffer)
-        (ad-activate 'save-buffer)))
-    (kill-this-buffer)))
-
-(defun eide-i-project-open ()
+(defun eide-i-project-open-selected-project ()
   "Open project on current line."
   (interactive)
-  (let ((l-project-path (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
+  (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
     ;; Close projects list (so that it can be modified by another Emacs session)
     (kill-this-buffer)
     ;; Restore editor configuration
     (eide-config-set-colors-for-files)
     (eide-keys-configure-for-editor)
-    ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-    ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-    ;; otherwise we get errors for non-existing windows
-    (eide-windows-layout-unbuild)
-    ;; Set root directory
-    (setq eide-root-directory l-project-path)
-    (eide-project-load nil)
-    (eide-menu-update t)
+    (if (not (string-equal l-project-dir eide-root-directory))
+      (progn
+        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+        ;; otherwise we get errors for non-existing windows
+        (eide-windows-layout-unbuild)
+        ;; Set root directory
+        (setq eide-root-directory l-project-dir)
+        (eide-project-load nil)
+        (eide-menu-update t)))
     (eide-windows-layout-build)))
 
 ;; ----------------------------------------------------------------------------
@@ -197,13 +160,19 @@ has already been called."
 ;; ----------------------------------------------------------------------------
 
 (defun eide-project-create-workspaces ()
-  "Create directories for workspaces, if missing."
+  "Create directories and files for workspaces, if missing."
   (let ((l-workspace-number 1))
     (while (<= l-workspace-number eide-custom-number-of-workspaces)
-      (let ((l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number))))
+      (let ((l-workspace-dir nil) (l-projects-list-file nil))
+        (setq l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number)))
+        ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
+        (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
         (if (not (file-directory-p l-workspace-dir))
-          (make-directory l-workspace-dir)))
-      (setq l-workspace-number (+ l-workspace-number 1)))))
+          (make-directory l-workspace-dir))
+        (if (not (file-exists-p l-projects-list-file))
+          (shell-command (concat "touch \"" l-projects-list-file "\""))))
+      (setq l-workspace-number (+ l-workspace-number 1))))
+  (eide-i-update-internal-projects-list))
 
 (defun eide-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
@@ -224,7 +193,8 @@ has already been called."
           ;; Close all buffers
           (desktop-clear)
           (eide-menu-update t)
-          (eide-windows-layout-build))))))
+          (eide-windows-layout-build)))
+      (eide-i-update-internal-projects-list))))
 
 (defun eide-project-create ()
   "Create a project."
@@ -236,7 +206,9 @@ has already been called."
       (eide-project-start-with-project nil t)
       (eide-menu-update t)
       ;; Update key bindings for project
-      (eide-keys-configure-for-editor))))
+      (eide-keys-configure-for-editor)
+      ;; Add the project to current workspace
+      (eide-project-add-in-list))))
 
 (defun eide-project-delete ()
   "Delete current project."
@@ -261,7 +233,7 @@ has already been called."
       ;; Update key bindings for project
       (eide-keys-configure-for-editor)
       ;; Remove from projects list
-      (eide-i-project-remove-project))))
+      (eide-project-remove-from-list))))
 
 (defun eide-project-load (p-startup-flag)
   "Load project information (depends on root directory).
@@ -388,8 +360,7 @@ has already been called."
   (if (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
   ;; Rebuild project file after the desktop has been changed (in case of project switching)
-  (eide-config-rebuild-project-file)
-  (eide-i-project-add-project p-startup-flag))
+  (eide-config-rebuild-project-file))
 
 (defun eide-project-change-root ()
   "Change root directory."
@@ -415,7 +386,7 @@ has already been called."
           (eide-windows-layout-build))))))
 
 (defun eide-project-open-list ()
-  "Display projects list (full frame)."
+  "Display projects list (full frame), and rebuild internal projects list."
   (let ((l-do-it t))
     (if (and (not eide-project-name)
              eide-menu-files-list
@@ -423,6 +394,8 @@ has already been called."
       (setq l-do-it nil))
     (if l-do-it
       (progn
+        ;; The internal projects list will also be rebuilt
+        (setq eide-project-current-projects-list nil)
         (eide-windows-layout-unbuild)
         (eide-config-set-colors-for-config)
         (eide-keys-configure-for-special-buffer)
@@ -432,22 +405,82 @@ has already been called."
           (progn
             (find-file eide-project-projects-file)
             (rename-buffer eide-project-projects-buffer-name)))
-        (goto-char (point-min))
+        (goto-line 2)
         (while (not (eobp))
-          (if (string-equal (buffer-substring-no-properties (point) (line-end-position)) eide-project-name)
-            ;; Current project (can't be selected)
-            (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
-            ;; Other projects
-            (progn
-              (put-text-property (point) (line-end-position) 'keymap project-name-map)
-              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)
-              (put-text-property (point) (line-end-position) 'mouse-face 'highlight)))
-          (forward-line 2))
+          (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+            (forward-line -1)
+            (if (string-equal l-project-dir eide-root-directory)
+              ;; Current project (can't be selected)
+              (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
+              ;; Other projects
+              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face))
+            (put-text-property (point) (line-end-position) 'keymap project-name-map)
+            (put-text-property (point) (line-end-position) 'mouse-face 'highlight)
+            (push l-project-dir eide-project-current-projects-list)
+            (forward-line 3)))
         ;; Clear modified status (text properties don't need to be saved)
         (set-buffer-modified-p nil)
         (setq buffer-read-only t)
         (goto-char (point-min))
         (ad-activate 'switch-to-buffer)))))
+
+(defun eide-project-add-in-list ()
+  "Add current project to the projects list of current workspace."
+  (save-current-buffer
+    (if (get-buffer eide-project-projects-buffer-name)
+      (progn
+        (set-buffer eide-project-projects-buffer-name)
+        (setq buffer-read-only nil))
+      (set-buffer (find-file-noselect eide-project-projects-file)))
+    (goto-char (point-min))
+    (if (not (re-search-forward (concat "^" eide-root-directory "$") nil t))
+      (progn
+        (goto-line 2)
+        (while (and (not (eobp))
+                    (string-lessp (buffer-substring-no-properties (point) (line-end-position)) eide-root-directory))
+          (forward-line 2))
+        (if (not (eobp))
+          (forward-line -1))
+        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
+        (insert "\n")
+        (insert eide-root-directory)
+        (insert "\n")
+        (ad-deactivate 'save-buffer)
+        (save-buffer)
+        (ad-activate 'save-buffer)))
+    (kill-this-buffer))
+  (push eide-root-directory eide-project-current-projects-list))
+
+(defun eide-project-remove-from-list ()
+  "Remove current project from the projects list of current workspace."
+  (save-current-buffer
+    (if (get-buffer eide-project-projects-buffer-name)
+      (progn
+        (set-buffer eide-project-projects-buffer-name)
+        (setq buffer-read-only nil))
+      (set-buffer (find-file-noselect eide-project-projects-file)))
+    (goto-char (point-min))
+    (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
+      (progn
+        (forward-line -1)
+        (delete-region (point) (progn (forward-line 2) (point)))
+        (ad-deactivate 'save-buffer)
+        (save-buffer)
+        (ad-activate 'save-buffer)))
+    (kill-this-buffer))
+  (setq eide-project-current-projects-list (remove eide-root-directory eide-project-current-projects-list)))
+
+(defun eide-project-remove-selected-project ()
+  "Remove the project on current line from current workspace."
+  (let ((buffer-read-only nil))
+    (forward-line)
+    (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+      (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list)))
+    (forward-line -1)
+    (delete-region (point) (progn (forward-line 2) (point)))
+    (ad-deactivate 'save-buffer)
+    (save-buffer)
+    (ad-activate 'save-buffer)))
 
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).
@@ -554,6 +587,7 @@ part of the project (remove root directory from absolute path).
 ;; ----------------------------------------------------------------------------
 
 (setq project-name-map (make-sparse-keymap))
-(define-key project-name-map [mouse-1] 'eide-i-project-open)
+(define-key project-name-map [mouse-1] 'eide-i-project-open-selected-project)
+(define-key project-name-map [mouse-3] 'eide-popup-open-menu-for-project)
 
 ;;; eide-project.el ends here

@@ -153,10 +153,6 @@
                          (equal eide-custom-update-cscope-database 'auto)))
               (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
         (eide-i-popup-menu-close-action-list "Update")
-        (if eide-compare-other-project-name
-          (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)
-          (eide-i-popup-menu-add-action "Select another project for comparison" "(eide-i-popup-open-menu-for-another-project)" t))
-        (eide-i-popup-menu-close-action-list "Projects comparison")
         (eide-i-popup-menu-add-action "Project configuration" "(eide-config-open-project-file)" t)
         (eide-i-popup-menu-add-action "Project notes" "(eide-config-open-project-notes-file)" t)
         (eide-i-popup-menu-close-action-list "Configuration")
@@ -170,7 +166,11 @@
         (setq l-popup-header (concat "Root directory: " eide-root-directory))))
 
     (eide-i-popup-menu-add-action "Change root directory" "(eide-project-change-root)" t)
-    (eide-i-popup-menu-add-action "Open an existing project" "(eide-project-open-list)" (and (file-exists-p eide-project-projects-file) (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0))))
+    (eide-i-popup-menu-add-action (concat "Display projects list (workspace " (number-to-string eide-project-current-workspace) ")") "(eide-project-open-list)" (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0)))
+    (if eide-project-name
+      (if (member eide-root-directory eide-project-current-projects-list)
+        (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-from-list)" t)
+        (eide-i-popup-menu-add-action "Add this project in current workspace" "(eide-project-add-in-list)" t)))
     (eide-i-popup-menu-close-action-list "Project")
 
     (if (> eide-custom-number-of-workspaces 1)
@@ -181,6 +181,11 @@
               (eide-i-popup-menu-add-action (concat "Switch to workspace " l-workspace-number-string) (concat "(eide-project-set-current-workspace " l-workspace-number-string ")") (not (equal l-workspace-number eide-project-current-workspace))))
             (setq l-workspace-number (+ l-workspace-number 1))))
         (eide-i-popup-menu-close-action-list "Workspaces")))
+
+    (if eide-compare-other-project-name
+      (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)
+      (eide-i-popup-menu-add-action "Select another project for comparison" "(eide-i-popup-open-menu-for-another-project)" t))
+    (eide-i-popup-menu-close-action-list "Projects comparison")
 
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
@@ -456,5 +461,16 @@
   (eide-i-popup-menu-add-action "Indent" "(progn (indent-region (region-beginning) (region-end) nil) (save-buffer))" t)
   (eide-i-popup-menu-close-action-list "Cleaning")
   (eide-i-popup-menu-open "Clean selection"))
+
+(defun eide-popup-open-menu-for-project ()
+  "Open a popup menu related to selected project."
+  (interactive)
+  (move-to-window-line (cdr (last (mouse-position))))
+  (beginning-of-line)
+  (let ((l-project-name (buffer-substring-no-properties (point) (line-end-position))))
+    (eide-i-popup-menu-init)
+    (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-selected-project)" t)
+    (eide-i-popup-menu-close-action-list "Project")
+    (eide-i-popup-menu-open (concat "Project: " l-project-name))))
 
 ;;; eide-popup.el ends here
