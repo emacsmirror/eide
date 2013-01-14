@@ -28,7 +28,6 @@
 (require 'eide-project) ; for eide-root-directory
 (require 'eide-windows)
 
-(defvar eide-compare-other-projects-list nil)
 (defvar eide-compare-other-project-name nil)
 (defvar eide-compare-other-project-directory nil)
 
@@ -122,34 +121,15 @@
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-compare-build-other-projects-list ()
-  "Build the list of other projects (eide-compare-other-projects-list)."
-  (setq eide-compare-other-projects-list nil)
-  ;; eide-root-directory:                                 <...>/current_project/
-  ;; directory-file-name removes last "/":                <...>/current_project
-  ;; file-name-directory removes last directory name:     <...>/
-  ;; directory-files returns a list of directory content: <...>/another_project
-  ;; file-name-as-directory adds "/":                     <...>/another_project/
-  (dolist (l-dir (mapcar 'file-name-as-directory (directory-files (file-name-directory (directory-file-name eide-root-directory)) t)))
-    (if (and (not (string-equal l-dir eide-root-directory))
-             (file-exists-p (concat l-dir eide-project-config-file)))
-      ;; Another project has been defined in this directory, retrieve project name
-      ;; l-dir:                                                                   <...>/another_project/
-      ;; directory-file-name removes last "/":                                    <...>/another_project
-      ;; file-name-nondirectory retrieves last directory name from complete path: another_project
-      (let ((l-other-project-name (file-name-nondirectory (directory-file-name l-dir))))
-        ;; Do not add special directories (. and ..)
-        (if (not (or (string-equal l-other-project-name ".") (string-equal l-other-project-name "..")))
-          ;; Add this project to the list
-          (setq eide-compare-other-projects-list (append (list (cons l-other-project-name l-dir)) eide-compare-other-projects-list)))))))
-
-(defun eide-compare-select-another-project (p-project-name p-project-directory)
+(defun eide-compare-select-another-project (p-project-directory)
   "Select another project for comparison.
-- p-project-name: project name.
 - p-project-directory: project directory."
-  (setq eide-compare-other-project-name p-project-name)
+  ;; Get project name from directory
+  ;; directory-file-name removes last "/"
+  ;; file-name-nondirectory retrieves last directory name from complete path
+  (setq eide-compare-other-project-name (file-name-nondirectory (directory-file-name p-project-directory)))
   (setq eide-compare-other-project-directory p-project-directory)
-  (message (concat "Now you can compare files with project \"" p-project-name "\"")))
+  (message (concat "Now you can compare files with project \"" eide-compare-other-project-name "\"")))
 
 (defun eide-compare-with-ref-file (p-buffer-name)
   "Compare selected file (\".new\" version) with \".ref\" version.
@@ -167,7 +147,10 @@
   "Compare selected file with version in another project.
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil))
+  (let ((l-other-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory)))))
+    (if (file-exists-p l-other-file)
+      (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil)
+      (eide-popup-message "This file doesn't exist in the other project."))))
 
 (defun eide-compare-quit ()
   "Quit ediff session."

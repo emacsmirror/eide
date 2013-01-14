@@ -131,6 +131,8 @@
 (make-face-bold 'eide-config-project-name-face)
 (make-face 'eide-config-project-current-name-face)
 (make-face-bold 'eide-config-project-current-name-face)
+(make-face 'eide-config-project-comparison-name-face)
+(make-face-bold 'eide-config-project-comparison-name-face)
 
 ;; Code
 (make-face-bold 'font-lock-keyword-face)
@@ -675,6 +677,8 @@
           (set-face-foreground 'eide-config-project-name-face "sandy brown")
           (set-face-background 'eide-config-project-current-name-face "dark red")
           (set-face-foreground 'eide-config-project-current-name-face "sandy brown")
+          (set-face-background 'eide-config-project-comparison-name-face "dark green")
+          (set-face-foreground 'eide-config-project-comparison-name-face "sandy brown")
           ;; Information line
           (set-face-background 'mode-line "gray"))
         ;; "Light" color theme
@@ -719,6 +723,8 @@
           (set-face-foreground 'eide-config-project-name-face "red")
           (set-face-background 'eide-config-project-current-name-face "yellow")
           (set-face-foreground 'eide-config-project-current-name-face "red")
+          (set-face-background 'eide-config-project-comparison-name-face "light green")
+          (set-face-foreground 'eide-config-project-comparison-name-face "red")
           ;; Information line
           (set-face-background 'mode-line "wheat"))))))
 

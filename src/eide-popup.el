@@ -84,21 +84,6 @@
           (switch-to-buffer l-result)
           (eval (car (read-from-string l-result))))))))
 
-(defun eide-i-popup-open-menu-for-another-project ()
-  "Open popup menu with the list of other projects."
-  (eide-compare-build-other-projects-list)
-  (if eide-compare-other-projects-list
-    (progn
-      (eide-i-popup-menu-init)
-      (dolist (l-project eide-compare-other-projects-list)
-        (eide-i-popup-menu-add-action (car l-project) (concat "(eide-compare-select-another-project \"" (car l-project) "\" \"" (cdr l-project) "\")") t))
-      (eide-i-popup-menu-close-action-list "Other projects")
-      (eide-i-popup-menu-open "Select another project:"))
-    ;; eide-root-directory:                             <...>/current_project/
-    ;; directory-file-name removes last "/":            <...>/current_project
-    ;; file-name-directory removes last directory name: <...>/
-    (eide-popup-message (concat "There is no other project in " (file-name-directory (directory-file-name eide-root-directory))))))
-
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -181,11 +166,6 @@
               (eide-i-popup-menu-add-action (concat "Switch to workspace " l-workspace-number-string) (concat "(eide-project-set-current-workspace " l-workspace-number-string ")") (not (equal l-workspace-number eide-project-current-workspace))))
             (setq l-workspace-number (+ l-workspace-number 1))))
         (eide-i-popup-menu-close-action-list "Workspaces")))
-
-    (if eide-compare-other-project-name
-      (eide-i-popup-menu-add-action (concat "Select another project for comparison (current: \"" eide-compare-other-project-name "\")") "(eide-i-popup-open-menu-for-another-project)" t)
-      (eide-i-popup-menu-add-action "Select another project for comparison" "(eide-i-popup-open-menu-for-another-project)" t))
-    (eide-i-popup-menu-close-action-list "Projects comparison")
 
     (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
     (eide-i-popup-menu-close-action-list "User config")
@@ -351,7 +331,7 @@
             (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
 
         (if eide-compare-other-project-name
-          (eide-i-popup-menu-add-action (concat "Compare with file in project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
+          (eide-i-popup-menu-add-action (concat "Compare with project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
 
         (eide-i-popup-menu-close-action-list "Compare")
 
@@ -470,6 +450,7 @@
   (let ((l-project-name (buffer-substring-no-properties (point) (line-end-position))))
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-selected-project)" t)
+    (eide-i-popup-menu-add-action "Select this project for comparison" "(eide-project-select-for-comparison)" t)
     (eide-i-popup-menu-close-action-list "Project")
     (eide-i-popup-menu-open (concat "Project: " l-project-name))))
 

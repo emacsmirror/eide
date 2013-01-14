@@ -21,6 +21,7 @@
 
 (require 'desktop)
 
+(require 'eide-compare)
 (require 'eide-config)
 (require 'eide-search)
 
@@ -59,6 +60,9 @@
 
 (defvar eide-project-projects-file "~/.emacs-ide/workspace1/projects-list")
 (defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
+
+(defvar eide-project-comparison-project-point nil)
+
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -185,6 +189,9 @@ has already been called."
       ;; Restore initial root directory
       (setq eide-project-name nil)
       (setq eide-root-directory eide-root-directory-at-startup)
+      ;; Clear the project selected for comparison
+      (setq eide-compare-other-project-name nil)
+      (setq eide-compare-other-project-directory nil)
       (if (not eide-no-desktop-option)
         (progn
           ;; Clear desktop (even if a project is defined)
@@ -390,12 +397,13 @@ has already been called."
   (let ((l-do-it t))
     (if (and (not eide-project-name)
              eide-menu-files-list
-             (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
+             (not (eide-popup-question-yes-or-no-p "The list of open files will be lost if you select a project. Do you want to continue?")))
       (setq l-do-it nil))
     (if l-do-it
       (progn
         ;; The internal projects list will also be rebuilt
         (setq eide-project-current-projects-list nil)
+        (setq eide-project-comparison-project-point nil)
         (eide-windows-layout-unbuild)
         (eide-config-set-colors-for-config)
         (eide-keys-configure-for-special-buffer)
@@ -412,8 +420,14 @@ has already been called."
             (if (string-equal l-project-dir eide-root-directory)
               ;; Current project (can't be selected)
               (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
-              ;; Other projects
-              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face))
+              (if (and eide-compare-other-project-name
+                       (string-equal l-project-dir eide-compare-other-project-directory))
+                ;; Project selected for comparison
+                (progn
+                  (setq eide-project-comparison-project-point (point))
+                  (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
+                ;; Other projects
+                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))
             (put-text-property (point) (line-end-position) 'keymap project-name-map)
             (put-text-property (point) (line-end-position) 'mouse-face 'highlight)
             (push l-project-dir eide-project-current-projects-list)
@@ -481,6 +495,27 @@ has already been called."
     (ad-deactivate 'save-buffer)
     (save-buffer)
     (ad-activate 'save-buffer)))
+
+(defun eide-project-select-for-comparison ()
+  "Select project on current line for comparison."
+  (let ((buffer-read-only nil))
+    (forward-line)
+    (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+      (if (not (string-equal l-project-dir eide-root-directory))
+        (progn
+          (eide-compare-select-another-project l-project-dir)
+          (forward-line -1)
+          (let ((l-new-point (point)))
+            ;; Highlight selected project
+            (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face)
+            (if eide-project-comparison-project-point
+              ;; Clear previous selected project
+              (progn
+                (goto-char eide-project-comparison-project-point)
+                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))
+            (setq eide-project-comparison-project-point l-new-point))
+          ;; Clear modified status (text properties don't need to be saved)
+          (set-buffer-modified-p nil))))))
 
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).
