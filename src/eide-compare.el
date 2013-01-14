@@ -32,7 +32,7 @@
 (defvar eide-compare-other-project-directory nil)
 
 (defvar eide-compare-buffer-name nil)
-(defvar eide-compare-current-line nil)
+(defvar eide-compare-current-point nil)
 (defvar eide-compare-other-buffer-name nil)
 
 ;; ----------------------------------------------------------------------------
@@ -63,7 +63,7 @@
   ;; Restore cursor position in the buffer that has been compared
   ;; TODO: Restoring cursor position does not work anymore
   (set-buffer eide-compare-buffer-name)
-  (goto-line eide-compare-current-line)
+  (goto-char eide-compare-current-point)
   ;; Back to current buffer
   (switch-to-buffer eide-current-buffer)
   ;; Build windows layout
@@ -81,11 +81,9 @@
   (setq ediff-quit-hook 'eide-i-compare-ediff-quit-hook)
   ;; Hide menu
   (eide-windows-layout-unbuild)
-  ;; Save current line of buffer to compare
+  ;; Save current position in buffer to compare
   (set-buffer eide-compare-buffer-name)
-  (setq eide-compare-current-line (count-lines (point-min) (point)))
-  (if (= (current-column) 0)
-    (setq eide-compare-current-line (1+ eide-compare-current-line)))
+  (setq eide-compare-current-point (point))
 
   (if p-force-major-mode-flag
     (let ((l-auto-mode-alist auto-mode-alist))
@@ -128,8 +126,7 @@
   ;; directory-file-name removes last "/"
   ;; file-name-nondirectory retrieves last directory name from complete path
   (setq eide-compare-other-project-name (file-name-nondirectory (directory-file-name p-project-directory)))
-  (setq eide-compare-other-project-directory p-project-directory)
-  (message (concat "Now you can compare files with project \"" eide-compare-other-project-name "\"")))
+  (setq eide-compare-other-project-directory p-project-directory))
 
 (defun eide-compare-with-ref-file (p-buffer-name)
   "Compare selected file (\".new\" version) with \".ref\" version.

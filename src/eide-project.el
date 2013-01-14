@@ -97,7 +97,7 @@ has already been called."
   ;; Although eide-compilation-buffer is supposed to be displayed in output window,
   ;; it is necessary to set it as current buffer
   (set-buffer eide-compilation-buffer)
-  (end-of-buffer)
+  (goto-char (point-max))
   (eide-windows-select-source-window t))
 
 (defun eide-i-project-run (p-parameter)
@@ -132,7 +132,8 @@ has already been called."
   (setq eide-project-current-projects-list nil)
   (save-current-buffer
     (set-buffer (find-file-noselect eide-project-projects-file))
-    (goto-line 2)
+    (goto-char (point-min))
+    (forward-line)
     (while (not (eobp))
       (push (buffer-substring-no-properties (point) (line-end-position)) eide-project-current-projects-list)
       (forward-line 2))
@@ -413,7 +414,8 @@ has already been called."
           (progn
             (find-file eide-project-projects-file)
             (rename-buffer eide-project-projects-buffer-name)))
-        (goto-line 2)
+        (goto-char (point-min))
+        (forward-line)
         (while (not (eobp))
           (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
             (forward-line -1)
@@ -449,7 +451,8 @@ has already been called."
     (goto-char (point-min))
     (if (not (re-search-forward (concat "^" eide-root-directory "$") nil t))
       (progn
-        (goto-line 2)
+        (goto-char (point-min))
+        (forward-line)
         (while (and (not (eobp))
                     (string-lessp (buffer-substring-no-properties (point) (line-end-position)) eide-root-directory))
           (forward-line 2))

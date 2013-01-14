@@ -1168,7 +1168,7 @@ found).
       (progn
         (set-buffer eide-project-config-file)
         (erase-buffer)
-        (insert-buffer eide-config-target-buffer)
+        (insert-buffer-substring eide-config-target-buffer)
         (ad-deactivate 'save-buffer)
         (save-buffer)
         (ad-activate 'save-buffer)))
