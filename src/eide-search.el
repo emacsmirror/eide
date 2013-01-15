@@ -84,16 +84,20 @@
   "Sentinel for \"create tags\" process.
 - p-process: process.
 - p-event: event."
-  (setq eide-search-tags-available-flag t)
-  (message "Creating tags... done"))
+  (if (string-equal p-event "finished\n")
+    (progn
+      (setq eide-search-tags-available-flag t)
+      (message "Creating tags... done"))))
 
 (defun eide-i-search-cscope-sentinel (p-process p-event)
   "Sentinel for \"create cscope\" process.
 - p-process: process.
 - p-event: event."
-  (eide-search-update-cscope-status)
-  (setq eide-search-cscope-available-flag t)
-  (message "Creating cscope list of files... done"))
+  (if (string-equal p-event "finished\n")
+    (progn
+      (eide-search-update-cscope-status)
+      (setq eide-search-cscope-available-flag t)
+      (message "Creating cscope list of files... done"))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS

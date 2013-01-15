@@ -23,6 +23,7 @@
 
 (require 'eide-compare)
 (require 'eide-config)
+(require 'eide-popup)
 (require 'eide-search)
 
 ;; Check --no-desktop option before it is removed from command-line-args by desktop in after-init-hook
@@ -62,7 +63,6 @@
 (defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
 
 (defvar eide-project-comparison-project-point nil)
-
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -142,23 +142,25 @@ has already been called."
 (defun eide-i-project-open-selected-project ()
   "Open project on current line."
   (interactive)
-  (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
-    ;; Close projects list (so that it can be modified by another Emacs session)
-    (kill-this-buffer)
-    ;; Restore editor configuration
-    (eide-config-set-colors-for-files)
-    (eide-keys-configure-for-editor)
-    (if (not (string-equal l-project-dir eide-root-directory))
-      (progn
-        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-        ;; otherwise we get errors for non-existing windows
-        (eide-windows-layout-unbuild)
-        ;; Set root directory
-        (setq eide-root-directory l-project-dir)
-        (eide-project-load nil)
-        (eide-menu-update t)))
-    (eide-windows-layout-build)))
+  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+    (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
+      ;; Close projects list (so that it can be modified by another Emacs session)
+      (kill-this-buffer)
+      ;; Restore editor configuration
+      (eide-config-set-colors-for-files)
+      (eide-keys-configure-for-editor)
+      (if (not (string-equal l-project-dir eide-root-directory))
+        (progn
+          ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+          ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+          ;; otherwise we get errors for non-existing windows
+          (eide-windows-layout-unbuild)
+          ;; Set root directory
+          (setq eide-root-directory l-project-dir)
+          (eide-project-load nil)
+          (eide-menu-update t)))
+      (eide-windows-layout-build))
+    (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -182,27 +184,29 @@ has already been called."
 (defun eide-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
 - p-workspace-number: new workspace number."
-  (if (<= p-workspace-number eide-custom-number-of-workspaces)
-    (progn
-      (setq eide-project-current-workspace p-workspace-number)
-      ;; Change projects list file
-      (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
-      ;; Restore initial root directory
-      (setq eide-project-name nil)
-      (setq eide-root-directory eide-root-directory-at-startup)
-      ;; Clear the project selected for comparison
-      (setq eide-compare-other-project-name nil)
-      (setq eide-compare-other-project-directory nil)
-      (if (not eide-no-desktop-option)
-        (progn
-          ;; Clear desktop (even if a project is defined)
-          (eide-windows-layout-unbuild)
-          (desktop-save-mode -1)
-          ;; Close all buffers
-          (desktop-clear)
-          (eide-menu-update t)
-          (eide-windows-layout-build)))
-      (eide-i-update-internal-projects-list))))
+  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+    (if (<= p-workspace-number eide-custom-number-of-workspaces)
+      (progn
+        (setq eide-project-current-workspace p-workspace-number)
+        ;; Change projects list file
+        (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+        ;; Restore initial root directory
+        (setq eide-project-name nil)
+        (setq eide-root-directory eide-root-directory-at-startup)
+        ;; Clear the project selected for comparison
+        (setq eide-compare-other-project-name nil)
+        (setq eide-compare-other-project-directory nil)
+        (if (not eide-no-desktop-option)
+          (progn
+            ;; Clear desktop (even if a project is defined)
+            (eide-windows-layout-unbuild)
+            (desktop-save-mode -1)
+            ;; Close all buffers
+            (desktop-clear)
+            (eide-menu-update t)
+            (eide-windows-layout-build)))
+        (eide-i-update-internal-projects-list)))
+    (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-create ()
   "Create a project."
@@ -222,6 +226,13 @@ has already been called."
   "Delete current project."
   (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
     (progn
+      ;; Stop creation of tags and cscope list of files (in case it is not finished yet)
+      (if (not eide-search-tags-available-flag)
+        (delete-process "create-tags"))
+      (if (not eide-search-cscope-available-flag)
+        (delete-process "create-cscope"))
+      (setq eide-search-tags-available-flag nil)
+      (setq eide-search-cscope-available-flag nil)
       (setq eide-project-name nil)
       (kill-buffer eide-project-config-file)
       (if (get-buffer "TAGS")
@@ -372,26 +383,28 @@ has already been called."
 
 (defun eide-project-change-root ()
   "Change root directory."
-  (let ((l-do-it t))
-    (if (and (not eide-project-name)
-             eide-menu-files-list
-             (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
-      (setq l-do-it nil))
-    (if l-do-it
-      (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
-        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-        ;; otherwise we get errors for non-existing windows
-        (eide-windows-layout-unbuild)
-        (call-interactively 'dired)
-        ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-        (setq eide-root-directory (expand-file-name default-directory))
-        ;; Exit browsing mode (kill dired buffer)
-        (eide-menu-browsing-mode-stop)
-        (eide-project-load nil)
-        (eide-menu-update t)
-        (if l-layout-visible-flag
-          (eide-windows-layout-build))))))
+  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+    (let ((l-do-it t))
+      (if (and (not eide-project-name)
+               eide-menu-files-list
+               (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
+        (setq l-do-it nil))
+      (if l-do-it
+        (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
+          ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+          ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+          ;; otherwise we get errors for non-existing windows
+          (eide-windows-layout-unbuild)
+          (call-interactively 'dired)
+          ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+          (setq eide-root-directory (expand-file-name default-directory))
+          ;; Exit browsing mode (kill dired buffer)
+          (eide-menu-browsing-mode-stop)
+          (eide-project-load nil)
+          (eide-menu-update t)
+          (if l-layout-visible-flag
+            (eide-windows-layout-build)))))
+    (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-open-list ()
   "Display projects list (full frame), and rebuild internal projects list."
