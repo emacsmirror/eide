@@ -165,6 +165,11 @@ has already been called."
         (if (eide-popup-question-yes-or-no-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
           (let ((buffer-read-only nil))
             (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+            (if (string-equal l-project-dir eide-compare-other-project-directory)
+              (progn
+                ;; Clear the project selected for comparison
+                (setq eide-compare-other-project-name nil)
+                (setq eide-compare-other-project-directory nil)))
             (forward-line -1)
             (delete-region (point) (progn (forward-line 2) (point)))
             (ad-deactivate 'save-buffer)
@@ -513,14 +518,24 @@ has already been called."
         (save-buffer)
         (ad-activate 'save-buffer)))
     (kill-this-buffer))
-  (setq eide-project-current-projects-list (remove eide-root-directory eide-project-current-projects-list)))
+  (setq eide-project-current-projects-list (remove eide-root-directory eide-project-current-projects-list))
+  (if (string-equal eide-root-directory eide-compare-other-project-directory)
+    (progn
+      ;; Clear the project selected for comparison
+      (setq eide-compare-other-project-name nil)
+      (setq eide-compare-other-project-directory nil))))
 
 (defun eide-project-remove-selected-project ()
   "Remove the project on current line from current workspace."
   (let ((buffer-read-only nil))
     (forward-line)
     (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
-      (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list)))
+      (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+      (if (string-equal l-project-dir eide-compare-other-project-directory)
+        (progn
+          ;; Clear the project selected for comparison
+          (setq eide-compare-other-project-name nil)
+          (setq eide-compare-other-project-directory nil))))
     (forward-line -1)
     (delete-region (point) (progn (forward-line 2) (point)))
     (ad-deactivate 'save-buffer)
@@ -532,21 +547,25 @@ has already been called."
   (let ((buffer-read-only nil))
     (forward-line)
     (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
-      (if (not (string-equal l-project-dir eide-root-directory))
-        (progn
-          (eide-compare-select-another-project l-project-dir)
-          (forward-line -1)
-          (let ((l-new-point (point)))
-            ;; Highlight selected project
-            (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face)
-            (if eide-project-comparison-project-point
-              ;; Clear previous selected project
-              (progn
-                (goto-char eide-project-comparison-project-point)
-                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))
-            (setq eide-project-comparison-project-point l-new-point))
-          ;; Clear modified status (text properties don't need to be saved)
-          (set-buffer-modified-p nil))))))
+      (eide-compare-select-another-project l-project-dir)
+      (forward-line -1)
+      (let ((l-new-point (point)))
+        (if (not (string-equal l-project-dir eide-root-directory))
+          ;; Highlight selected project
+          (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
+        (if eide-project-comparison-project-point
+          ;; Clear previous selected project
+          (progn
+            (goto-char eide-project-comparison-project-point)
+            (forward-line)
+            (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+              (forward-line -1)
+              (if (string-equal l-old-project-dir eide-root-directory)
+                (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
+                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))))
+        (setq eide-project-comparison-project-point l-new-point))
+      ;; Clear modified status (text properties don't need to be saved)
+      (set-buffer-modified-p nil))))
 
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).

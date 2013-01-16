@@ -330,7 +330,7 @@
           (if (string-equal l-buffer-status "new")
             (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
 
-        (if eide-compare-other-project-name
+        (if (and eide-compare-other-project-name (not (string-equal eide-root-directory eide-compare-other-project-directory)))
           (eide-i-popup-menu-add-action (concat "Compare with project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
 
         (eide-i-popup-menu-close-action-list "Compare")
@@ -447,10 +447,13 @@
   (interactive)
   (move-to-window-line (cdr (last (mouse-position))))
   (beginning-of-line)
-  (let ((l-project-name (buffer-substring-no-properties (point) (line-end-position))))
+  (let ((l-project-name (buffer-substring-no-properties (point) (line-end-position))) (l-project-dir nil))
+    (forward-line)
+    (setq l-project-dir (buffer-substring-no-properties (point) (line-end-position)))
+    (forward-line -1)
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-selected-project)" t)
-    (eide-i-popup-menu-add-action "Select this project for comparison" "(eide-project-select-for-comparison)" t)
+    (eide-i-popup-menu-add-action "Select this project for comparison" "(eide-project-select-for-comparison)" (not (string-equal l-project-dir eide-compare-other-project-directory)))
     (eide-i-popup-menu-close-action-list "Project")
     (eide-i-popup-menu-open (concat "Project: " l-project-name))))
 
