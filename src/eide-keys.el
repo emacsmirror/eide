@@ -117,9 +117,6 @@
       (global-unset-key [f3])
       (global-unset-key [S-f3])))
 
-  (global-set-key [f4] 'eide-search-grep-global-without-prompt)
-  (global-set-key [S-f4] 'eide-search-grep-global-with-prompt)
-
   (global-set-key [f9] 'eide-project-compile-1)
   (global-set-key [S-f9] 'eide-project-compile-2)
 
@@ -134,9 +131,7 @@
   (global-unset-key [S-f1])
 
   (global-unset-key [f3])
-  (global-unset-key [f4])
   (global-unset-key [S-f3])
-  (global-unset-key [S-f4])
 
   (global-unset-key [f9])
   (global-unset-key [S-f9])
@@ -146,6 +141,9 @@
 
 (defun eide-i-keys-enable-keys-for-grep ()
   "Set key bindings that can be used without project."
+  (global-set-key [f4] 'eide-search-grep-global-without-prompt)
+  (global-set-key [S-f4] 'eide-search-grep-global-with-prompt)
+
   (global-set-key [f6] 'eide-search-grep-local-without-prompt)
   (global-set-key [S-f6] 'eide-search-grep-local-with-prompt)
 
@@ -154,6 +152,8 @@
 
 (defun eide-i-keys-disable-keys-for-grep ()
   "Unset key bindings that can be used without project."
+  (global-unset-key [f4])
+  (global-unset-key [S-f4])
   (global-unset-key [f6])
   (global-unset-key [S-f6])
   (global-unset-key [f7])
