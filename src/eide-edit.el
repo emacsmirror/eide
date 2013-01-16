@@ -136,14 +136,14 @@
   "Convert current file end of line from DOS to UNIX."
   (if (not buffer-read-only)
     (progn
-      (shell-command (concat "dos2unix \"" buffer-file-name "\""))
+      (shell-command (concat "fromdos \"" buffer-file-name "\""))
       (revert-buffer))))
 
 (defun eide-edit-unix-to-dos ()
   "Convert current file end of line from UNIX to DOS."
   (if (not buffer-read-only)
     (progn
-      (shell-command (concat "unix2dos \"" buffer-file-name "\""))
+      (shell-command (concat "todos \"" buffer-file-name "\""))
       (revert-buffer))))
 
 (defun eide-edit-delete-trailing-spaces ()
