@@ -144,22 +144,32 @@ has already been called."
   (interactive)
   (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
     (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
-      ;; Close projects list (so that it can be modified by another Emacs session)
-      (kill-this-buffer)
-      ;; Restore editor configuration
-      (eide-config-set-colors-for-files)
-      (eide-keys-configure-for-editor)
-      (if (not (string-equal l-project-dir eide-root-directory))
+      (if (file-directory-p l-project-dir)
         (progn
-          ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-          ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-          ;; otherwise we get errors for non-existing windows
-          (eide-windows-layout-unbuild)
-          ;; Set root directory
-          (setq eide-root-directory l-project-dir)
-          (eide-project-load nil)
-          (eide-menu-update t)))
-      (eide-windows-layout-build))
+          ;; Close projects list (so that it can be modified by another Emacs session)
+          (kill-this-buffer)
+          ;; Restore editor configuration
+          (eide-config-set-colors-for-files)
+          (eide-keys-configure-for-editor)
+          (if (not (string-equal l-project-dir eide-root-directory))
+            (progn
+              ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+              ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+              ;; otherwise we get errors for non-existing windows
+              (eide-windows-layout-unbuild)
+              ;; Set root directory
+              (setq eide-root-directory l-project-dir)
+              (eide-project-load nil)
+              (eide-menu-update t)))
+          (eide-windows-layout-build))
+        (if (eide-popup-question-yes-or-no-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
+          (let ((buffer-read-only nil))
+            (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+            (forward-line -1)
+            (delete-region (point) (progn (forward-line 2) (point)))
+            (ad-deactivate 'save-buffer)
+            (save-buffer)
+            (ad-activate 'save-buffer)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 ;; ----------------------------------------------------------------------------
