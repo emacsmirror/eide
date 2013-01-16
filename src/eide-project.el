@@ -230,7 +230,7 @@ has already been called."
       ;; Update key bindings for project
       (eide-keys-configure-for-editor)
       ;; Add the project to current workspace
-      (eide-project-add-in-list))))
+      (eide-project-add-in-list nil))))
 
 (defun eide-project-delete ()
   "Delete current project."
@@ -389,7 +389,9 @@ has already been called."
   (if (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
   ;; Rebuild project file after the desktop has been changed (in case of project switching)
-  (eide-config-rebuild-project-file))
+  (eide-config-rebuild-project-file)
+  ;; Add the project to current workspace
+  (eide-project-add-in-list p-startup-flag))
 
 (defun eide-project-change-root ()
   "Change root directory."
@@ -463,8 +465,9 @@ has already been called."
         (goto-char (point-min))
         (ad-activate 'switch-to-buffer)))))
 
-(defun eide-project-add-in-list ()
-  "Add current project to the projects list of current workspace."
+(defun eide-project-add-in-list (p-startup-flag)
+  "Add current project to the projects list of current workspace.
+- p-startup-flag: t when called from the init."
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
       (progn
@@ -485,9 +488,11 @@ has already been called."
         (insert "\n")
         (insert eide-root-directory)
         (insert "\n")
-        (ad-deactivate 'save-buffer)
+        (if (not p-startup-flag)
+          (ad-deactivate 'save-buffer))
         (save-buffer)
-        (ad-activate 'save-buffer)))
+        (if (not p-startup-flag)
+          (ad-activate 'save-buffer))))
     (kill-this-buffer))
   (push eide-root-directory eide-project-current-projects-list))
 

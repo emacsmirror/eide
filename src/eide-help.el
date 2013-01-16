@@ -180,7 +180,7 @@ Configuration covers topics such as display, coding rules, and default
 parameters for new projects (see '.emacs-ide-project.cfg' below).
 ")
 
-  (eide-i-help-insert-header-1 "Work on projects")
+  (eide-i-help-insert-header-1 "Workspaces / projects")
 
   (eide-i-help-insert-header-2 "Workspaces")
 
@@ -189,15 +189,26 @@ A workspace is a collection of projects. You can use different workspaces if
 you don't want to mix some projects in the same list.
 ")
 
+  (eide-i-help-insert-header-2 "Projects")
+
+  (insert "
+A project is defined by its root directory, which contains the whole source
+code tree.
+Information and configuration files will be stored in this directory.
+")
+
   (eide-i-help-insert-header-2 "Create a project")
 
   (insert "
-Either launch Emacs from your workset root directory, or launch Emacs and open
+Either launch Emacs from your project root directory, or launch Emacs and open
 project popup menu to change root directory.
 Then open project popup menu and select 'Create a project in this directory'.
 The project is automatically added to the projects list of current workspace.
 
-In your workset root directory, several files are created:
+In your project root directory, several files are created:
+
+- .emacs.desktop:
+  List of open files.
 
 - TAGS:
   Tags database.
@@ -226,11 +237,10 @@ select 'Project notes'.
   (eide-i-help-insert-header-2 "Open an existing project")
 
   (insert "
-Either launch Emacs from your workset root directory, or launch Emacs, open
+Either launch Emacs from your project root directory, or launch Emacs, open
 project popup menu, and select 'Display projects list'.
-Files opened during last session are opened again automatically.
-NB: If your project is not in the list, use 'Change root directory', and 'Add
-this project in current workspace'.
+NB: If your project is not in the list, use 'Change root directory' to open it.
+It will be automatically added to the projects list of current workspace.
 ")
 
   (eide-i-help-insert-header-2 "Tags and cscope update")

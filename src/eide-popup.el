@@ -155,7 +155,7 @@
     (if eide-project-name
       (if (member eide-root-directory eide-project-current-projects-list)
         (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-from-list)" t)
-        (eide-i-popup-menu-add-action "Add this project in current workspace" "(eide-project-add-in-list)" t)))
+        (eide-i-popup-menu-add-action "Add this project in current workspace" "(eide-project-add-in-list nil)" t)))
     (eide-i-popup-menu-close-action-list "Project")
 
     (if (> eide-custom-number-of-workspaces 1)
