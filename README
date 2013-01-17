@@ -1,5 +1,5 @@
 /-------------------------------------------\
-| Emacs-IDE version 1.8+ (2013-01)          |
+| Emacs-IDE version 1.9 (2013-01)           |
 |                                           |
 | Homepage: http://emacs-ide.tuxfamily.org/ |
 \-------------------------------------------/
@@ -92,14 +92,16 @@ You can also disable only the settings that you don't want to override (in
 Quick start
 -------------------------------------------------------------------------------
 
-The directory from which Emacs is launched is important: it stands as the root
-directory during Emacs session.
+The directory from which Emacs is launched stands as the root directory. You
+can change it during the session: click on right button over "menu" window, and
+select "Change root directory" in popup menu.
 
-If you work on a project - which is the main purpose of Emacs-IDE - you should
-always run Emacs from the root directory of your project.
+To create a project, select the directory of the source code tree as the root
+directory. Click on right button over "menu" window, and select "Create a
+project in this directory". The project is added to your workspace.
 
-When you first run Emacs for a project, click on right button over "menu"
-window, and select "Create project".
+To open your project in future sessions, click on right button over "menu"
+window, select "Display projects list", and select your project.
 
 -------------------------------------------------------------------------------
 Hosting history
