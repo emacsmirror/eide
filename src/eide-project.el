@@ -218,6 +218,7 @@ has already been called."
             (desktop-save-mode -1)
             ;; Close all buffers
             (desktop-clear)
+            (setq desktop-dirname nil)
             (eide-menu-update t)
             (eide-windows-layout-build)))
         (eide-i-update-internal-projects-list)))
@@ -261,6 +262,7 @@ has already been called."
           (setq desktop-dirname eide-root-directory)))
       (desktop-remove)
       (desktop-save-mode -1)
+      (setq desktop-dirname nil)
       ;; Update frame title and menu (project is inactive now)
       (eide-i-project-update-frame-title)
       (eide-menu-update t)
@@ -296,7 +298,8 @@ has already been called."
         (progn
           (desktop-save-mode -1)
           ;; Close all buffers
-          (desktop-clear)))))
+          (desktop-clear)
+          (setq desktop-dirname nil)))))
   ;; Start with "editor" mode
   (eide-keys-configure-for-editor)
   ;; Kill projects list in case it is present in desktop

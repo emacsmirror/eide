@@ -107,7 +107,7 @@
   "Create tags."
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
-  (let ((l-process (start-process-shell-command "create-tags" "*create-tags*" (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
+  (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
     ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-tags-sentinel)))
 
@@ -173,7 +173,7 @@
   (message "Creating cscope list of files...")
   (setq eide-search-cscope-available-flag nil)
   (setq eide-search-cscope-update-database-request-pending-flag t)
-  (let ((l-process (start-process-shell-command "create-cscope" "*create-cscope*" (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command))))
+  (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command))))
     ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
     (set-process-sentinel l-process 'eide-i-search-cscope-sentinel)))
 ;; (cscope-index-files nil))
