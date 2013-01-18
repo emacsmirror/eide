@@ -331,7 +331,10 @@
             (eide-i-popup-menu-add-action "Compare REF and NEW files" (concat "(eide-compare-with-ref-file \"" l-buffer "\")") t)))
 
         (if (and eide-compare-other-project-name (not (string-equal eide-root-directory eide-compare-other-project-directory)))
-          (eide-i-popup-menu-add-action (concat "Compare with project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))
+          (let ((l-directory (file-name-directory (buffer-file-name (get-buffer l-buffer)))))
+            ;; Check that the file is not out of project
+            (if (not (string-equal (eide-project-get-short-directory l-directory) l-directory))
+              (eide-i-popup-menu-add-action (concat "Compare with project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))))
 
         (eide-i-popup-menu-close-action-list "Compare")
 
