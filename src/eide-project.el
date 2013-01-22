@@ -221,7 +221,10 @@ has already been called."
             (setq desktop-dirname nil)
             (eide-menu-update t)
             (eide-windows-layout-build)))
-        (eide-i-update-internal-projects-list)))
+        (eide-i-update-internal-projects-list)
+        ;; Update default directory if current buffer is not visiting a file
+        (if (not buffer-file-name)
+          (setq default-directory eide-root-directory))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-create ()
@@ -313,6 +316,9 @@ has already been called."
       (if (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
         ;; this is a "useless" buffer (.ref or .new)
         (kill-buffer l-buffer-name))))
+  ;; Update default directory if current buffer is not visiting a file
+  (if (not buffer-file-name)
+    (setq default-directory eide-root-directory))
   ;; Set current buffer
   (setq eide-current-buffer (buffer-name)))
 
