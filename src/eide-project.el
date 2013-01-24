@@ -127,7 +127,7 @@ has already been called."
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
-(defun eide-i-update-internal-projects-list ()
+(defun eide-i-project-update-internal-projects-list ()
   ;; Create internal projects list
   (setq eide-project-current-projects-list nil)
   (save-current-buffer
@@ -149,7 +149,7 @@ has already been called."
           ;; Close projects list (so that it can be modified by another Emacs session)
           (kill-this-buffer)
           ;; Restore editor configuration
-          (eide-config-set-colors-for-files)
+          (eide-windows-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (if (not (string-equal l-project-dir eide-root-directory))
             (progn
@@ -177,6 +177,37 @@ has already been called."
             (ad-activate 'save-buffer)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
+(defun eide-i-project-set-colors-for-config ()
+  "Set colors for config buffer."
+  (set-background-color eide-config-config-background-color)
+  (set-foreground-color eide-config-config-foreground-color)
+  (set-face-background 'fringe eide-config-config-background-color))
+
+(defun eide-i-project-get-config-value-if-defined (p-parameter)
+  "Get the value of a parameter in a config (current buffer), returns nil if
+not defined.
+- p-parameter: config parameter."
+  (goto-char (point-min))
+  (if (re-search-forward (concat "^" p-parameter " = ") nil t)
+    (buffer-substring-no-properties (point) (line-end-position))
+    nil))
+
+(defun eide-i-project-rebuild-config-line (p-parameter p-default-value)
+  "Update a line with a parameter and its value (use default value if not
+found).
+- p-parameter: config parameter.
+- p-default-value: config default value."
+  (let ((l-value nil))
+    (save-current-buffer
+      (set-buffer eide-project-config-file)
+      (setq l-value (eide-i-project-get-config-value-if-defined p-parameter)))
+    (if (not l-value)
+      (setq l-value p-default-value))
+    (insert p-parameter)
+    (insert " = ")
+    (insert l-value)
+    (insert "\n")))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -194,7 +225,7 @@ has already been called."
         (if (not (file-exists-p l-projects-list-file))
           (shell-command (concat "touch \"" l-projects-list-file "\""))))
       (setq l-workspace-number (+ l-workspace-number 1))))
-  (eide-i-update-internal-projects-list))
+  (eide-i-project-update-internal-projects-list))
 
 (defun eide-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
@@ -221,7 +252,7 @@ has already been called."
             (setq desktop-dirname nil)
             (eide-menu-update t)
             (eide-windows-layout-build)))
-        (eide-i-update-internal-projects-list)
+        (eide-i-project-update-internal-projects-list)
         ;; Update default directory if current buffer is not visiting a file
         (if (not buffer-file-name)
           (setq default-directory eide-root-directory))))
@@ -403,7 +434,7 @@ has already been called."
   (if (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
   ;; Rebuild project file after the desktop has been changed (in case of project switching)
-  (eide-config-rebuild-project-file)
+  (eide-project-rebuild-config-file)
   ;; Add the project to current workspace
   (eide-project-add-in-list p-startup-flag))
 
@@ -445,7 +476,7 @@ has already been called."
         (setq eide-project-current-projects-list nil)
         (setq eide-project-comparison-project-point nil)
         (eide-windows-layout-unbuild)
-        (eide-config-set-colors-for-config)
+        (eide-i-project-set-colors-for-config)
         (eide-keys-configure-for-special-buffer)
         (ad-deactivate 'switch-to-buffer)
         (if (get-buffer eide-project-projects-buffer-name)
@@ -576,28 +607,99 @@ has already been called."
       ;; Clear modified status (text properties don't need to be saved)
       (set-buffer-modified-p nil))))
 
+(defun eide-project-rebuild-config-file ()
+  "Update project file."
+  (save-current-buffer
+    ;; Define target config file
+    (setq eide-config-target-buffer (concat eide-project-config-file "_temp"))
+
+    ;; Open these config files
+    (if (not (get-buffer eide-project-config-file))
+      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
+    (get-buffer-create eide-config-target-buffer)
+    (set-buffer eide-config-target-buffer)
+    (erase-buffer)
+
+    (insert "# *****************************************************************************\n")
+    (insert "# Emacs-IDE project configuration\n")
+    (insert "# *****************************************************************************\n\n")
+    (insert "# --> Click right to exit this page.\n")
+    (insert "# --> To restore the default value of a parameter, delete the line\n")
+    (insert "#     (project configuration file is rebuilt when you exit this page).\n\n")
+
+    (insert "# Init command is called before all 'compile' and 'run' commands.\n")
+    (eide-i-project-rebuild-config-line "init_command"      eide-custom-project-default-init-command)
+    (eide-i-project-rebuild-config-line "compile_command_1" eide-custom-project-default-compile-command-1)
+    (eide-i-project-rebuild-config-line "compile_command_2" eide-custom-project-default-compile-command-2)
+    (eide-i-project-rebuild-config-line "compile_command_3" eide-custom-project-default-compile-command-3)
+    (eide-i-project-rebuild-config-line "compile_command_4" eide-custom-project-default-compile-command-4)
+    (eide-i-project-rebuild-config-line "run_command_1"     eide-custom-project-default-run-command-1)
+    (eide-i-project-rebuild-config-line "run_command_2"     eide-custom-project-default-run-command-1)
+    (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
+    (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
+    (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
+
+    ;; Replace source file by target buffer if different
+    (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-config-target-buffer nil nil) 0))
+      (progn
+        (set-buffer eide-project-config-file)
+        (erase-buffer)
+        (insert-buffer-substring eide-config-target-buffer)
+        (ad-deactivate 'save-buffer)
+        (save-buffer)
+        (ad-activate 'save-buffer)))
+    ;; Close temporary buffer
+    (kill-buffer eide-config-target-buffer)))
+
+(defun eide-project-get-config-value (p-parameter)
+  "Get the value of a parameter in project config (empty string if not defined).
+- p-parameter: config parameter."
+  (save-current-buffer
+    (if (not (get-buffer eide-project-config-file))
+      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
+    (set-buffer eide-project-config-file)
+    (let ((l-value (eide-i-project-get-config-value-if-defined p-parameter)))
+      (if l-value
+        l-value
+        ""))))
+
+(defun eide-project-open-config-file ()
+  "Display project file (full frame)."
+  (eide-windows-layout-unbuild)
+  (eide-i-project-set-colors-for-config)
+  (eide-keys-configure-for-special-buffer)
+  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
+  (goto-char (point-min)))
+
+(defun eide-project-open-notes-file ()
+  "Display project notes file (full frame)."
+  (eide-windows-layout-unbuild)
+  (eide-i-project-set-colors-for-config)
+  (eide-keys-configure-for-special-buffer)
+  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
+
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).
 - p-parameter: option parameter in project configuration."
-  (let ((l-init-command (eide-config-get-project-value "init_command")))
+  (let ((l-init-command (eide-project-get-config-value "init_command")))
     (if (string-equal l-init-command "")
-      (eide-config-get-project-value p-parameter)
-      (concat l-init-command " ; " (eide-config-get-project-value p-parameter)))))
+      (eide-project-get-config-value p-parameter)
+      (concat l-init-command " ; " (eide-project-get-config-value p-parameter)))))
 
 (defun eide-project-get-full-gdb-command (p-program)
   "Get full gdb command (gdb command + gdb option + program name).
 - p-program: option parameter in project configuration for gdb program."
-  (concat (eide-config-get-project-value "debug_command") eide-project-gdb-option (eide-config-get-project-value p-program)))
+  (concat (eide-project-get-config-value "debug_command") eide-project-gdb-option (eide-project-get-config-value p-program)))
 
 (defun eide-project-get-short-gdb-command (p-program)
   "Get short gdb command (short gdb command + gdb option + program name) for popup
 menu (hide gdb command path).
 - p-program: option parameter in project configuration for gdb program."
-  (let ((l-gdb-command (eide-config-get-project-value "debug_command")) (l-short-gdb-command nil))
+  (let ((l-gdb-command (eide-project-get-config-value "debug_command")) (l-short-gdb-command nil))
     (if (string-match "/" l-gdb-command)
       (setq l-short-gdb-command (concat "[...]/" (car (last (split-string l-gdb-command "/")))))
       (setq l-short-gdb-command l-gdb-command))
-    (concat l-short-gdb-command eide-project-gdb-option (eide-config-get-project-value p-program))))
+    (concat l-short-gdb-command eide-project-gdb-option (eide-project-get-config-value p-program))))
 
 (defun eide-project-get-short-directory (p-directory)
   "Get the path relative to project root directory from absolute path if it is
@@ -641,7 +743,7 @@ part of the project (remove root directory from absolute path).
 (defun eide-project-debug-mode-start ()
   "Start debug mode."
   ;; Restore colors (in case user was reading help or config)
-  (eide-config-set-colors-for-files)
+  (eide-windows-set-colors-for-files)
   (eide-keys-configure-for-gdb)
   (eide-windows-layout-unbuild)
   (if window-system

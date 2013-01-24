@@ -601,6 +601,18 @@ and display it. Current buffer is kept if correct."
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
 
+(defun eide-windows-set-colors-for-files ()
+  "Set colors for edition mode."
+  (if (and eide-custom-override-emacs-settings eide-custom-extend-color-theme-to-source-code)
+    (progn
+      (set-background-color eide-config-background-color)
+      (set-foreground-color eide-config-foreground-color)
+      (set-face-background 'fringe eide-config-background-color))
+    (progn
+      (set-background-color eide-config-user-background-color)
+      (set-foreground-color eide-config-user-foreground-color)
+      (set-face-background 'fringe eide-config-user-background-color))))
+
 (defun eide-windows-handle-mouse-3 ()
   "Handle mouse-3 (right click) action."
   (interactive)
@@ -613,7 +625,7 @@ and display it. Current buffer is kept if correct."
         ;; Close "help" or projects list
         (progn
           (kill-this-buffer)
-          (eide-config-set-colors-for-files)
+          (eide-windows-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (eide-windows-layout-build))
         (if (string-match "^\*Customize.*" (buffer-name))
@@ -627,10 +639,10 @@ and display it. Current buffer is kept if correct."
             ;; Display another buffer (other than ".emacs-ide-project.cfg")
             (progn
               (save-buffer)
-              (eide-config-rebuild-project-file)
+              (eide-project-rebuild-config-file)
               ;; This buffer must not be closed
               (switch-to-buffer eide-current-buffer)
-              (eide-config-set-colors-for-files)
+              (eide-windows-set-colors-for-files)
               (eide-keys-configure-for-editor)
               (eide-windows-layout-build))
             (if (string-equal (buffer-name) eide-project-notes-file)
@@ -638,7 +650,7 @@ and display it. Current buffer is kept if correct."
               (progn
                 (save-buffer)
                 (kill-buffer eide-project-notes-file)
-                (eide-config-set-colors-for-files)
+                (eide-windows-set-colors-for-files)
                 (eide-keys-configure-for-editor)
                 (eide-windows-layout-build))
               (progn

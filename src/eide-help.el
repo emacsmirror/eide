@@ -39,6 +39,12 @@
   (insert "\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter2-face))
 
+(defun eide-i-help-set-colors-for-help ()
+  "Set colors for \"help\" buffer."
+  (set-background-color eide-config-menu-background-color)
+  (set-foreground-color eide-config-menu-foreground-color)
+  (set-face-background 'fringe eide-config-menu-background-color))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -47,7 +53,7 @@
   "Display help (full frame)."
   ;; Close menu
   (eide-windows-layout-unbuild)
-  (eide-config-set-colors-for-help)
+  (eide-i-help-set-colors-for-help)
   (eide-keys-configure-for-special-buffer)
 
   (if (get-buffer "* Help *")
