@@ -256,7 +256,7 @@
   ;; Config must be initialized before desktop is loaded, because it reads some
   ;; variables that might be overridden by local values in buffers.
   (eide-config-init)
-  (eide-project-load t)
+  (eide-project-load-root-directory-content t)
   (eide-menu-init)
   (eide-windows-init))
 

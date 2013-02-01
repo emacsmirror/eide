@@ -20,7 +20,7 @@
 (provide 'eide-help)
 
 (defvar eide-version "1.9+")
-(defvar eide-release-date "2013-01")
+(defvar eide-release-date "2013-02")
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS

@@ -22,9 +22,6 @@
 (require 'eide-menu)
 (require 'eide-vc)
 
-(defvar eide-project-config-file ".emacs-ide-project.cfg")
-(defvar eide-project-notes-file  ".emacs-ide-project.txt")
-
 (defvar eide-config-ready nil)
 (defvar eide-config-show-svn-status-flag nil)
 (defvar eide-config-show-git-status-flag nil)

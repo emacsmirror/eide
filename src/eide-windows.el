@@ -639,7 +639,11 @@ and display it. Current buffer is kept if correct."
             ;; Display another buffer (other than ".emacs-ide-project.cfg")
             (progn
               (save-buffer)
-              (eide-project-rebuild-config-file)
+              (if (eide-project-rebuild-config-file nil)
+                ;; Project name has changed
+                (progn
+                  (eide-menu-update-project-name)
+                  (eide-project-update-name)))
               ;; This buffer must not be closed
               (switch-to-buffer eide-current-buffer)
               (eide-windows-set-colors-for-files)

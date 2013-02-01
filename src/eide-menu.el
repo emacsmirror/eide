@@ -316,6 +316,10 @@
     (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
     (eide-menu-get-buffer-name-on-current-line)))
 
+(defun eide-i-menu-insert-project-name ()
+  (put-text-property (point) (progn (insert "Project: ") (point)) 'face 'eide-config-menu-project-header-face)
+  (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-menu-project-name-face))
+
 (defun eide-i-menu-rebuild (p-force-update-status-flag)
   "Rebuild \"menu\" buffer.
 - p-force-update-status-flag: t = update files status, nil = do not update."
@@ -324,9 +328,7 @@
     (setq eide-menu-current-buffer-marker nil)
 
     (if eide-project-name
-      (progn
-        (put-text-property (point) (progn (insert "Project: ") (point)) 'face 'eide-config-menu-project-header-face)
-        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-menu-project-name-face))
+      (eide-i-menu-insert-project-name)
       (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-config-menu-project-header-face))
 
     (eide-i-menu-insert-text "\n")
@@ -584,6 +586,16 @@ pages)."
             (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))
             (if (string-match "^\*Man .*" l-buffer-name)
               (setq eide-menu-man-pages-list (cons l-buffer-name eide-menu-man-pages-list)))))))))
+
+(defun eide-menu-update-project-name ()
+  "Update project name in \"menu\" buffer."
+  (save-current-buffer
+    (set-buffer eide-menu-buffer-name)
+    (save-excursion
+      (let ((buffer-read-only nil))
+        (goto-char (point-min))
+        (delete-region (point) (line-end-position))
+        (eide-i-menu-insert-project-name)))))
 
 (defun eide-menu-update-current-buffer-modified-status ()
   "Update current buffer \"modified\" status (in menu)."
