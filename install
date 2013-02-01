@@ -63,23 +63,12 @@ printf "\n\033[1mRemove .elc files (if any)\033[0m\n"
 rm -vf src/*.elc
 
 printf "\n\033[1mCompile Emacs-IDE\033[0m\n"
-emacs --batch -L src -f batch-byte-compile src/*.el
 # --batch: don't use interactive display (implies -q: don't load ~/.emacs)
 # -L DIR: add DIR to load-path
 # -f batch-byte-compile FILES: call batch-byte-compile function, which calls
 # byte-compile-file on FILES
-printf "\n"
-compilation_ok=1
-for file in `ls src/*.el`; do
-  printf "${file}: "
-  if [ -e ${file}c ]; then
-    printf "\033[1;32mOK\033[0m\n"
-  else
-    printf "\033[1;31mFAILED\033[0m\n"
-    compilation_ok=0
-  fi
-done
-if [ $compilation_ok -eq 0 ]; then
+if ! emacs --batch -L src -f batch-byte-compile src/*.el ; then
+  printf "\n\033[1;31mCompilation failed\033[0m\n"
   exit 1
 fi
 
