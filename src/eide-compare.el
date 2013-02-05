@@ -119,13 +119,14 @@
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-compare-select-another-project (p-project-directory)
+(defun eide-compare-select-another-project (p-project-name p-project-directory)
   "Select another project for comparison.
+- p-project-name: project name.
 - p-project-directory: project directory."
   ;; Get project name from directory
   ;; directory-file-name removes last "/"
   ;; file-name-nondirectory retrieves last directory name from complete path
-  (setq eide-compare-other-project-name (file-name-nondirectory (directory-file-name p-project-directory)))
+  (setq eide-compare-other-project-name p-project-name)
   (setq eide-compare-other-project-directory p-project-directory))
 
 (defun eide-compare-with-ref-file (p-buffer-name)

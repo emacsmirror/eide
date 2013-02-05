@@ -640,28 +640,29 @@ current workspace."
 
 (defun eide-project-select-for-comparison ()
   "Select project on current line for comparison."
-  (let ((buffer-read-only nil))
+  (let ((buffer-read-only nil) (l-project-name nil) (l-project-dir nil))
+    (setq l-project-name (buffer-substring-no-properties (point) (line-end-position)))
     (forward-line)
-    (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
-      (eide-compare-select-another-project l-project-dir)
-      (forward-line -1)
-      (let ((l-new-point (point)))
-        (if (not (string-equal l-project-dir eide-root-directory))
-          ;; Highlight selected project
-          (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
-        (if eide-project-comparison-project-point
-          ;; Clear previous selected project
-          (progn
-            (goto-char eide-project-comparison-project-point)
-            (forward-line)
-            (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
-              (forward-line -1)
-              (if (string-equal l-old-project-dir eide-root-directory)
-                (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
-                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))))
-        (setq eide-project-comparison-project-point l-new-point))
-      ;; Clear modified status (text properties don't need to be saved)
-      (set-buffer-modified-p nil))))
+    (setq l-project-dir (buffer-substring-no-properties (point) (line-end-position)))
+    (eide-compare-select-another-project l-project-name l-project-dir)
+    (forward-line -1)
+    (let ((l-new-point (point)))
+      (if (not (string-equal l-project-dir eide-root-directory))
+        ;; Highlight selected project
+        (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
+      (if eide-project-comparison-project-point
+        ;; Clear previous selected project
+        (progn
+          (goto-char eide-project-comparison-project-point)
+          (forward-line)
+          (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+            (forward-line -1)
+            (if (string-equal l-old-project-dir eide-root-directory)
+              (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
+              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))))
+      (setq eide-project-comparison-project-point l-new-point))
+    ;; Clear modified status (text properties don't need to be saved)
+    (set-buffer-modified-p nil)))
 
 (defun eide-project-rebuild-config-file (p-startup-flag)
   "Update project file.
