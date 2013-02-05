@@ -32,6 +32,7 @@
 
 (defun eide-i-vc-diff (p-backend)
   "Call vc-diff on current buffer with specific backend.
+Argument:
 - p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
@@ -43,6 +44,7 @@
 
 (defun eide-i-vc-blame (p-backend)
   "Call vc-annotate on current buffer with specific backend.
+Argument:
 - p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
@@ -54,6 +56,7 @@
 
 (defun eide-i-vc-revert (p-backend)
   "Call vc-revert-file on current buffer with specific backend.
+Argument:
 - p-backend: vc backend."
   (let ((l-vc-backend (vc-backend buffer-file-name)))
     ;; Temporary switch to specific backend (in case the file is under several version control systems)
@@ -114,6 +117,7 @@
 
 (defun eide-vc-update-files-status (&optional p-files-list)
   "Update buffers vc status (modified or not).
+Argument:
 - p-files-list (optional): list of files to update (overrides
   eide-menu-files-list)."
   (if (or eide-config-show-svn-status-flag eide-config-show-git-status-flag)
@@ -128,6 +132,7 @@
 
 (defun eide-vc-set-diff-command (p-cmd)
   "Set svn/git diff commands.
+Argument:
 - p-cmd: diff program."
   (if (string-equal p-cmd "")
     (progn
@@ -146,6 +151,7 @@
 
 (defun eide-vc-svn-diff-files-in-directory (p-directory-name p-files-list-string)
   "Execute \"svn diff\" on a directory.
+Arguments:
 - p-directory-name: directory name.
 - p-files-list-string: string containing files list."
   (if eide-config-show-svn-status-flag
@@ -176,6 +182,7 @@
 
 (defun eide-vc-git-diff-files-in-directory (p-directory-name p-files-list-string)
   "Execute \"git diff\" on a directory.
+Arguments:
 - p-directory-name: directory name.
 - p-files-list-string: string containing files list."
   (if eide-config-show-git-status-flag

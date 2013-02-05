@@ -82,6 +82,7 @@
 
 (defun eide-i-search-tags-sentinel (p-process p-event)
   "Sentinel for \"create tags\" process.
+Arguments:
 - p-process: process.
 - p-event: event."
   (if (string-equal p-event "finished\n")
@@ -91,6 +92,7 @@
 
 (defun eide-i-search-cscope-sentinel (p-process p-event)
   "Sentinel for \"create cscope\" process.
+Arguments:
 - p-process: process.
 - p-event: event."
   (if (string-equal p-event "finished\n")
@@ -120,6 +122,7 @@
 
 (defun eide-search-find-tag (p-string)
   "Go to definition of a symbol.
+Argument:
 - p-string: symbol."
   (if eide-search-tags-available-flag
     (progn
@@ -185,6 +188,7 @@
 
 (defun eide-search-find-symbol (p-symbol)
   "Find a symbol with cscope.
+Argument:
 - p-symbol: symbol."
   (if eide-search-cscope-available-flag
     (if eide-search-cscope-files-flag
@@ -240,6 +244,7 @@
 
 (defun eide-search-grep-local (p-string)
   "Grep a string in current directory.
+Argument:
 - p-string: string."
   (eide-windows-select-source-window t)
   (let ((l-buffer-directory (file-name-directory (buffer-file-name)))
@@ -280,6 +285,7 @@
 
 (defun eide-search-grep-global (p-string)
   "Grep a string in the whole project.
+Argument:
 - p-string: string."
   ;; On Emacs 22 GTK: it is necessary to select "source" window, otherwise
   ;; current output buffer will be reused if "output" window is selected.
@@ -347,18 +353,21 @@
 
 (defun eide-search-read-man (p-args)
   "Read man page.
+Argument:
 - p-args: man arguments (including section number or \"-a\")."
   (eide-windows-select-source-window t)
   (man p-args))
 
 (defun eide-search-view-output-buffer (p-result-buffer-name)
   "Display a result buffer.
+Argument:
 - p-result-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (switch-to-buffer p-result-buffer-name))
 
 (defun eide-search-close-grep-buffer (p-grep-buffer-name)
   "Close a grep result buffer.
+Argument:
 - p-grep-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
@@ -403,6 +412,7 @@
 
 (defun eide-search-close-cscope-buffer (p-cscope-buffer-name)
   "Close a cscope result buffer.
+Argument:
 - p-cscope-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
@@ -447,6 +457,7 @@
 
 (defun eide-search-close-man-buffer (p-man-buffer-name)
   "Close a man page buffer.
+Argument:
 - p-man-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))

@@ -50,6 +50,7 @@
 
 (defun eide-i-windows-get-window-for-buffer (p-buffer-name)
   "Get the window in which a buffer should be displayed.
+Argument:
 - p-buffer-name: buffer name."
   (if eide-keys-is-editor-configuration-active-flag
     (if (string-match "^\*.*" p-buffer-name)
@@ -77,7 +78,7 @@
 Returns the window.
 Called for: - compile, run, and shell buffers.
             - man pages.
-Arguments are those of display-buffer function:
+Arguments (same as display-buffer function):
 - p-buffer: buffer.
 - p-not-this-window (optional): force to display in another window.
 - p-frame (optional): frame."
@@ -156,7 +157,7 @@ Arguments are those of display-buffer function:
 (defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
   "Override select-window function (advice), to know which window is the active
 \"source\" window.
-Arguments are those of select-window function:
+Arguments (same as select-window function):
 - p-window: window.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
@@ -177,7 +178,7 @@ ones."
   "Override switch-to-buffer function (advice), to display buffer in appropriate
 window.
 Returns the buffer.
-Arguments are those of switch-to-buffer function:
+Arguments (same as switch-to-buffer function):
 - p-buffer: buffer.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
@@ -259,7 +260,7 @@ window."
 
 (defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
   "Override save-buffer function (advice), to save buffer in \"source\" window.
-Arguments are those of save-buffer function:
+Argument (same as save-buffer function):
 - p-backup-option (optional): backup method."
   (let ((l-window (selected-window)))
     (eide-windows-select-source-window nil)
@@ -272,7 +273,7 @@ Arguments are those of save-buffer function:
 
 (defadvice revert-buffer (after eide-revert-buffer-advice-after (&optional p-ignore-auto p-noconfirm p-preserve-modes))
   "Override revert-buffer function (advice), to update cscope database.
-Arguments are those of revert-buffer function:
+Arguments (same as revert-buffer function):
 - p-ignore-auto (optional): ignore auto-save file.
 - p-noconfirm (optional): don't ask for confirmation.
 - p-preserve-modes (optional): preserve file modes."
@@ -283,7 +284,7 @@ Arguments are those of revert-buffer function:
 (defadvice mode-line-unbury-buffer (around eide-previous-buffer-advice-around (p-event))
   "Override mode-line-unbury-buffer (previous buffer) function (advice), to select
 appropriate buffer according to selected window (for Emacs 21 only).
-Arguments are those of mode-line-unbury-buffer:
+Argument (same as mode-line-unbury-buffer):
 - p-event: event."
   (interactive "e")
   ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
@@ -304,7 +305,7 @@ Arguments are those of mode-line-unbury-buffer:
 (defadvice mode-line-bury-buffer (around eide-previous-buffer-advice-around (p-event))
   "Override mode-line-bury-buffer (next buffer) function (advice), to select
 appropriate buffer according to selected window (for Emacs 21 only).
-Arguments are those of mode-line-bury-buffer:
+Argument (same as mode-line-bury-buffer):
 - p-event: event."
   (interactive "e")
   ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
@@ -533,6 +534,7 @@ before gdb builds its own."
 
 (defun eide-windows-select-source-window (p-force-build-flag)
   "Select \"source\" window.
+Argument:
 - p-force-build-flag: t = build windows layout if not visible."
   (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
     (progn
@@ -554,7 +556,9 @@ before gdb builds its own."
 
 (defun eide-windows-is-file-special-p (l-buffer-name)
   "Test if the file is special or not. A special file must not be displayed.
-Special files are : tags, cscope files, and emacs-ide hidden files."
+Special files are: tags, cscope files, and emacs-ide hidden files.
+Argument:
+- l-buffer-name: buffer name."
   (or (string-equal l-buffer-name "TAGS")
       (string-equal l-buffer-name "cscope.files")
       (string-equal l-buffer-name "cscope.out")
@@ -712,6 +716,7 @@ and display it. Current buffer is kept if correct."
 
 (defun eide-windows-find-file-without-advice (p-file)
   "Load a file without using advice (when \"menu\" buffer must not be updated).
+Argument:
 - p-file: file."
   ;; find-file advice would change eide-current-buffer
   ;; and menu buffer would be updated with temp files

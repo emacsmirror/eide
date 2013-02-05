@@ -72,6 +72,7 @@
 
 (defun eide-i-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
   "Compare a buffer and a file.
+Arguments:
 - p-other-buffer-filename: name of file to compare.
 - p-other-buffer-name-prefix: prefix to add before file buffer name.
 - p-buffer-in-left-window-flag: t = buffer | file, nil = file | buffer.
@@ -121,6 +122,7 @@
 
 (defun eide-compare-select-another-project (p-project-name p-project-directory)
   "Select another project for comparison.
+Arguments:
 - p-project-name: project name.
 - p-project-directory: project directory."
   ;; Get project name from directory
@@ -131,18 +133,21 @@
 
 (defun eide-compare-with-ref-file (p-buffer-name)
   "Compare selected file (\".new\" version) with \".ref\" version.
+Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
   (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".ref") "* (REF) " nil t))
 
 (defun eide-compare-with-new-file (p-buffer-name)
   "Compare selected file (\".ref\" version) with \".new\" version.
+Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
   (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".new") "* (NEW) " t t))
 
 (defun eide-compare-with-other-project (p-buffer-name)
   "Compare selected file with version in another project.
+Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
   (let ((l-other-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory)))))

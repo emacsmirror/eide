@@ -90,8 +90,7 @@ has already been called."
 - load the project desktop,
 - check project information (tags, cscope, configuration),
 - add the project (or update its name) in projects list.
-
-Parameters:
+Arguments:
 - p-startup-flag: t when called from the init.
 - p-creation-flag: t when the project is created."
   ;; Get project name from directory
@@ -228,6 +227,7 @@ Parameters:
 (defun eide-i-project-get-config-value-if-defined (p-parameter)
   "Get the value of a parameter in a config (current buffer), returns nil if
 not defined.
+Argument:
 - p-parameter: config parameter."
   (goto-char (point-min))
   (if (re-search-forward (concat "^" p-parameter " = ") nil t)
@@ -237,6 +237,7 @@ not defined.
 (defun eide-i-project-rebuild-config-line (p-parameter p-default-value)
   "Update a line with a parameter and its value (use default value if not
 found).
+Arguments:
 - p-parameter: config parameter.
 - p-default-value: config default value."
   (let ((l-value nil))
@@ -252,6 +253,7 @@ found).
 
 (defun eide-i-project-compile (p-parameter)
   "Compile project.
+Argument:
 - p-parameter: option parameter in project configuration for compile command."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
@@ -271,6 +273,7 @@ found).
 
 (defun eide-i-project-run (p-parameter)
   "Run project.
+Argument:
 - p-parameter: option parameter in project configuration for run command."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
@@ -286,6 +289,7 @@ found).
 
 (defun eide-i-project-debug (p-program)
   "Debug project.
+Argument:
 - p-program: option parameter in project configuration for gdb program."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
@@ -317,6 +321,7 @@ found).
 
 (defun eide-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
+Argument:
 - p-workspace-number: new workspace number."
   (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
     (if (<= p-workspace-number eide-custom-number-of-workspaces)
@@ -406,8 +411,7 @@ Otherwise:
 - close all files,
 - disable the desktop,
 - update the display.
-
-Parameter:
+Argument:
 - p-startup-flag: t when called from the init."
   ;; Check if a project is defined, and start it.
   ;; NB: It is important to read desktop after mode-hooks have been defined,
@@ -530,6 +534,7 @@ Parameter:
 
 (defun eide-project-add-in-list (p-startup-flag)
   "Add current project to the projects list of current workspace.
+Argument:
 - p-startup-flag: t when called from the init."
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
@@ -666,6 +671,7 @@ current workspace."
 
 (defun eide-project-rebuild-config-file (p-startup-flag)
   "Update project file.
+Argument:
 - p-startup-flag: t when called from the init."
   (save-current-buffer
     ;; Define target config file
@@ -733,6 +739,7 @@ current workspace."
 
 (defun eide-project-get-config-value (p-parameter)
   "Get the value of a parameter in project config (empty string if not defined).
+Argument:
 - p-parameter: config parameter."
   (save-current-buffer
     (if (not (get-buffer eide-project-config-file))
@@ -760,6 +767,7 @@ current workspace."
 
 (defun eide-project-get-full-command (p-parameter)
   "Get full command (init command + compile/run command).
+Argument:
 - p-parameter: option parameter in project configuration."
   (let ((l-init-command (eide-project-get-config-value "init_command")))
     (if (string-equal l-init-command "")
@@ -768,12 +776,14 @@ current workspace."
 
 (defun eide-project-get-full-gdb-command (p-program)
   "Get full gdb command (gdb command + gdb option + program name).
+Argument:
 - p-program: option parameter in project configuration for gdb program."
   (concat (eide-project-get-config-value "debug_command") eide-project-gdb-option (eide-project-get-config-value p-program)))
 
 (defun eide-project-get-short-gdb-command (p-program)
   "Get short gdb command (short gdb command + gdb option + program name) for popup
 menu (hide gdb command path).
+Argument:
 - p-program: option parameter in project configuration for gdb program."
   (let ((l-gdb-command (eide-project-get-config-value "debug_command")) (l-short-gdb-command nil))
     (if (string-match "/" l-gdb-command)
@@ -784,6 +794,7 @@ menu (hide gdb command path).
 (defun eide-project-get-short-directory (p-directory)
   "Get the path relative to project root directory from absolute path if it is
 part of the project (remove root directory from absolute path).
+Argument:
 - p-directory: directory (absolute path)."
   ;; Remove project base path if the file is part of it (otherwise display full path)
   (if (and (<= (length eide-root-directory) (length p-directory)) (string-equal eide-root-directory (substring p-directory 0 (length eide-root-directory))))

@@ -845,6 +845,7 @@
 
 (defun eide-i-config-update-menu (param value)
   "Update menu.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -853,6 +854,7 @@
 
 (defun eide-i-config-set-show-svn-status (param value)
   "Set show svn status (eide-config-show-svn-status-flag).
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -861,6 +863,7 @@
 
 (defun eide-i-config-set-show-git-status (param value)
   "Set show git status (eide-config-show-git-status-flag).
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -869,6 +872,7 @@
 
 (defun eide-i-config-set-vc-diff-command (param value)
   "Set vc diff command.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -877,6 +881,7 @@
 
 (defun eide-i-config-set-number-of-workspaces (param value)
   "Set number of workspaces.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -885,6 +890,7 @@
 
 (defun eide-i-config-set-menu-bar (param value)
   "Set menu bar mode.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -899,6 +905,7 @@
 
 (defun eide-i-config-set-tool-bar (param value)
   "Set tool bar mode.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -913,6 +920,7 @@
 
 (defun eide-i-config-set-scroll-bar-position (param value)
   "Set scroll bar position
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -925,6 +933,7 @@
 
 (defun eide-i-config-set-font-height (param value)
   "Set font height.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -936,6 +945,7 @@
 
 (defun eide-i-config-set-indent-mode (param value)
   "Set indentation mode (spaces or tabs).
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -947,6 +957,7 @@
 
 (defun eide-i-config-set-default-tab-width (param value)
   "Set default tab width.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
@@ -957,6 +968,7 @@
 
 (defun eide-i-config-set-background (param value color-theme)
   "Set background color for a color theme.
+Arguments:
 - param: customization parameter.
 - value: customization value.
 - color-theme: color theme."
@@ -972,6 +984,7 @@
 
 (defun eide-i-config-set-foreground (param value color-theme)
   "Set foreground color for a color theme.
+Arguments:
 - param: customization parameter.
 - value: customization value.
 - color-theme: color theme."
@@ -988,6 +1001,7 @@
 
 (defun eide-i-config-set-face-background (param value face color-theme)
   "Set background color of a face for a color theme.
+Arguments:
 - param: customization parameter.
 - value: customization value.
 - face: face.
@@ -1001,6 +1015,7 @@
 
 (defun eide-i-config-set-face-foreground (param value face color-theme)
   "Set foreground color of a face for a color theme.
+Arguments:
 - param: customization parameter.
 - value: customization value.
 - face: face.
@@ -1014,6 +1029,7 @@
 
 (defun eide-i-config-set-cscope-update (param value)
   "Set cscope update.
+Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)

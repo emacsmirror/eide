@@ -37,6 +37,7 @@
 
 (defun eide-edit-update-files-status (&optional p-files-list)
   "Update buffers edit status (\"nofile\", \"ref\", \"new\" or \"\").
+Argument:
 - p-files-list (optional): list of files to update (overrides
   eide-menu-files-list)."
   (save-current-buffer
@@ -157,6 +158,7 @@
 
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
   "Do an action on a file.
+Arguments:
 - p-function: function to call (once the buffer is current).
 - p-buffer-name: buffer name.
 - p-confirmation-message (optional): string for confirmation message, nil if
@@ -172,6 +174,7 @@
 
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)
   "Do an action on all open files in a directory.
+Arguments:
 - p-function: function to call (once the buffer is current).
 - p-directory-name: directory name.
 - p-confirmation-message (optional): string for confirmation message, nil if

@@ -28,6 +28,7 @@
 
 (defun eide-i-help-insert-header-1 (p-string)
   "Insert chapter title (level 1) in \"help\" buffer.
+Argument:
 - p-string: chapter title (string)."
   (insert "\n\n\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter1-face)
@@ -35,6 +36,7 @@
 
 (defun eide-i-help-insert-header-2 (p-string)
   "Insert chapter title (level 2) in \"help\" buffer.
+Argument:
 - p-string: chapter title (string)."
   (insert "\n")
   (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter2-face))

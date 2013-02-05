@@ -61,6 +61,7 @@
 
 (defun eide-i-menu-insert-text (p-string)
   "Insert text in \"menu\" buffer (with specific background if necessary).
+Argument:
 - p-string: string to insert."
   (if eide-config-menu-use-specific-background-color
     (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-menu-default-face)
@@ -68,6 +69,7 @@
 
 (defun eide-i-menu-insert-imenu-elements-list (p-elements-list p-unfolded-symbols-folders-list p-highlighted-symbols-list p-prefix)
   "Insert imenu elements list in \"menu\" buffer (recursive function).
+Arguments:
 - p-elements-list: imenu elements list.
 - p-unfolded-symbols-folders-list: list of unfolded symbols folders.
 - p-highlighted-symbols-list: list of highlighted symbols.
@@ -103,6 +105,7 @@
 
 (defun eide-i-menu-insert-file (p-buffer-name)
   "Insert a file name - and its functions if unfolded - in \"menu\" buffer.
+Argument:
 - p-buffer-name: buffer name."
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
@@ -195,6 +198,7 @@
 
 (defun eide-i-menu-insert-directory (p-directory-name)
   "Insert all files from a directory in \"menu\" buffer.
+Argument:
 - p-directory-name: directory name."
   (let ((buffer-read-only nil) (l-directory-short (eide-project-get-short-directory p-directory-name)) (l-begin-point nil))
     (if (string-equal p-directory-name l-directory-short)
@@ -241,6 +245,7 @@
 
 (defun eide-i-menu-update-current-buffer (p-buffer-name)
   "Change current file (eide-current-buffer).
+Argument:
 - p-buffer-name: new current buffer name."
   (save-excursion
     (beginning-of-line)
@@ -322,6 +327,7 @@
 
 (defun eide-i-menu-rebuild (p-force-update-status-flag)
   "Rebuild \"menu\" buffer.
+Argument:
 - p-force-update-status-flag: t = update files status, nil = do not update."
   (let ((buffer-read-only nil) (l-position-marker nil))
     (erase-buffer)
@@ -422,6 +428,7 @@
 
 (defun eide-i-menu-get-symbol-marker-in-imenu-list (p-symbol p-list)
   "Get symbol marker in imenu list (recursive function).
+Arguments:
 - p-symbol: symbol.
 - p-list: imenu list."
   (let ((l-marker-found nil))
@@ -438,6 +445,7 @@
 
 (defun eide-i-menu-get-symbol-marker (p-symbol)
   "Get symbol marker in current buffer.
+Argument:
 - p-symbol: symbol."
   (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol (imenu--generic-function imenu-generic-expression)))
 
@@ -476,6 +484,7 @@
 
 (defun eide-i-menu-is-file-edited-p (p-buffer-name)
   "Check if a file has been edited (REF/NEW or version control).
+Argument:
 - p-buffer-name: buffer name."
   (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     (save-current-buffer
@@ -505,6 +514,7 @@
 (defun eide-menu-update (p-force-rebuild-flag &optional p-force-update-status-flag)
   "Update \"menu\" buffer (may be postponed until next time \"menu\" buffer is
 shown, with eide-windows-menu-update-request-pending-flag).
+Arguments:
 - p-force-rebuild-flag: t = always rebuild menu, nil = rebuild only if current
   buffer has changed.
 - p-force-update-status-flag (optional): t = update files status, nil = do not
@@ -637,6 +647,7 @@ pages)."
 
 (defun eide-menu-file-close (p-buffer-name)
   "Close selected file.
+Argument:
 - p-buffer-name: buffer name."
   (let ((l-do-it-flag t))
     (if (eide-i-menu-is-file-edited-p p-buffer-name)
@@ -672,6 +683,7 @@ pages)."
 
 (defun eide-menu-directory-close (p-directory-name)
   "Close all files in selected directory.
+Argument:
 - p-directory-name: directory name."
   (let ((l-ask-flag nil) (l-do-it-flag t))
     ;; Check if at least one file has been edited
@@ -721,6 +733,7 @@ pages)."
 (defun eide-menu-buffer-update-start (p-buffer-name)
   "Prepare update of a file in \"menu\" buffer (save lists of unfolded and
 highlighted items).
+Argument:
 - p-buffer-name: buffer name."
   (save-current-buffer
     (set-buffer p-buffer-name)
@@ -731,6 +744,7 @@ highlighted items).
 (defun eide-menu-buffer-update-stop (p-buffer-name)
   "Update a file in \"menu\" buffer (restore lists of unfolded and highlighted
 items).
+Argument:
 - p-buffer-name: buffer name."
   (save-current-buffer
     (set-buffer p-buffer-name)
@@ -762,6 +776,7 @@ items).
 (defun eide-menu-directory-update-start (p-directory-name)
   "Prepare update of a directory in \"menu\" buffer (save lists of unfolded and
 highlighted items).
+Argument:
 - p-directory-name: directory name."
   (setq eide-menu-local-functions-unfolded-flags-list nil)
   (setq eide-menu-local-unfolded-symbols-folders-lists-list nil)
@@ -781,6 +796,7 @@ highlighted items).
 (defun eide-menu-directory-update-stop (p-directory-name)
   "Update a directory in \"menu\" buffer (restore lists of unfolded and highlighted
 items).
+Argument:
 - p-directory-name: directory name."
   ;; Restore unfolded status and highlighted functions for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
@@ -818,6 +834,7 @@ items).
 
 (defun eide-menu-is-file-in-directory-p (p-buffer-name p-directory-name)
   "Check if a file is in a directory.
+Arguments:
 - p-buffer-name: buffer name.
 - p-directory-name: directory name."
   ;; Extract the "short" directory from the buffer file name

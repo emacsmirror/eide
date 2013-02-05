@@ -46,6 +46,7 @@
 
 (defun eide-i-popup-menu-add-action (p-action-name p-action-function p-enabled-flag)
   "Add an action in action list (for popup menu).
+Arguments:
 - p-action-name: action name in menu.
 - p-action-function: action function.
 - p-enabled-flag: t if this action is enabled."
@@ -57,6 +58,7 @@
 
 (defun eide-i-popup-menu-close-action-list (p-actions-list-name)
   "Add action list to popup menu.
+Argument:
 - p-actions-list-name: name of actions list."
   (if eide-popup-menu-actions-list
     (if eide-option-menu-buffer-popup-groups-flags
@@ -71,6 +73,7 @@
 
 (defun eide-i-popup-menu-open (p-menu-title)
   "Open popup menu.
+Argument:
 - p-menu-title: title of popup menu."
   (if eide-popup-menu
     (progn
@@ -90,12 +93,14 @@
 
 (defun eide-popup-question-yes-or-no-p (p-string)
   "Prompt for a confirmation.
+Argument:
 - p-string: question to be answered yes or no."
   ;;(yes-or-no-p p-string))
   (string-equal (x-popup-dialog t (cons p-string eide-confirm-dialog)) "y"))
 
 (defun eide-popup-message (p-string)
   "Display a message.
+Argument:
 - p-string: message."
   (x-popup-dialog t (cons p-string eide-message-dialog)))
 
