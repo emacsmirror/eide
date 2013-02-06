@@ -24,10 +24,6 @@
     (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
     (kill-emacs)))
 
-;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-(setq eide-root-directory (expand-file-name default-directory))
-(setq eide-root-directory-at-startup eide-root-directory)
-
 ;; Emacs modules
 (require 'desktop)
 (require 'hideshow)
@@ -237,7 +233,7 @@
       (if (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
         (progn
           (setq tab-width eide-custom-python-indent-offset)
-          (setq python-indent eide-custom-python-indent-offset))))))
+          (setq python-indent eide-custom-python-indent-offset)))))
 
   ;; SGML (HTML, XML...) major mode
   (add-hook
@@ -247,7 +243,7 @@
       (if (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
         (progn
           (setq tab-width eide-custom-sgml-indent-offset)
-          (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
+          (setq sgml-basic-offset eide-custom-sgml-indent-offset))))))
 
 (defun eide-i-init ()
   "Initialization."

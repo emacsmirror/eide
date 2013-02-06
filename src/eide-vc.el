@@ -146,7 +146,7 @@ Argument:
   "Execute \"svn diff\" on current buffer."
   (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (if eide-vc-svn-diff-full-command
-      (shell-command (concat eide-vc-svn-diff-full-command buffer-file-name))
+      (start-process-shell-command "svn-diff" nil (concat eide-vc-svn-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'SVN))))
 
 (defun eide-vc-svn-diff-files-in-directory (p-directory-name p-files-list-string)
@@ -160,7 +160,7 @@ Arguments:
         (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
       (if eide-vc-svn-diff-full-command
-        (shell-command (concat "cd " l-full-directory-name " && " eide-vc-svn-diff-full-command p-files-list-string))
+        (start-process-shell-command "svn-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-svn-diff-full-command p-files-list-string))
         (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list-string))))))
 
 (defun eide-vc-svn-blame ()
@@ -177,7 +177,7 @@ Arguments:
   "Execute \"git diff\" on current buffer."
   (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (if eide-vc-git-diff-full-command
-      (shell-command (concat eide-vc-git-diff-full-command buffer-file-name))
+      (start-process-shell-command "git-diff" nil (concat eide-vc-git-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'Git))))
 
 (defun eide-vc-git-diff-files-in-directory (p-directory-name p-files-list-string)
@@ -191,7 +191,7 @@ Arguments:
         (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
       (if eide-vc-git-diff-full-command
-        (shell-command (concat "cd " l-full-directory-name " && " eide-vc-git-diff-full-command p-files-list-string))
+        (start-process-shell-command "git-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-git-diff-full-command p-files-list-string))
         (shell-command (concat "cd " l-full-directory-name " && git diff " p-files-list-string))))))
 
 (defun eide-vc-git-blame ()

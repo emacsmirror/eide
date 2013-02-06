@@ -837,6 +837,8 @@ Argument:
 Arguments:
 - p-buffer-name: buffer name.
 - p-directory-name: directory name."
+  ;; NB: Emacs 24 provides the same function (file-in-directory-p), but it is
+  ;; still necessary for older versions of Emacs.
   ;; Extract the "short" directory from the buffer file name
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
 

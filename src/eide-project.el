@@ -31,8 +31,9 @@
 (if (member "--no-desktop" command-line-args)
   (setq eide-no-desktop-option t))
 
-(defvar eide-root-directory nil)
-(defvar eide-root-directory-at-startup nil)
+;; expand-file-name replaces ~ with /home/<user>
+(defvar eide-root-directory (expand-file-name default-directory))
+(defvar eide-root-directory-at-startup eide-root-directory)
 
 ;; Test if xcscope is available
 (defvar eide-option-use-cscope-flag nil)
