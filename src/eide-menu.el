@@ -852,7 +852,7 @@ Arguments:
       (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
             (l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
             (l-functions-with-highlight eide-menu-local-highlighted-symbols-list))
-        (if (file-exists-p l-buffer-name)
+        (if (file-exists-p buffer-file-name)
           (revert-buffer))
 
         ;; NB: This part of code was in find-file-hook, which has been moved to
