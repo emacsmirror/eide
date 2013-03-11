@@ -23,8 +23,6 @@
 (require 'eide-vc)
 
 (defvar eide-config-ready nil)
-(defvar eide-config-show-svn-status-flag nil)
-(defvar eide-config-show-git-status-flag nil)
 
 (defvar eide-config-background-color nil)
 (defvar eide-config-foreground-color nil)
@@ -57,8 +55,6 @@
 (defvar eide-config-user-selection-background-color nil)
 (defvar eide-config-user-selection-foreground-color nil)
 (defvar eide-config-user-cscope-do-not-update-database nil)
-
-(defvar eide-config-target-buffer nil)
 
 ;; ----------------------------------------------------------------------------
 ;; OPTIONS
@@ -249,88 +245,10 @@
 (defgroup eide-version-control nil "Version control facilities in menu."
   :tag "Version control"
   :group 'eide)
-(defcustom eide-custom-show-svn-status 'auto "Show svn status of files in menu."
-  :tag "Show svn status"
-  :type '(choice (const :tag "Never" nil)
-                 (const :tag "Always" t)
-                 (const :tag "If root directory contains .svn directory" auto))
-  :set 'eide-i-config-set-show-svn-status
-  :initialize 'custom-initialize-default
-  :group 'eide-version-control)
-(defcustom eide-custom-show-git-status 'auto "Show git status of files in menu."
-  :tag "Show git status"
-  :type '(choice (const :tag "Never" nil)
-                 (const :tag "Always" t)
-                 (const :tag "If root directory contains .git directory" auto))
-  :set 'eide-i-config-set-show-git-status
-  :initialize 'custom-initialize-default
-  :group 'eide-version-control)
-(defcustom eide-custom-vc-diff-command "" "Version control diff command (svn diff --diff-cmd=<command>, git difftool -y --extcmd=<command>). Use default (svn diff, git diff) if empty."
-  :tag "Version control diff command"
-  :type 'string
-  :set 'eide-i-config-set-vc-diff-command
-  :initialize 'custom-initialize-default
-  :group 'eide-version-control)
 
 (defgroup eide-project nil "Projects management and default commands that are set in project configuration when a project is created."
   :tag "Projects"
   :group 'eide)
-(defcustom eide-custom-number-of-workspaces 2 "Number of workspaces (each workspace has got its own list of projects)."
-  :tag "Number of workspaces"
-  :type '(choice (const 1) (const 2) (const 3) (const 4) (const 5) (const 6) (const 7) (const 8))
-  :set 'eide-i-config-set-number-of-workspaces
-  :initialize 'custom-initialize-default
-  :group 'eide-project)
-(defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
-  :tag "Default init command"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-1 "" "Default compile command (1)."
-  :tag "Default compile command (1)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-2 "" "Default compile command (2)."
-  :tag "Default compile command (2)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-3 "" "Default compile command (3)."
-  :tag "Default compile command (3)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-4 "" "Default compile command (4)."
-  :tag "Default compile command (4)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-run-command-1 "" "Default run command (1)."
-  :tag "Default run command (1)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-run-command-2 "" "Default run command (2)."
-  :tag "Default run command (2)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-debug-command "" "Default debug command."
-  :tag "Default debug command"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-debug-program-1 "" "Default debug program (1)."
-  :tag "Default debug program (1)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-project-default-debug-program-2 "" "Default debug program (2)."
-  :tag "Default debug program (2)"
-  :type 'string
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
 
 (defgroup eide-emacs-settings nil "Options that are not specific to Emacs-IDE, but can be set to override some default settings of Emacs, and provide a more user-friendly interface (requires 'Override Emacs settings' to be enabled)."
   :tag "Emacs settings"
@@ -852,42 +770,6 @@ Arguments:
   (if eide-config-ready
     (eide-menu-update t)))
 
-(defun eide-i-config-set-show-svn-status (param value)
-  "Set show svn status (eide-config-show-svn-status-flag).
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (eide-vc-update-show-svn-status)))
-
-(defun eide-i-config-set-show-git-status (param value)
-  "Set show git status (eide-config-show-git-status-flag).
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (eide-vc-update-show-git-status)))
-
-(defun eide-i-config-set-vc-diff-command (param value)
-  "Set vc diff command.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (eide-vc-set-diff-command value)))
-
-(defun eide-i-config-set-number-of-workspaces (param value)
-  "Set number of workspaces.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (eide-project-create-workspaces)))
-
 (defun eide-i-config-set-menu-bar (param value)
   "Set menu bar mode.
 Arguments:
@@ -1047,9 +929,6 @@ Arguments:
     (progn
       (eide-i-config-apply-extended-color-theme)
       (eide-i-config-update-menu-background-color)
-      (eide-i-config-set-show-svn-status 'eide-custom-show-svn-status eide-custom-show-svn-status)
-      (eide-i-config-set-show-git-status 'eide-custom-show-git-status eide-custom-show-git-status)
-      (eide-i-config-set-vc-diff-command 'eide-custom-vc-diff-command eide-custom-vc-diff-command)
       (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-scroll-bar-position 'eide-custom-scroll-bar-position eide-custom-scroll-bar-position)
@@ -1116,6 +995,7 @@ Arguments:
   (setq eide-config-ready t)
   (eide-project-create-workspaces)
   (eide-i-config-apply-color-theme)
-  (eide-i-config-apply-emacs-settings))
+  (eide-i-config-apply-emacs-settings)
+  (eide-vc-apply-customization))
 
 ;;; eide-config.el ends here

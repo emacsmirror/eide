@@ -217,7 +217,7 @@ Argument:
                     (setq l-buffer-status-new-flag t)
                     (if (string-equal eide-menu-local-edit-status "ref")
                       (setq l-buffer-status-ref-flag t))))
-                (if (and eide-config-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+                (if (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
                   (progn
                     (setq l-buffer-svn-modified-flag t)
                     ;; Get file name from buffer name (remove <n> if present)
@@ -226,7 +226,7 @@ Argument:
                         (setq l-file-name (substring l-buffer 0 l-index))
                         (setq l-file-name l-buffer))
                       (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-file-name)))))
-                (if (and eide-config-show-git-status-flag eide-menu-local-git-modified-status-flag)
+                (if (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
                   (progn
                     (setq l-buffer-git-modified-flag t)
                     ;; Get file name from buffer name (remove <n> if present)
@@ -255,14 +255,14 @@ Argument:
       (eide-i-popup-menu-close-action-list "Clean")
 
       ;; "svn" action list
-      (if eide-config-show-svn-status-flag
+      (if eide-vc-show-svn-status-flag
         (progn
           (eide-i-popup-menu-add-action "svn diff" (concat "(eide-vc-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
           (eide-i-popup-menu-close-action-list "svn")))
 
       ;; "git" action list
-      (if eide-config-show-git-status-flag
+      (if eide-vc-show-git-status-flag
         (progn
           (eide-i-popup-menu-add-action "git diff" (concat "(eide-vc-git-diff-files-in-directory \"" l-directory-name "\" \"" l-git-modified-files-list-string "\")") l-buffer-git-modified-flag)
           (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-git-checkout \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-git-modified-flag)
@@ -288,9 +288,9 @@ Argument:
       (if buffer-read-only
         (setq l-buffer-rw-flag nil))
       ;; Check version control status
-      (if eide-config-show-svn-status-flag
+      (if eide-vc-show-svn-status-flag
         (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (if eide-config-show-git-status-flag
+      (if eide-vc-show-git-status-flag
         (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
 
     ;; "Edit" action list
@@ -348,7 +348,7 @@ Argument:
           (progn
             (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-vc-svn-diff \"" l-buffer "\")") t)
             (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-vc-svn-revert \"" l-buffer "\" \"revert this file\")") t)))
-        (if eide-config-show-svn-status-flag
+        (if eide-vc-show-svn-status-flag
           (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-vc-svn-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "svn")
 
@@ -357,7 +357,7 @@ Argument:
           (progn
             (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-vc-git-diff \"" l-buffer "\")") t)
             (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-vc-git-checkout \"" l-buffer "\" \"checkout this file\")") t)))
-        (if eide-config-show-git-status-flag
+        (if eide-vc-show-git-status-flag
           (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-vc-git-blame \"" l-buffer "\")") t))
         (eide-i-popup-menu-close-action-list "git")))
 

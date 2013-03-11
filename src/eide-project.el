@@ -68,9 +68,81 @@
 
 (defvar eide-project-comparison-project-point nil)
 
+(defvar eide-project-config-target-buffer nil)
+
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION VARIABLES
+;; ----------------------------------------------------------------------------
+
+(defcustom eide-custom-number-of-workspaces 2 "Number of workspaces (each workspace has got its own list of projects)."
+  :tag "Number of workspaces"
+  :type '(choice (const 1) (const 2) (const 3) (const 4) (const 5) (const 6) (const 7) (const 8))
+  :set 'eide-i-project-custom-set-number-of-workspaces
+  :initialize 'custom-initialize-default
+  :group 'eide-project)
+(defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
+  :tag "Default init command"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-1 "" "Default compile command (1)."
+  :tag "Default compile command (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-2 "" "Default compile command (2)."
+  :tag "Default compile command (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-3 "" "Default compile command (3)."
+  :tag "Default compile command (3)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-command-4 "" "Default compile command (4)."
+  :tag "Default compile command (4)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-run-command-1 "" "Default run command (1)."
+  :tag "Default run command (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-run-command-2 "" "Default run command (2)."
+  :tag "Default run command (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-command "" "Default debug command."
+  :tag "Default debug command"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-program-1 "" "Default debug program (1)."
+  :tag "Default debug program (1)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-debug-program-2 "" "Default debug program (2)."
+  :tag "Default debug program (2)"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-i-project-custom-set-number-of-workspaces (param value)
+  "Set number of workspaces.
+Arguments:
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (if eide-config-ready
+    (eide-project-create-workspaces)))
 
 (defun eide-i-project-force-desktop-read-hook ()
   "Hook to be called at startup, to force to read the desktop when after-init-hook
@@ -676,13 +748,13 @@ Argument:
 - p-startup-flag: t when called from the init."
   (save-current-buffer
     ;; Define target config file
-    (setq eide-config-target-buffer (concat eide-project-config-file "_temp"))
+    (setq eide-project-config-target-buffer (concat eide-project-config-file "_temp"))
 
     ;; Open these config files
     (if (not (get-buffer eide-project-config-file))
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
-    (get-buffer-create eide-config-target-buffer)
-    (set-buffer eide-config-target-buffer)
+    (get-buffer-create eide-project-config-target-buffer)
+    (set-buffer eide-project-config-target-buffer)
     (erase-buffer)
 
     (insert "# *****************************************************************************\n")
@@ -723,18 +795,18 @@ Argument:
       (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
 
       ;; Replace source file by target buffer if different
-      (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-config-target-buffer nil nil) 0))
+      (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
         (progn
           (set-buffer eide-project-config-file)
           (erase-buffer)
-          (insert-buffer-substring eide-config-target-buffer)
+          (insert-buffer-substring eide-project-config-target-buffer)
           (if (not p-startup-flag)
             (ad-deactivate 'save-buffer))
           (save-buffer)
           (if (not p-startup-flag)
             (ad-activate 'save-buffer))))
       ;; Close temporary buffer
-      (kill-buffer eide-config-target-buffer)
+      (kill-buffer eide-project-config-target-buffer)
       ;; Return t if the project name has changed, nil otherwise
       l-project-name-has-changed-flag)))
 

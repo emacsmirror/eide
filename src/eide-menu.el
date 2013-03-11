@@ -121,9 +121,9 @@ Argument:
         (setq l-buffer-rw-flag nil))
       (if (buffer-modified-p)
         (setq l-buffer-modified-flag t))
-      (if eide-config-show-svn-status-flag
+      (if eide-vc-show-svn-status-flag
         (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (if eide-config-show-git-status-flag
+      (if eide-vc-show-git-status-flag
         (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag))
       ;; If the buffer is unfolded, get functions list
       (if l-functions-unfolded-flag
@@ -490,9 +490,9 @@ Argument:
     (save-current-buffer
       (set-buffer p-buffer-name)
       (setq l-buffer-edit-status eide-menu-local-edit-status)
-      (if eide-config-show-svn-status-flag
+      (if eide-vc-show-svn-status-flag
         (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (if eide-config-show-git-status-flag
+      (if eide-vc-show-git-status-flag
         (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
     (or (string-equal l-buffer-edit-status "new")
         (string-equal l-buffer-edit-status "ref")
