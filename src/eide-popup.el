@@ -135,7 +135,7 @@ Argument:
           (eide-i-popup-menu-add-action (concat "Debug (2): " (eide-project-get-short-gdb-command "debug_program_2")) "(eide-project-debug-2)" t))
         (eide-i-popup-menu-close-action-list "Execute")
         (eide-i-popup-menu-add-action "Update tags" "(eide-search-create-tags)" t)
-        (if eide-option-use-cscope-flag
+        (if eide-search-use-cscope-flag
           (progn
             (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
             (if (and eide-custom-override-emacs-settings

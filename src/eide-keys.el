@@ -109,7 +109,7 @@
   (global-set-key [S-f2] 'eide-search-find-tag-with-prompt)
   (global-set-key [S-f1] 'eide-search-find-alternate-tag)
 
-  (if eide-option-use-cscope-flag
+  (if eide-search-use-cscope-flag
     (progn
       (global-set-key [f3] 'eide-search-find-symbol-without-prompt)
       (global-set-key [S-f3] 'eide-search-find-symbol-with-prompt))

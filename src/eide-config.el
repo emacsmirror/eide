@@ -54,7 +54,6 @@
 (defvar eide-config-user-comment-foreground-color nil)
 (defvar eide-config-user-selection-background-color nil)
 (defvar eide-config-user-selection-foreground-color nil)
-(defvar eide-config-user-cscope-do-not-update-database nil)
 
 ;; ----------------------------------------------------------------------------
 ;; OPTIONS
@@ -531,15 +530,6 @@
 (defgroup eide-search nil "Cscope option."
   :tag "Search"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-update-cscope-database 'auto "Update of cscope database. Update is necessary when the code has changed. You can update on every search (cscope default behaviour), only on user request, or automatically when a buffer has been edited or refreshed."
-  :tag "Update of cscope database"
-  :type '(choice (const :tag "Don't override" ignore)
-                 (const :tag "Always (on every search)" t)
-                 (const :tag "Never (only on user request)" nil)
-                 (const :tag "When a buffer has been edited or refreshed" auto))
-  :set 'eide-i-config-set-cscope-update
-  :initialize 'custom-initialize-default
-  :group 'eide-search)
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
@@ -909,20 +899,6 @@ Arguments:
              (equal eide-custom-color-theme color-theme))
       (set-face-foreground face value))))
 
-(defun eide-i-config-set-cscope-update (param value)
-  "Set cscope update.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (if (and eide-custom-override-emacs-settings
-             (not (equal value 'ignore)))
-      (if (equal value 'auto)
-        ;; In "auto" mode, update database for the first search
-        (setq eide-search-cscope-update-database-request-pending-flag t))
-      (setq cscope-do-not-update-database eide-config-user-cscope-do-not-update-database))))
-
 (defun eide-i-config-apply-emacs-settings ()
   "Apply \"Emacs settings\" options."
   (if eide-config-ready
@@ -935,8 +911,7 @@ Arguments:
       (eide-i-config-set-font-height 'eide-custom-font-height eide-custom-font-height)
       (eide-i-config-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
       (eide-i-config-set-default-tab-width 'eide-custom-default-tab-width eide-custom-default-tab-width)
-      (if eide-option-use-cscope-flag
-        (eide-i-config-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))))
+      (eide-search-apply-customization))))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -966,8 +941,7 @@ Arguments:
   (setq eide-config-user-comment-foreground-color (face-foreground 'font-lock-comment-face))
   (setq eide-config-user-selection-background-color (face-background 'region))
   (setq eide-config-user-selection-foreground-color (face-foreground 'region))
-  (if eide-option-use-cscope-flag
-    (setq eide-config-user-cscope-do-not-update-database cscope-do-not-update-database)))
+  (eide-search-save-emacs-settings))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS

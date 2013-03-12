@@ -35,13 +35,6 @@
 (defvar eide-root-directory (expand-file-name default-directory))
 (defvar eide-root-directory-at-startup eide-root-directory)
 
-;; Test if xcscope is available
-(defvar eide-option-use-cscope-flag nil)
-(if (locate-library "xcscope")
-  (progn
-    (require 'xcscope)
-    (setq eide-option-use-cscope-flag t)))
-
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
 
@@ -179,7 +172,7 @@ Arguments:
   ;; Load tags now, otherwise first tag search will take some time...
   ;;(find-file-noselect (concat eide-root-directory "TAGS"))
 
-  (if eide-option-use-cscope-flag
+  (if eide-search-use-cscope-flag
     ;; Create cscope database if necessary
     (if (file-exists-p (concat eide-root-directory "cscope.files"))
       (progn
@@ -230,7 +223,7 @@ Arguments:
   (setq tags-table-list (list (concat eide-root-directory "TAGS")))
 
   ;; Set cscope root directory
-  (if eide-option-use-cscope-flag
+  (if eide-search-use-cscope-flag
     (cscope-set-initial-directory eide-root-directory))
 
   ;; Close any existing config file, to make sure we will use the right one
