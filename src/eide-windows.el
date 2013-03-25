@@ -478,6 +478,8 @@ before gdb builds its own."
       ;; "Menu" window
       (select-window eide-windows-menu-window)
       (switch-to-buffer eide-menu-buffer-name)
+      ;; Make sure the buffer is read-only (in case it has been created again)
+      (setq buffer-read-only t)
       ;; This window should be used for this buffer only
       (set-window-dedicated-p eide-windows-menu-window t)
       ;;(setq window-min-width 1) ; TODO: sans effet ?

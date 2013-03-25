@@ -31,6 +31,9 @@
 (if (member "--no-desktop" command-line-args)
   (setq eide-no-desktop-option t))
 
+;; Preserve "menu" buffer from desktop-clear
+(setq desktop-clear-preserve-buffers (cons "\\* Menu \\*" desktop-clear-preserve-buffers))
+
 ;; expand-file-name replaces ~ with /home/<user>
 (defvar eide-root-directory (expand-file-name default-directory))
 (defvar eide-root-directory-at-startup eide-root-directory)
