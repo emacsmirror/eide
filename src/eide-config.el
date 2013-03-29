@@ -105,11 +105,6 @@
 (make-face 'eide-config-menu-function-with-highlight-face)
 (make-face 'eide-config-menu-empty-list-face)
 
-;; Help page
-(make-face 'eide-config-help-title-face)
-(make-face 'eide-config-help-chapter1-face)
-(make-face 'eide-config-help-chapter2-face)
-
 ;; Config files
 (make-face 'eide-config-config-comment-face)
 (make-face 'eide-config-config-parameter-face)
@@ -143,9 +138,6 @@
 (make-face-bold 'eide-config-menu-file-vc-modified-face)
 
 (make-face-italic 'eide-config-menu-empty-list-face)
-
-;; Help page
-(make-face-bold 'eide-config-help-title-face)
 
 ;; Hidden text (for hide/show minor mode)
 ;; Does not work with Emacs 22.3: I comment it until I can test
@@ -562,13 +554,6 @@
           (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
           (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
           (set-face-foreground 'eide-config-menu-function-with-highlight-face "deep sky blue")
-          ;; Help page
-          (set-face-background 'eide-config-help-title-face "indian red")
-          (set-face-foreground 'eide-config-help-title-face "white")
-          (set-face-background 'eide-config-help-chapter1-face "brown")
-          (set-face-foreground 'eide-config-help-chapter1-face "yellow")
-          (set-face-background 'eide-config-help-chapter2-face "dark slate gray")
-          (set-face-foreground 'eide-config-help-chapter2-face "pale green")
           ;; Config files
           (setq eide-config-config-background-color "gray20")
           (setq eide-config-config-foreground-color "white")
@@ -608,13 +593,6 @@
           (set-face-foreground 'eide-config-menu-function-face "blue")
           (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
           (set-face-foreground 'eide-config-menu-function-with-highlight-face "blue")
-          ;; Help page
-          (set-face-background 'eide-config-help-title-face "gold")
-          (set-face-foreground 'eide-config-help-title-face "brown")
-          (set-face-background 'eide-config-help-chapter1-face "yellow")
-          (set-face-foreground 'eide-config-help-chapter1-face "red")
-          (set-face-background 'eide-config-help-chapter2-face "lavender")
-          (set-face-foreground 'eide-config-help-chapter2-face "blue")
           ;; Config files
           (setq eide-config-config-background-color "gray90")
           (setq eide-config-config-foreground-color "black")

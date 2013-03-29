@@ -19,8 +19,17 @@
 
 (provide 'eide-help)
 
+(require 'eide-config)
+
 (defvar eide-version "1.10+")
 (defvar eide-release-date "2013-03")
+
+;; Faces
+(make-face 'eide-help-title-face)
+(make-face 'eide-help-chapter1-face)
+(make-face 'eide-help-chapter2-face)
+
+(make-face-bold 'eide-help-title-face)
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -31,7 +40,7 @@
 Argument:
 - p-string: chapter title (string)."
   (insert "\n\n\n")
-  (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter1-face)
+  (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-help-chapter1-face)
   (insert "\n"))
 
 (defun eide-i-help-insert-header-2 (p-string)
@@ -39,13 +48,31 @@ Argument:
 Argument:
 - p-string: chapter title (string)."
   (insert "\n")
-  (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-config-help-chapter2-face))
+  (put-text-property (point) (progn (insert (concat p-string "\n")) (point)) 'face 'eide-help-chapter2-face))
 
 (defun eide-i-help-set-colors-for-help ()
   "Set colors for \"help\" buffer."
-  (set-background-color eide-config-menu-background-color)
-  (set-foreground-color eide-config-menu-foreground-color)
-  (set-face-background 'fringe eide-config-menu-background-color))
+  (if (equal eide-custom-color-theme 'dark)
+    (progn
+      (set-background-color "black")
+      (set-foreground-color "gray95")
+      (set-face-background 'fringe "black")
+      (set-face-background 'eide-help-title-face "indian red")
+      (set-face-foreground 'eide-help-title-face "white")
+      (set-face-background 'eide-help-chapter1-face "brown")
+      (set-face-foreground 'eide-help-chapter1-face "yellow")
+      (set-face-background 'eide-help-chapter2-face "dark slate gray")
+      (set-face-foreground 'eide-help-chapter2-face "pale green"))
+    (progn
+      (set-background-color "white")
+      (set-foreground-color "black")
+      (set-face-background 'fringe "white")
+      (set-face-background 'eide-help-title-face "gold")
+      (set-face-foreground 'eide-help-title-face "brown")
+      (set-face-background 'eide-help-chapter1-face "yellow")
+      (set-face-foreground 'eide-help-chapter1-face "red")
+      (set-face-background 'eide-help-chapter2-face "lavender")
+      (set-face-foreground 'eide-help-chapter2-face "blue"))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -63,7 +90,7 @@ Argument:
   (switch-to-buffer (get-buffer-create "* Help *"))
 
   (insert "\n")
-  (put-text-property (point) (progn (insert "Emacs-IDE help page\n") (point)) 'face 'eide-config-help-title-face)
+  (put-text-property (point) (progn (insert "Emacs-IDE help page\n") (point)) 'face 'eide-help-title-face)
   (insert "\n")
 
   (insert "(click right to exit this page)\n\n")
