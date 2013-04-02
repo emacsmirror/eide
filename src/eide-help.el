@@ -22,7 +22,7 @@
 (require 'eide-config)
 
 (defvar eide-version "1.10+")
-(defvar eide-release-date "2013-03")
+(defvar eide-release-date "2013-04")
 
 ;; Faces
 (make-face 'eide-help-title-face)

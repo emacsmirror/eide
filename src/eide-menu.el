@@ -55,6 +55,59 @@
 (defvar eide-menu-browsing-mode-flag nil)
 (defvar eide-i-menu-layout-should-be-built-after-browsing-mode-flag nil)
 
+(defvar eide-menu-background-color nil)
+(defvar eide-menu-foreground-color nil)
+(defvar eide-menu-file-highlight-background-color nil)
+(defvar eide-menu-use-specific-background-color-flag nil)
+
+;; Faces
+(make-face 'eide-menu-default-face)
+(make-face 'eide-menu-project-header-face)
+(make-face 'eide-menu-project-name-face)
+(make-face 'eide-menu-directory-face)
+(make-face 'eide-menu-directory-out-of-project-face)
+(make-face 'eide-menu-file-rw-face)
+(make-face 'eide-menu-file-ro-face)
+(make-face 'eide-menu-file-nofile-face)
+(make-face 'eide-menu-file-ref-face)
+(make-face 'eide-menu-file-new-face)
+(make-face 'eide-menu-file-vc-modified-face)
+(make-face 'eide-menu-function-face)
+(make-face 'eide-menu-function-with-highlight-face)
+(make-face 'eide-menu-empty-list-face)
+
+(make-face-bold 'eide-menu-project-header-face)
+(make-face-bold 'eide-menu-project-name-face)
+
+(make-face-bold 'eide-menu-file-rw-face)
+(make-face-bold 'eide-menu-file-ro-face)
+(set-face-foreground 'eide-menu-file-ref-face "orange red")
+(make-face-bold 'eide-menu-file-ref-face)
+(set-face-foreground 'eide-menu-file-new-face "medium sea green")
+(make-face-bold 'eide-menu-file-new-face)
+(make-face-bold 'eide-menu-file-vc-modified-face)
+
+(make-face-italic 'eide-menu-empty-list-face)
+
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION VARIABLES
+;; ----------------------------------------------------------------------------
+
+(defcustom eide-custom-menu-use-specific-background-color t "Use a specific background color (depending on color theme) in menu."
+  :tag "Use a specific background color in menu"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set '(lambda (param value) (set-default param value) (eide-menu-update-background-color))
+  :initialize 'custom-initialize-default
+  :group 'eide-menu)
+(defcustom eide-custom-menu-insert-blank-line-between-directories nil "Insert a blank line between directories in menu."
+  :tag "Insert a blank line between directories in menu"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set 'eide-i-config-update-menu
+  :initialize 'custom-initialize-default
+  :group 'eide-menu)
+
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -63,8 +116,8 @@
   "Insert text in \"menu\" buffer (with specific background if necessary).
 Argument:
 - p-string: string to insert."
-  (if eide-config-menu-use-specific-background-color
-    (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-config-menu-default-face)
+  (if eide-menu-use-specific-background-color-flag
+    (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-menu-default-face)
     (insert p-string)))
 
 (defun eide-i-menu-insert-imenu-elements-list (p-elements-list p-unfolded-symbols-folders-list p-highlighted-symbols-list p-prefix)
@@ -85,8 +138,8 @@ Arguments:
           (eide-i-menu-insert-text " ")
           (put-text-property (setq l-begin-point (point)) (progn (insert (car l-element)) (point)) 'keymap function-name-map)
           (if (member (car l-element) p-highlighted-symbols-list)
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-with-highlight-face)
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-function-face))
+            (put-text-property l-begin-point (point) 'face 'eide-menu-function-with-highlight-face)
+            (put-text-property l-begin-point (point) 'face 'eide-menu-function-face))
           (put-text-property l-begin-point (point) 'mouse-face 'highlight)
           (eide-i-menu-insert-text " \n"))
         ;; l-element is a folder
@@ -147,28 +200,28 @@ Argument:
       (if l-is-current
         ;; Current file
         (if (string-equal l-buffer-status "nofile")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-nofile-face)
+          (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-nofile-face)
           (if (string-equal l-buffer-status "ref")
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ref-face)
+            (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ref-face)
             (if (string-equal l-buffer-status "new")
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-new-face)
+              (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-new-face)
               (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-vc-modified-face)
+                (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-vc-modified-face)
                 (if l-buffer-rw-flag
-                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-rw-face)
-                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-current-file-ro-face))))))
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-rw-face)
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ro-face))))))
         ;; Not current file
         (if (string-equal l-buffer-status "nofile")
-          (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-nofile-face)
+          (put-text-property l-begin-point (point) 'face 'eide-menu-file-nofile-face)
           (if (string-equal l-buffer-status "ref")
-            (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ref-face)
+            (put-text-property l-begin-point (point) 'face 'eide-menu-file-ref-face)
             (if (string-equal l-buffer-status "new")
-              (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-new-face)
+              (put-text-property l-begin-point (point) 'face 'eide-menu-file-new-face)
               (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
-                (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-vc-modified-face)
+                (put-text-property l-begin-point (point) 'face 'eide-menu-file-vc-modified-face)
                 (if l-buffer-rw-flag
-                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-rw-face)
-                  (put-text-property l-begin-point (point) 'face 'eide-config-menu-file-ro-face)))))))
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-file-rw-face)
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-file-ro-face)))))))
       (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
     ;; Add a space after filename, because otherwise, with some versions of
@@ -193,7 +246,7 @@ Argument:
       (if l-imenu-elements-list
         (eide-i-menu-insert-imenu-elements-list l-imenu-elements-list l-unfolded-symbols-folders-list l-highlighted-symbols-list "  ")
         (progn
-          (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-config-menu-empty-list-face)
+          (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-menu-empty-list-face)
           (eide-i-menu-insert-text "\n"))))))
 
 (defun eide-i-menu-insert-directory (p-directory-name)
@@ -210,14 +263,14 @@ Argument:
     (if l-directory-short
       (progn
         (put-text-property (setq l-begin-point (point)) (progn (insert l-directory-short) (point)) 'keymap directory-name-map)
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-directory-face))
+        (put-text-property l-begin-point (point) 'face 'eide-menu-directory-face))
       (progn
         (put-text-property (setq l-begin-point (point)) (progn (insert p-directory-name) (point)) 'keymap directory-name-map)
-        (put-text-property l-begin-point (point) 'face 'eide-config-menu-directory-out-of-project-face)))
+        (put-text-property l-begin-point (point) 'face 'eide-menu-directory-out-of-project-face)))
     (put-text-property l-begin-point (point) 'mouse-face 'highlight)
     (if l-directory-short
-      (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-config-menu-directory-face)
-      (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-config-menu-directory-out-of-project-face))
+      (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-menu-directory-face)
+      (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-menu-directory-out-of-project-face))
 
     ;; Parse buffer list for buffers from this directory to display
     (dolist (l-buffer eide-menu-files-list)
@@ -292,8 +345,8 @@ Argument:
                    (progn
                      (forward-line)
                      (while (and (not (eobp))
-                                 (not (or (equal (get-text-property (point) 'face) 'eide-config-menu-directory-face)
-                                          (equal (get-text-property (point) 'face) 'eide-config-menu-directory-out-of-project-face)
+                                 (not (or (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
+                                          (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
                                           (string-equal (char-to-string (char-after)) "\n"))))
                        (forward-line))
                      (point)))))
@@ -322,8 +375,8 @@ Argument:
     (eide-menu-get-buffer-name-on-current-line)))
 
 (defun eide-i-menu-insert-project-name ()
-  (put-text-property (point) (progn (insert "Project: ") (point)) 'face 'eide-config-menu-project-header-face)
-  (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-menu-project-name-face))
+  (put-text-property (point) (progn (insert "Project: ") (point)) 'face 'eide-menu-project-header-face)
+  (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-menu-project-name-face))
 
 (defun eide-i-menu-rebuild (p-force-update-status-flag)
   "Rebuild \"menu\" buffer.
@@ -335,7 +388,7 @@ Argument:
 
     (if eide-project-name
       (eide-i-menu-insert-project-name)
-      (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-config-menu-project-header-face))
+      (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-menu-project-header-face))
 
     (eide-i-menu-insert-text "\n")
     (eide-i-menu-insert-text eide-root-directory)
@@ -367,7 +420,7 @@ Argument:
     (if eide-menu-files-list
       (eide-i-menu-insert-all-files))
 
-    (if eide-config-menu-use-specific-background-color
+    (if eide-menu-use-specific-background-color-flag
       ;; Add 80 blank lines, so that "menu" window seems to have specific background
       (let ((l-loop-count 0))
         (save-excursion
@@ -510,6 +563,105 @@ Argument:
   (save-current-buffer
     (set-buffer eide-menu-buffer-name)
     (setq buffer-read-only t)))
+
+(defun eide-menu-apply-color-theme ()
+  "Apply color theme (for menu)."
+  (if (equal eide-custom-color-theme 'dark)
+    ;; "Dark" color theme
+    (progn
+      (setq eide-menu-background-color "black")
+      (setq eide-menu-foreground-color "gray95")
+      ;; Project
+      (set-face-foreground 'eide-menu-project-header-face "deep sky blue")
+      (set-face-foreground 'eide-menu-project-name-face "orange")
+      ;; Directories
+      (set-face-background 'eide-menu-directory-face "#300030")
+      (set-face-foreground 'eide-menu-directory-face "thistle")
+      (set-face-background 'eide-menu-directory-out-of-project-face "saddle brown")
+      (set-face-foreground 'eide-menu-directory-out-of-project-face "peach puff")
+      ;; Files
+      (set-face-foreground 'eide-menu-file-rw-face "gray95")
+      (set-face-foreground 'eide-menu-file-ro-face "gray65")
+      (set-face-foreground 'eide-menu-file-nofile-face "gray95")
+      (setq eide-menu-file-highlight-background-color "dark red")
+      (set-face-foreground 'eide-menu-file-vc-modified-face "deep sky blue")
+      ;; Functions
+      (set-face-foreground 'eide-menu-function-face "deep sky blue")
+      (set-face-background 'eide-menu-function-with-highlight-face "navy")
+      (set-face-foreground 'eide-menu-function-with-highlight-face "deep sky blue"))
+    ;; "Light" color theme
+    (progn
+      (setq eide-menu-background-color "white")
+      (setq eide-menu-foreground-color "black")
+      ;; Project
+      (set-face-foreground 'eide-menu-project-header-face "blue")
+      (set-face-foreground 'eide-menu-project-name-face "red")
+      ;; Directories
+      (set-face-background 'eide-menu-directory-face "lavender blush")
+      (set-face-foreground 'eide-menu-directory-face "dark violet")
+      (set-face-background 'eide-menu-directory-out-of-project-face "bisque")
+      (set-face-foreground 'eide-menu-directory-out-of-project-face "red")
+      ;; Files
+      (set-face-foreground 'eide-menu-file-rw-face "black")
+      (set-face-foreground 'eide-menu-file-ro-face "gray55")
+      (set-face-foreground 'eide-menu-file-nofile-face "black")
+      (setq eide-menu-file-highlight-background-color "yellow")
+      (set-face-foreground 'eide-menu-file-vc-modified-face "blue")
+      ;; Functions
+      (set-face-foreground 'eide-menu-function-face "blue")
+      (set-face-background 'eide-menu-function-with-highlight-face "aquamarine")
+      (set-face-foreground 'eide-menu-function-with-highlight-face "blue"))))
+
+(defun eide-menu-update-background-color ()
+  "Update menu background color."
+  (if eide-config-ready
+    (progn
+      (let ((l-menu-background-color nil))
+        (let ((l-background-color nil))
+          (if (and eide-custom-override-emacs-settings
+                   eide-custom-extend-color-theme-to-source-code)
+            (if (equal eide-custom-color-theme 'dark)
+              (setq l-background-color eide-custom-dark-background)
+              (setq l-background-color eide-custom-light-background))
+            (setq l-background-color (face-background 'default)))
+          (if (or (not eide-custom-menu-use-specific-background-color)
+                  (equal eide-menu-background-color l-background-color))
+            (progn
+              (setq eide-menu-use-specific-background-color-flag nil)
+              (setq l-menu-background-color l-background-color))
+            (progn
+              (setq eide-menu-use-specific-background-color-flag t)
+              (setq l-menu-background-color eide-menu-background-color))))
+
+        (set-face-background 'eide-menu-default-face l-menu-background-color)
+        (set-face-foreground 'eide-menu-default-face eide-menu-foreground-color)
+        (set-face-background 'eide-menu-project-header-face l-menu-background-color)
+        (set-face-background 'eide-menu-project-name-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-rw-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-ro-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-nofile-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-ref-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-new-face l-menu-background-color)
+        (set-face-background 'eide-menu-file-vc-modified-face l-menu-background-color)
+
+        ;; Current file
+        (copy-face 'eide-menu-file-rw-face 'eide-menu-current-file-rw-face)
+        (copy-face 'eide-menu-file-ro-face 'eide-menu-current-file-ro-face)
+        (copy-face 'eide-menu-file-nofile-face 'eide-menu-current-file-nofile-face)
+        (copy-face 'eide-menu-file-ref-face 'eide-menu-current-file-ref-face)
+        (copy-face 'eide-menu-file-new-face 'eide-menu-current-file-new-face)
+        (copy-face 'eide-menu-file-vc-modified-face 'eide-menu-current-file-vc-modified-face)
+        (set-face-background 'eide-menu-current-file-rw-face eide-menu-file-highlight-background-color)
+        (set-face-background 'eide-menu-current-file-ro-face eide-menu-file-highlight-background-color)
+        (set-face-background 'eide-menu-current-file-nofile-face eide-menu-file-highlight-background-color)
+        (set-face-background 'eide-menu-current-file-ref-face eide-menu-file-highlight-background-color)
+        (set-face-background 'eide-menu-current-file-new-face eide-menu-file-highlight-background-color)
+        (set-face-background 'eide-menu-current-file-vc-modified-face eide-menu-file-highlight-background-color)
+
+        (set-face-background 'eide-menu-function-face l-menu-background-color)
+        (set-face-background 'eide-menu-empty-list-face l-menu-background-color)
+        (set-face-foreground 'eide-menu-empty-list-face eide-menu-foreground-color))
+      (eide-menu-update t))))
 
 (defun eide-menu-update (p-force-rebuild-flag &optional p-force-update-status-flag)
   "Update \"menu\" buffer (may be postponed until next time \"menu\" buffer is
@@ -665,15 +817,15 @@ Argument:
           (progn
             (eide-i-menu-remove-file)
             (if (or (eobp)
-                    (equal (get-text-property (point) 'face) 'eide-config-menu-directory-face)
-                    (equal (get-text-property (point) 'face) 'eide-config-menu-directory-out-of-project-face)
+                    (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
+                    (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
                     (string-equal (char-to-string (char-after)) "\n"))
               ;; It was the last file of the group
               (progn
                 (forward-line -1)
                 (let ((l-property (get-text-property (point) 'face)))
-                  (if (or (equal l-property 'eide-config-menu-directory-face)
-                          (equal l-property 'eide-config-menu-directory-out-of-project-face))
+                  (if (or (equal l-property 'eide-menu-directory-face)
+                          (equal l-property 'eide-menu-directory-out-of-project-face))
                     ;; It was also the only one: we must delete directory line
                     (let ((buffer-read-only nil))
                       (delete-region (point)
@@ -819,7 +971,7 @@ Argument:
   (save-excursion
     (forward-line)
     (let ((l-directory-full-name nil))
-      (if (equal (get-text-property (point) 'face) 'eide-config-menu-directory-out-of-project-face)
+      (if (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
         (setq l-directory-full-name p-directory-name)
         (setq l-directory-full-name (concat eide-root-directory p-directory-name)))
       (eide-i-menu-remove-directory)

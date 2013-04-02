@@ -26,12 +26,9 @@
 
 (defvar eide-config-background-color nil)
 (defvar eide-config-foreground-color nil)
-(defvar eide-config-menu-background-color nil)
-(defvar eide-config-menu-foreground-color nil)
-(defvar eide-config-menu-file-highlight-background-color nil)
+
 (defvar eide-config-config-background-color nil)
 (defvar eide-config-config-foreground-color nil)
-(defvar eide-config-menu-use-specific-background-color nil)
 
 (defvar eide-config-user-menu-bar-mode nil)
 (defvar eide-config-user-tool-bar-mode nil)
@@ -89,22 +86,6 @@
 ;; Enable syntax highlighting
 (global-font-lock-mode t)
 
-;; Menu
-(make-face 'eide-config-menu-default-face)
-(make-face 'eide-config-menu-project-header-face)
-(make-face 'eide-config-menu-project-name-face)
-(make-face 'eide-config-menu-directory-face)
-(make-face 'eide-config-menu-directory-out-of-project-face)
-(make-face 'eide-config-menu-file-rw-face)
-(make-face 'eide-config-menu-file-ro-face)
-(make-face 'eide-config-menu-file-nofile-face)
-(make-face 'eide-config-menu-file-ref-face)
-(make-face 'eide-config-menu-file-new-face)
-(make-face 'eide-config-menu-file-vc-modified-face)
-(make-face 'eide-config-menu-function-face)
-(make-face 'eide-config-menu-function-with-highlight-face)
-(make-face 'eide-config-menu-empty-list-face)
-
 ;; Config files
 (make-face 'eide-config-config-comment-face)
 (make-face 'eide-config-config-parameter-face)
@@ -124,20 +105,6 @@
 ;; Code
 (make-face-bold 'font-lock-keyword-face)
 (make-face-bold 'font-lock-function-name-face)
-
-;; Menu
-(make-face-bold 'eide-config-menu-project-header-face)
-(make-face-bold 'eide-config-menu-project-name-face)
-
-(make-face-bold 'eide-config-menu-file-rw-face)
-(make-face-bold 'eide-config-menu-file-ro-face)
-(set-face-foreground 'eide-config-menu-file-ref-face "orange red")
-(make-face-bold 'eide-config-menu-file-ref-face)
-(set-face-foreground 'eide-config-menu-file-new-face "medium sea green")
-(make-face-bold 'eide-config-menu-file-new-face)
-(make-face-bold 'eide-config-menu-file-vc-modified-face)
-
-(make-face-italic 'eide-config-menu-empty-list-face)
 
 ;; Hidden text (for hide/show minor mode)
 ;; Does not work with Emacs 22.3: I comment it until I can test
@@ -201,13 +168,13 @@
   :initialize 'custom-initialize-default
   :group 'eide)
 
-(defgroup eide-display nil "Colors, menu, and windows layout."
+(defgroup eide-display nil "Colors and windows layout."
   :tag "Display"
   :group 'eide)
 (defcustom eide-custom-color-theme 'light "Color theme for menu. To extend the use of color theme to source code, see \"Emacs settings > Emacs display > Color theme for source code\" option."
   :tag "Menu color theme"
   :type '(choice (const dark) (const light))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-color-theme) (eide-i-config-apply-extended-color-theme) (eide-i-config-update-menu-background-color))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-color-theme) (eide-i-config-apply-extended-color-theme) (eide-menu-update-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-display)
 (defcustom eide-custom-menu-window-position 'right "Menu window position."
@@ -218,20 +185,10 @@
   :tag "Menu window height"
   :type '(choice (const half) (const full))
   :group 'eide-display)
-(defcustom eide-custom-menu-use-specific-background-color t "Use a specific background color (depending on color theme) in menu."
-  :tag "Use a specific background color in menu"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-update-menu-background-color))
-  :initialize 'custom-initialize-default
-  :group 'eide-display)
-(defcustom eide-custom-menu-insert-blank-line-between-directories nil "Insert a blank line between directories in menu."
-  :tag "Insert a blank line between directories in menu"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set 'eide-i-config-update-menu
-  :initialize 'custom-initialize-default
-  :group 'eide-display)
+
+(defgroup eide-menu nil "Menu colors and display."
+  :tag "Menu colors and display"
+  :group 'eide)
 
 (defgroup eide-version-control nil "Version control facilities in menu."
   :tag "Version control"
@@ -289,7 +246,7 @@
   :tag "Color theme for source code"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-extended-color-theme) (eide-i-config-update-menu-background-color))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-extended-color-theme) (eide-menu-update-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-emacs-settings-display)
 (defcustom eide-custom-show-trailing-spaces 'ignore "Show trailing spaces."
@@ -361,7 +318,7 @@
 (defcustom eide-custom-dark-background "black" "Background color."
   :tag "Background color"
   :type 'color
-  :set '(lambda (param value) (eide-i-config-set-background param value 'dark) (eide-i-config-update-menu-background-color))
+  :set '(lambda (param value) (eide-i-config-set-background param value 'dark) (eide-menu-update-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-emacs-settings-dark-colors)
 (defcustom eide-custom-dark-foreground "gray90" "Foreground color."
@@ -443,7 +400,7 @@
 (defcustom eide-custom-light-background "old lace" "Background color."
   :tag "Background color"
   :type 'color
-  :set '(lambda (param value) (eide-i-config-set-background param value 'light) (eide-i-config-update-menu-background-color))
+  :set '(lambda (param value) (eide-i-config-set-background param value 'light) (eide-menu-update-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-emacs-settings-light-colors)
 (defcustom eide-custom-light-foreground "black" "Foreground color."
@@ -528,32 +485,13 @@
 ;; ----------------------------------------------------------------------------
 
 (defun eide-i-config-apply-color-theme ()
-  "Apply color theme (for menu)."
+  "Apply color theme."
   (if eide-config-ready
     (progn
+      (eide-menu-apply-color-theme)
       (if (equal eide-custom-color-theme 'dark)
         ;; "Dark" color theme
         (progn
-          ;; Menu
-          (setq eide-config-menu-background-color "black")
-          (setq eide-config-menu-foreground-color "gray95")
-          (set-face-foreground 'eide-config-menu-project-header-face "deep sky blue")
-          (set-face-foreground 'eide-config-menu-project-name-face "orange")
-          ;; Menu: directories
-          (set-face-background 'eide-config-menu-directory-face "#300030")
-          (set-face-foreground 'eide-config-menu-directory-face "thistle")
-          (set-face-background 'eide-config-menu-directory-out-of-project-face "saddle brown")
-          (set-face-foreground 'eide-config-menu-directory-out-of-project-face "peach puff")
-          ;; Menu: files
-          (set-face-foreground 'eide-config-menu-file-rw-face "gray95")
-          (set-face-foreground 'eide-config-menu-file-ro-face "gray65")
-          (set-face-foreground 'eide-config-menu-file-nofile-face "gray95")
-          (setq eide-config-menu-file-highlight-background-color "dark red")
-          (set-face-foreground 'eide-config-menu-file-vc-modified-face "deep sky blue")
-          ;; Menu: functions
-          (set-face-foreground 'eide-config-menu-function-face "deep sky blue")
-          (set-face-background 'eide-config-menu-function-with-highlight-face "navy")
-          (set-face-foreground 'eide-config-menu-function-with-highlight-face "deep sky blue")
           ;; Config files
           (setq eide-config-config-background-color "gray20")
           (setq eide-config-config-foreground-color "white")
@@ -573,26 +511,6 @@
           (set-face-background 'mode-line "gray"))
         ;; "Light" color theme
         (progn
-          ;; Menu
-          (setq eide-config-menu-background-color "white")
-          (setq eide-config-menu-foreground-color "black")
-          (set-face-foreground 'eide-config-menu-project-header-face "blue")
-          (set-face-foreground 'eide-config-menu-project-name-face "red")
-          ;; Menu: directories
-          (set-face-background 'eide-config-menu-directory-face "lavender blush")
-          (set-face-foreground 'eide-config-menu-directory-face "dark violet")
-          (set-face-background 'eide-config-menu-directory-out-of-project-face "bisque")
-          (set-face-foreground 'eide-config-menu-directory-out-of-project-face "red")
-          ;; Menu: files
-          (set-face-foreground 'eide-config-menu-file-rw-face "black")
-          (set-face-foreground 'eide-config-menu-file-ro-face "gray55")
-          (set-face-foreground 'eide-config-menu-file-nofile-face "black")
-          (setq eide-config-menu-file-highlight-background-color "yellow")
-          (set-face-foreground 'eide-config-menu-file-vc-modified-face "blue")
-          ;; Menu: functions
-          (set-face-foreground 'eide-config-menu-function-face "blue")
-          (set-face-background 'eide-config-menu-function-with-highlight-face "aquamarine")
-          (set-face-foreground 'eide-config-menu-function-with-highlight-face "blue")
           ;; Config files
           (setq eide-config-config-background-color "gray90")
           (setq eide-config-config-foreground-color "black")
@@ -677,57 +595,6 @@
           (set-face-foreground 'font-lock-comment-face eide-config-user-comment-foreground-color)
           (set-face-background 'region eide-config-user-selection-background-color)
           (set-face-foreground 'region eide-config-user-selection-foreground-color))))))
-
-(defun eide-i-config-update-menu-background-color ()
-  "Update menu background color."
-  (if eide-config-ready
-    (progn
-      (let ((l-menu-background-color nil))
-        (let ((l-background-color nil))
-          (if (and eide-custom-override-emacs-settings
-                   eide-custom-extend-color-theme-to-source-code)
-            (if (equal eide-custom-color-theme 'dark)
-              (setq l-background-color eide-custom-dark-background)
-              (setq l-background-color eide-custom-light-background))
-            (setq l-background-color (face-background 'default)))
-          (if (or (not eide-custom-menu-use-specific-background-color)
-                  (equal eide-config-menu-background-color l-background-color))
-            (progn
-              (setq eide-config-menu-use-specific-background-color nil)
-              (setq l-menu-background-color l-background-color))
-            (progn
-              (setq eide-config-menu-use-specific-background-color t)
-              (setq l-menu-background-color eide-config-menu-background-color))))
-
-        (set-face-background 'eide-config-menu-default-face l-menu-background-color)
-        (set-face-foreground 'eide-config-menu-default-face eide-config-menu-foreground-color)
-        (set-face-background 'eide-config-menu-project-header-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-project-name-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-rw-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-ro-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-nofile-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-ref-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-new-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-file-vc-modified-face l-menu-background-color)
-
-        ;; Menu: current file
-        (copy-face 'eide-config-menu-file-rw-face 'eide-config-menu-current-file-rw-face)
-        (copy-face 'eide-config-menu-file-ro-face 'eide-config-menu-current-file-ro-face)
-        (copy-face 'eide-config-menu-file-nofile-face 'eide-config-menu-current-file-nofile-face)
-        (copy-face 'eide-config-menu-file-ref-face 'eide-config-menu-current-file-ref-face)
-        (copy-face 'eide-config-menu-file-new-face 'eide-config-menu-current-file-new-face)
-        (copy-face 'eide-config-menu-file-vc-modified-face 'eide-config-menu-current-file-vc-modified-face)
-        (set-face-background 'eide-config-menu-current-file-rw-face eide-config-menu-file-highlight-background-color)
-        (set-face-background 'eide-config-menu-current-file-ro-face eide-config-menu-file-highlight-background-color)
-        (set-face-background 'eide-config-menu-current-file-nofile-face eide-config-menu-file-highlight-background-color)
-        (set-face-background 'eide-config-menu-current-file-ref-face eide-config-menu-file-highlight-background-color)
-        (set-face-background 'eide-config-menu-current-file-new-face eide-config-menu-file-highlight-background-color)
-        (set-face-background 'eide-config-menu-current-file-vc-modified-face eide-config-menu-file-highlight-background-color)
-
-        (set-face-background 'eide-config-menu-function-face l-menu-background-color)
-        (set-face-background 'eide-config-menu-empty-list-face l-menu-background-color)
-        (set-face-foreground 'eide-config-menu-empty-list-face eide-config-menu-foreground-color))
-      (eide-menu-update t))))
 
 (defun eide-i-config-update-menu (param value)
   "Update menu.
@@ -882,7 +749,7 @@ Arguments:
   (if eide-config-ready
     (progn
       (eide-i-config-apply-extended-color-theme)
-      (eide-i-config-update-menu-background-color)
+      (eide-menu-update-background-color)
       (eide-i-config-set-menu-bar 'eide-custom-show-menu-bar eide-custom-show-menu-bar)
       (eide-i-config-set-tool-bar 'eide-custom-show-tool-bar eide-custom-show-tool-bar)
       (eide-i-config-set-scroll-bar-position 'eide-custom-scroll-bar-position eide-custom-scroll-bar-position)
