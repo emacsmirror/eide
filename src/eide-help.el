@@ -24,6 +24,9 @@
 (defvar eide-version "1.10+")
 (defvar eide-release-date "2013-04")
 
+(defvar eide-help-background-color nil)
+(defvar eide-help-foreground-color nil)
+
 ;; Faces
 (make-face 'eide-help-title-face)
 (make-face 'eide-help-chapter1-face)
@@ -52,31 +55,37 @@ Argument:
 
 (defun eide-i-help-set-colors-for-help ()
   "Set colors for \"help\" buffer."
+  (set-background-color eide-help-background-color)
+  (set-foreground-color eide-help-foreground-color)
+  (set-face-background 'fringe eide-help-background-color))
+
+;; ----------------------------------------------------------------------------
+;; FUNCTIONS
+;; ----------------------------------------------------------------------------
+
+(defun eide-help-apply-color-theme ()
+  "Apply color theme (for help)."
   (if (equal eide-custom-color-theme 'dark)
+    ;; "Dark" color theme
     (progn
-      (set-background-color "black")
-      (set-foreground-color "gray95")
-      (set-face-background 'fringe "black")
+      (setq eide-help-background-color "black")
+      (setq eide-help-foreground-color "gray95")
       (set-face-background 'eide-help-title-face "indian red")
       (set-face-foreground 'eide-help-title-face "white")
       (set-face-background 'eide-help-chapter1-face "brown")
       (set-face-foreground 'eide-help-chapter1-face "yellow")
       (set-face-background 'eide-help-chapter2-face "dark slate gray")
       (set-face-foreground 'eide-help-chapter2-face "pale green"))
+    ;; "Light" color theme
     (progn
-      (set-background-color "white")
-      (set-foreground-color "black")
-      (set-face-background 'fringe "white")
+      (setq eide-help-background-color "white")
+      (setq eide-help-foreground-color "black")
       (set-face-background 'eide-help-title-face "gold")
       (set-face-foreground 'eide-help-title-face "brown")
       (set-face-background 'eide-help-chapter1-face "yellow")
       (set-face-foreground 'eide-help-chapter1-face "red")
       (set-face-background 'eide-help-chapter2-face "lavender")
       (set-face-foreground 'eide-help-chapter2-face "blue"))))
-
-;; ----------------------------------------------------------------------------
-;; FUNCTIONS
-;; ----------------------------------------------------------------------------
 
 (defun eide-help-open ()
   "Display help (full frame)."

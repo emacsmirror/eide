@@ -148,6 +148,7 @@ Arguments:
     (eide-i-search-custom-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))
 
 (defun eide-search-save-emacs-settings ()
+  "Save Emacs settings (for search)."
   (if eide-search-use-cscope-flag
     (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database)))
 

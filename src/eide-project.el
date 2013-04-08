@@ -46,6 +46,9 @@
 
 (defvar eide-project-name nil)
 
+(defvar eide-project-background-color nil)
+(defvar eide-project-foreground-color nil)
+
 (defvar eide-project-gdb-option nil)
 (defvar eide-project-tool-bar-mode-before-debug nil)
 (defvar eide-project-is-gdb-session-running-flag nil)
@@ -65,6 +68,34 @@
 (defvar eide-project-comparison-project-point nil)
 
 (defvar eide-project-config-target-buffer nil)
+
+;; Config files
+(make-face 'eide-project-config-comment-face)
+(make-face 'eide-project-config-parameter-face)
+(make-face 'eide-project-config-possibilities-face)
+(make-face 'eide-project-config-separator-face)
+(make-face 'eide-project-config-value-face)
+(make-face-bold 'eide-project-config-parameter-face)
+
+;; Projects list
+(make-face 'eide-project-project-name-face)
+(make-face-bold 'eide-project-project-name-face)
+(make-face 'eide-project-project-current-name-face)
+(make-face-bold 'eide-project-project-current-name-face)
+(make-face 'eide-project-project-comparison-name-face)
+(make-face-bold 'eide-project-project-comparison-name-face)
+
+;; ----------------------------------------------------------------------------
+;; SETTINGS FOR MAJOR MODE "EMACS-IDE-CONFIG"
+;; ----------------------------------------------------------------------------
+
+(define-derived-mode emacs-ide-config-mode fundamental-mode "Emacs-IDE config"
+  (setq font-lock-defaults '('(("\\(#.*\\)"      1 'eide-project-config-comment-face) ; comment
+                               ("\\(.*\\) = "    1 'eide-project-config-parameter-face) ; parameter
+                               (" = "            . 'eide-project-config-separator-face) ; " = "
+                               (" = \\(.*\\)"    1 'eide-project-config-value-face))))) ; value
+
+(setq auto-mode-alist (append '(("\\.emacs-ide-project.cfg\\'" . emacs-ide-config-mode)) auto-mode-alist))
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
@@ -259,7 +290,7 @@ Arguments:
           ;; Close projects list (so that it can be modified by another Emacs session)
           (kill-this-buffer)
           ;; Restore editor configuration
-          (eide-windows-set-colors-for-files)
+          (eide-display-set-colors-for-files)
           (eide-keys-configure-for-editor)
           (if (not (string-equal l-project-dir eide-root-directory))
             (progn
@@ -289,9 +320,9 @@ Arguments:
 
 (defun eide-i-project-set-colors-for-config ()
   "Set colors for config buffer."
-  (set-background-color eide-config-config-background-color)
-  (set-foreground-color eide-config-config-foreground-color)
-  (set-face-background 'fringe eide-config-config-background-color))
+  (set-background-color eide-project-background-color)
+  (set-foreground-color eide-project-foreground-color)
+  (set-face-background 'fringe eide-project-background-color))
 
 (defun eide-i-project-get-config-value-if-defined (p-parameter)
   "Get the value of a parameter in a config (current buffer), returns nil if
@@ -372,6 +403,46 @@ Argument:
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-project-apply-color-theme ()
+  "Apply color theme (for project)."
+  (if eide-config-ready
+    (progn
+      (if (equal eide-custom-color-theme 'dark)
+        ;; "Dark" color theme
+        (progn
+          (setq eide-project-background-color "gray20")
+          (setq eide-project-foreground-color "white")
+          ;; Config files
+          (set-face-foreground 'eide-project-config-comment-face "deep sky blue")
+          (set-face-foreground 'eide-project-config-parameter-face "salmon")
+          (set-face-foreground 'eide-project-config-possibilities-face "medium sea green")
+          (set-face-foreground 'eide-project-config-separator-face "orange red")
+          (set-face-background 'eide-project-config-value-face "gray30")
+          (set-face-foreground 'eide-project-config-value-face "white")
+          ;; Projects list
+          (set-face-foreground 'eide-project-project-name-face "sandy brown")
+          (set-face-background 'eide-project-project-current-name-face "dark red")
+          (set-face-foreground 'eide-project-project-current-name-face "sandy brown")
+          (set-face-background 'eide-project-project-comparison-name-face "dark green")
+          (set-face-foreground 'eide-project-project-comparison-name-face "sandy brown"))
+        ;; "Light" color theme
+        (progn
+          (setq eide-project-background-color "gray90")
+          (setq eide-project-foreground-color "black")
+          ;; Config files
+          (set-face-foreground 'eide-project-config-comment-face "slate blue")
+          (set-face-foreground 'eide-project-config-parameter-face "brown")
+          (set-face-foreground 'eide-project-config-possibilities-face "sea green")
+          (set-face-foreground 'eide-project-config-separator-face "red")
+          (set-face-background 'eide-project-config-value-face "white")
+          (set-face-foreground 'eide-project-config-value-face "black")
+          ;; Projects list
+          (set-face-foreground 'eide-project-project-name-face "red")
+          (set-face-background 'eide-project-project-current-name-face "yellow")
+          (set-face-foreground 'eide-project-project-current-name-face "red")
+          (set-face-background 'eide-project-project-comparison-name-face "light green")
+          (set-face-foreground 'eide-project-project-comparison-name-face "red"))))))
 
 (defun eide-project-create-workspaces ()
   "Create directories and files for workspaces, if missing."
@@ -582,15 +653,15 @@ Argument:
             (forward-line -1)
             (if (string-equal l-project-dir eide-root-directory)
               ;; Current project (can't be selected)
-              (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
+              (put-text-property (point) (line-end-position) 'face 'eide-project-project-current-name-face)
               (if (and eide-compare-other-project-name
                        (string-equal l-project-dir eide-compare-other-project-directory))
                 ;; Project selected for comparison
                 (progn
                   (setq eide-project-comparison-project-point (point))
-                  (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
+                  (put-text-property (point) (line-end-position) 'face 'eide-project-project-comparison-name-face))
                 ;; Other projects
-                (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))
+                (put-text-property (point) (line-end-position) 'face 'eide-project-project-name-face)))
             (put-text-property (point) (line-end-position) 'keymap project-name-map)
             (put-text-property (point) (line-end-position) 'mouse-face 'highlight)
             (push l-project-dir eide-project-current-projects-list)
@@ -620,7 +691,7 @@ Argument:
           (progn
             ;; Update the project name
             (delete-region (point) (line-end-position))
-            (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
+            (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
             (if (not p-startup-flag)
               (ad-deactivate 'save-buffer))
             (save-buffer)
@@ -636,7 +707,7 @@ Argument:
           (forward-line 2))
         (if (not (eobp))
           (forward-line -1))
-        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
+        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
         (insert "\n")
         (insert eide-root-directory)
         (insert "\n")
@@ -689,7 +760,7 @@ current workspace."
       (progn
         (forward-line -1)
         (delete-region (point) (line-end-position))
-        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-config-project-current-name-face)
+        (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
         (ad-deactivate 'save-buffer)
         (save-buffer)
         (ad-activate 'save-buffer)))
@@ -723,7 +794,7 @@ current workspace."
     (let ((l-new-point (point)))
       (if (not (string-equal l-project-dir eide-root-directory))
         ;; Highlight selected project
-        (put-text-property (point) (line-end-position) 'face 'eide-config-project-comparison-name-face))
+        (put-text-property (point) (line-end-position) 'face 'eide-project-project-comparison-name-face))
       (if eide-project-comparison-project-point
         ;; Clear previous selected project
         (progn
@@ -732,8 +803,8 @@ current workspace."
           (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
             (forward-line -1)
             (if (string-equal l-old-project-dir eide-root-directory)
-              (put-text-property (point) (line-end-position) 'face 'eide-config-project-current-name-face)
-              (put-text-property (point) (line-end-position) 'face 'eide-config-project-name-face)))))
+              (put-text-property (point) (line-end-position) 'face 'eide-project-project-current-name-face)
+              (put-text-property (point) (line-end-position) 'face 'eide-project-project-name-face)))))
       (setq eide-project-comparison-project-point l-new-point))
     ;; Clear modified status (text properties don't need to be saved)
     (set-buffer-modified-p nil)))
@@ -903,7 +974,7 @@ Argument:
 (defun eide-project-debug-mode-start ()
   "Start debug mode."
   ;; Restore colors (in case user was reading help or config)
-  (eide-windows-set-colors-for-files)
+  (eide-display-set-colors-for-files)
   (eide-keys-configure-for-gdb)
   (eide-windows-layout-unbuild)
   (if window-system
