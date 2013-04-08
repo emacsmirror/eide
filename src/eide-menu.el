@@ -104,9 +104,22 @@
   :tag "Insert a blank line between directories in menu"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
-  :set 'eide-i-config-update-menu
+  :set 'eide-i-menu-update
   :initialize 'custom-initialize-default
   :group 'eide-menu)
+
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION FUNCTIONS
+;; ----------------------------------------------------------------------------
+
+(defun eide-i-menu-update (param value)
+  "Update menu.
+Arguments:
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (if eide-config-ready
+    (eide-menu-update t)))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS

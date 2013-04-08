@@ -57,7 +57,7 @@
   :group 'eide-version-control)
 
 ;; ----------------------------------------------------------------------------
-;; INTERNAL FUNCTIONS
+;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
 (defun eide-i-vc-custom-set-show-svn-status (param value)
@@ -92,6 +92,10 @@ Arguments:
       (progn
         (setq eide-vc-svn-diff-full-command (concat "svn diff --diff-cmd=" value " "))
         (setq eide-vc-git-diff-full-command (concat "git difftool -y --extcmd=" value " "))))))
+
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
 (defun eide-i-vc-diff (p-backend)
   "Call vc-diff on current buffer with specific backend.

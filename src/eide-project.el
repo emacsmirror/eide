@@ -159,7 +159,7 @@
   :group 'eide-project)
 
 ;; ----------------------------------------------------------------------------
-;; INTERNAL FUNCTIONS
+;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
 (defun eide-i-project-custom-set-number-of-workspaces (param value)
@@ -170,6 +170,10 @@ Arguments:
   (set-default param value)
   (if eide-config-ready
     (eide-project-create-workspaces)))
+
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
 (defun eide-i-project-force-desktop-read-hook ()
   "Hook to be called at startup, to force to read the desktop when after-init-hook

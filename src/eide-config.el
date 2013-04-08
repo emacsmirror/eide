@@ -123,14 +123,6 @@
 (defgroup eide-windows nil "Windows layout."
   :tag "Windows layout"
   :group 'eide)
-(defcustom eide-custom-menu-window-position 'right "Menu window position."
-  :tag "Menu window position"
-  :type '(choice (const left) (const right))
-  :group 'eide-windows)
-(defcustom eide-custom-menu-window-height 'half "Menu window height."
-  :tag "Menu window height"
-  :type '(choice (const half) (const full))
-  :group 'eide-windows)
 
 (defgroup eide-menu nil "Menu colors and display."
   :tag "Menu colors and display"
@@ -210,15 +202,6 @@
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
-
-(defun eide-i-config-update-menu (param value)
-  "Update menu.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (eide-menu-update t)))
 
 (defun eide-i-config-set-indent-mode (param value)
   "Set indentation mode (spaces or tabs).

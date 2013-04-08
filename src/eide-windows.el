@@ -45,6 +45,19 @@
 (defvar eide-windows-frame-fullscreen-value nil)
 
 ;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION VARIABLES
+;; ----------------------------------------------------------------------------
+
+(defcustom eide-custom-menu-window-position 'right "Menu window position."
+  :tag "Menu window position"
+  :type '(choice (const left) (const right))
+  :group 'eide-windows)
+(defcustom eide-custom-menu-window-height 'half "Menu window height."
+  :tag "Menu window height"
+  :type '(choice (const half) (const full))
+  :group 'eide-windows)
+
+;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 

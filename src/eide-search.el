@@ -83,7 +83,7 @@
   :group 'eide-search)
 
 ;; ----------------------------------------------------------------------------
-;; INTERNAL FUNCTIONS
+;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
 (defun eide-i-search-custom-set-cscope-update (param value)
@@ -99,6 +99,10 @@ Arguments:
         ;; In "auto" mode, update database for the first search
         (setq eide-search-cscope-update-database-request-pending-flag t))
       (setq cscope-do-not-update-database eide-search-user-cscope-do-not-update-database))))
+
+;; ----------------------------------------------------------------------------
+;; INTERNAL FUNCTIONS
+;; ----------------------------------------------------------------------------
 
 (defun eide-i-search-get-string-to-search ()
   "Get string to search (either selected text, or word at cursor position)."

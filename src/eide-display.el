@@ -277,7 +277,7 @@
   :group 'eide-emacs-settings-light-colors)
 
 ;; ----------------------------------------------------------------------------
-;; INTERNAL FUNCTIONS
+;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
 (defun eide-i-display-set-menu-bar (param value)
