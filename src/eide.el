@@ -32,6 +32,7 @@
 (require 'ediff)
 
 ;; Emacs-IDE modules
+(require 'eide-coding)
 (require 'eide-compare)
 (require 'eide-config)
 (require 'eide-edit)
@@ -110,148 +111,16 @@
   ;; gdb: Use graphical interface
   (setq gdb-many-windows t))
 
-(defun eide-i-add-hooks ()
-  "Add hooks for major modes."
-  ;; C major mode
-  (add-hook
-   'c-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" c-mode-syntax-table))
-
-      ;; Indentation
-      (c-set-style "K&R") ; Indentation style
-      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (progn
-          (setq tab-width eide-custom-c-indent-offset)
-          (setq c-basic-offset eide-custom-c-indent-offset)))
-      (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Turn hide/show mode on
-      (if (not hs-minor-mode)
-        (hs-minor-mode))
-      ;; Do not hide comments when hidding all
-      (setq hs-hide-comments-when-hiding-all nil)
-
-      ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
-      (hide-ifdef-mode 1)
-
-      ;; Pour savoir si du texte est sélectionné ou non
-      (setq mark-even-if-inactive nil)))
-
-  ;; C++ major mode
-  (add-hook
-   'c++-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" c-mode-syntax-table))
-
-      ;; Indentation
-      (c-set-style "K&R") ; Indentation style
-      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (progn
-          (setq tab-width eide-custom-c-indent-offset)
-          (setq c-basic-offset eide-custom-c-indent-offset)))
-      (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Turn hide/show mode on
-      (if (not hs-minor-mode)
-        (hs-minor-mode))
-      ;; Do not hide comments when hidding all
-      (setq hs-hide-comments-when-hiding-all nil)
-
-      ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
-      (hide-ifdef-mode 1)
-
-      ;; Pour savoir si du texte est sélectionné ou non
-      (setq mark-even-if-inactive nil)))
-
-  ;; Shell Script major mode
-
-  ;; Enable colors
-  ;;(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-  ;; Shell color mode is disabled because it disturbs shell-command (run
-  ;; command), and I have no solution for that!...
-  ;; - ansi-term: Does not work correctly ("error in process filter").
-  ;; - eshell: Uses specific aliases.
-  ;; - ansi-color-for-comint-mode-on: Does not apply to shell-command and
-  ;;   disturb it ("Marker does not point anywhere"). Moreover, it is not
-  ;;   buffer local (this would partly solve the issue).
-  ;; - Using shell for shell-command: previous run command is not killed, even
-  ;;   if process and buffer are killed.
-
-  (add-hook
-   'sh-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" sh-mode-syntax-table))
-      ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-sh-indent-offset)
-        (progn
-          (setq tab-width eide-custom-sh-indent-offset)
-          (setq sh-basic-offset eide-custom-sh-indent-offset)))))
-
-  ;; Emacs Lisp major mode
-  (add-hook
-   'emacs-lisp-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "-" should not be a word delimiter
-        (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
-
-      ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-lisp-indent-offset)
-        (progn
-          (setq tab-width eide-custom-lisp-indent-offset)
-          (setq lisp-body-indent eide-custom-lisp-indent-offset)
-          ;; Indentation after "if" (with default behaviour, the "then" statement is
-          ;; more indented than the "else" statement)
-          (put 'if 'lisp-indent-function 1)))))
-
-  ;; Perl major mode
-  (add-hook
-   'perl-mode-hook
-   '(lambda()
-      ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-perl-indent-offset)
-        (progn
-          (setq tab-width eide-custom-perl-indent-offset)
-          (setq perl-indent-level eide-custom-perl-indent-offset)))))
-
-  ;; Python major mode
-  (add-hook
-   'python-mode-hook
-   '(lambda()
-      (if eide-option-select-whole-symbol-flag
-        ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" python-mode-syntax-table))
-
-      ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
-        (progn
-          (setq tab-width eide-custom-python-indent-offset)
-          (setq python-indent eide-custom-python-indent-offset)))))
-
-  ;; SGML (HTML, XML...) major mode
-  (add-hook
-   'sgml-mode-hook
-   '(lambda()
-      ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
-        (progn
-          (setq tab-width eide-custom-sgml-indent-offset)
-          (setq sgml-basic-offset eide-custom-sgml-indent-offset))))))
-
 (defun eide-i-init ()
   "Initialization."
   (if (not (file-directory-p "~/.emacs-ide"))
     (make-directory "~/.emacs-ide"))
-  ;; Config must be initialized before desktop is loaded, because it reads some
-  ;; variables that might be overridden by local values in buffers.
+  ;; Emacs settings must be saved before the desktop is loaded, because it
+  ;; reads some variables that might be overridden by local values in buffers.
   (eide-config-init)
+  ;; Coding must be initialized before the desktop is loaded, because it adds
+  ;; hooks for major modes.
+  (eide-coding-init)
   (eide-project-load-root-directory-content t)
   (eide-menu-init)
   (eide-windows-init))
@@ -274,7 +143,6 @@
 (defun eide-start ()
   "Start Emacs-IDE."
   (eide-i-global-settings)
-  (eide-i-add-hooks)
   (eide-i-init))
 
 ;;; eide.el ends here

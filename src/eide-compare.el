@@ -22,10 +22,10 @@
 (require 'ediff)
 (require 'hideshow) ; for hs-minor-mode
 
-(require 'eide-config) ; for eide-project-config-file
+(require 'eide-config)
 (require 'eide-keys)
-(require 'eide-menu) ; for eide-current-buffer
-(require 'eide-project) ; for eide-root-directory
+(require 'eide-menu)
+(require 'eide-project)
 (require 'eide-windows)
 
 (defvar eide-compare-other-project-name nil)
@@ -34,6 +34,41 @@
 (defvar eide-compare-buffer-name nil)
 (defvar eide-compare-current-point nil)
 (defvar eide-compare-other-buffer-name nil)
+
+;; Ediff
+(copy-face 'default 'ediff-even-diff-face-A)
+(set-face-background 'ediff-even-diff-face-A "wheat")
+(set-face-foreground 'ediff-even-diff-face-A "black")
+
+(copy-face 'default 'ediff-even-diff-face-B)
+(set-face-background 'ediff-even-diff-face-B "wheat")
+(set-face-foreground 'ediff-even-diff-face-B "black")
+
+(copy-face 'default 'ediff-odd-diff-face-A)
+(set-face-background 'ediff-odd-diff-face-A "wheat")
+(set-face-foreground 'ediff-odd-diff-face-A "black")
+
+(copy-face 'default 'ediff-odd-diff-face-B)
+(set-face-background 'ediff-odd-diff-face-B "wheat")
+(set-face-foreground 'ediff-odd-diff-face-B "black")
+
+;; Current difference: what is common or only in one buffer
+(copy-face 'default 'ediff-current-diff-face-A)
+(set-face-background 'ediff-current-diff-face-A "pink")
+(set-face-foreground 'ediff-current-diff-face-A "black")
+
+(copy-face 'default 'ediff-current-diff-face-B)
+(set-face-background 'ediff-current-diff-face-B "pink")
+(set-face-foreground 'ediff-current-diff-face-B "black")
+
+;; Current difference: what really differs
+(copy-face 'default 'ediff-fine-diff-face-A)
+(set-face-background 'ediff-fine-diff-face-A "plum")
+(set-face-foreground 'ediff-fine-diff-face-A "black")
+
+(copy-face 'default 'ediff-fine-diff-face-B)
+(set-face-background 'ediff-fine-diff-face-B "plum")
+(set-face-foreground 'ediff-fine-diff-face-B "black")
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS

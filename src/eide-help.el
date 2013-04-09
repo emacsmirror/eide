@@ -19,7 +19,8 @@
 
 (provide 'eide-help)
 
-(require 'eide-config)
+(require 'eide-keys)
+(require 'eide-windows)
 
 (defvar eide-version "1.10+")
 (defvar eide-release-date "2013-04")

@@ -46,6 +46,18 @@
 (defvar eide-display-user-selection-background-color nil)
 (defvar eide-display-user-selection-foreground-color nil)
 
+;; Hidden text (for hide/show minor mode)
+;; Does not work with Emacs 22.3: I comment it until I can test
+;; and maybe fix the bug.
+;;(make-face 'font-selective-display-face)
+;;(set-face-foreground 'font-selective-display-face "blue")
+;;(set-face-background 'font-selective-display-face "lavender")
+;;(setq font-selective-display-face-id (face-id 'font-selective-display-face))
+
+;;(setq selective-display-vector (vconcat "{ ... }\n"))
+;;(setq selective-display-vector (vconcat "\n" (mapcar '(lambda (x) (+ (* font-selective-display-face-id 524288) x)) selective-display-vector)))
+;;(set-display-table-slot standard-display-table 'selective-display selective-display-vector)
+
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------

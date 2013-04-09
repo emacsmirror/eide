@@ -19,90 +19,16 @@
 
 (provide 'eide-config)
 
+(require 'eide-coding)
 (require 'eide-display)
 (require 'eide-menu)
+(require 'eide-search)
 (require 'eide-vc)
 
 (defvar eide-config-ready nil)
 
-(defvar eide-config-user-indent-tabs-mode nil)
-(defvar eide-config-user-tab-width nil)
-
 ;; ----------------------------------------------------------------------------
-;; OPTIONS
-;; ----------------------------------------------------------------------------
-
-;; Exclude "_" from word delimiters (when selecting by double-click)
-(defvar eide-option-select-whole-symbol-flag t)
-
-;; When using a file (.ref or .new for example), update file date,
-;; so that compilation takes it into account.
-(defvar eide-option-touch-files-when-using-flag t)
-
-(defvar eide-option-menu-buffer-popup-groups-flags nil)
-
-;; ----------------------------------------------------------------------------
-;; SYNTAX HIGHLIGHTING
-;; ----------------------------------------------------------------------------
-
-(require 'font-lock)
-
-;; Enable syntax highlighting
-(global-font-lock-mode t)
-
-;; Code
-(make-face-bold 'font-lock-keyword-face)
-(make-face-bold 'font-lock-function-name-face)
-
-;; Hidden text (for hide/show minor mode)
-;; Does not work with Emacs 22.3: I comment it until I can test
-;; and maybe fix the bug.
-;;(make-face 'font-selective-display-face)
-;;(set-face-foreground 'font-selective-display-face "blue")
-;;(set-face-background 'font-selective-display-face "lavender")
-;;(setq font-selective-display-face-id (face-id 'font-selective-display-face))
-
-;;(setq selective-display-vector (vconcat "{ ... }\n"))
-;;(setq selective-display-vector (vconcat "\n" (mapcar '(lambda (x) (+ (* font-selective-display-face-id 524288) x)) selective-display-vector)))
-;;(set-display-table-slot standard-display-table 'selective-display selective-display-vector)
-
-;; Ediff
-(copy-face 'default 'ediff-even-diff-face-A)
-(set-face-background 'ediff-even-diff-face-A "wheat")
-(set-face-foreground 'ediff-even-diff-face-A "black")
-
-(copy-face 'default 'ediff-even-diff-face-B)
-(set-face-background 'ediff-even-diff-face-B "wheat")
-(set-face-foreground 'ediff-even-diff-face-B "black")
-
-(copy-face 'default 'ediff-odd-diff-face-A)
-(set-face-background 'ediff-odd-diff-face-A "wheat")
-(set-face-foreground 'ediff-odd-diff-face-A "black")
-
-(copy-face 'default 'ediff-odd-diff-face-B)
-(set-face-background 'ediff-odd-diff-face-B "wheat")
-(set-face-foreground 'ediff-odd-diff-face-B "black")
-
-;; Current difference: what is common or only in one buffer
-(copy-face 'default 'ediff-current-diff-face-A)
-(set-face-background 'ediff-current-diff-face-A "pink")
-(set-face-foreground 'ediff-current-diff-face-A "black")
-
-(copy-face 'default 'ediff-current-diff-face-B)
-(set-face-background 'ediff-current-diff-face-B "pink")
-(set-face-foreground 'ediff-current-diff-face-B "black")
-
-;; Current difference: what really differs
-(copy-face 'default 'ediff-fine-diff-face-A)
-(set-face-background 'ediff-fine-diff-face-A "plum")
-(set-face-foreground 'ediff-fine-diff-face-A "black")
-
-(copy-face 'default 'ediff-fine-diff-face-B)
-(set-face-background 'ediff-fine-diff-face-B "plum")
-(set-face-foreground 'ediff-fine-diff-face-B "black")
-
-;; ----------------------------------------------------------------------------
-;; CUSTOMIZATION VARIABLES
+;; CUSTOMIZATION GROUPS AND VARIABLES
 ;; ----------------------------------------------------------------------------
 
 (defgroup eide nil "Customization of Emacs-IDE."
@@ -143,57 +69,6 @@
 (defgroup eide-emacs-settings-coding-rules nil "Indentation for some languages."
   :tag "Coding rules"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-indent-mode 'spaces "Indentation mode (spaces or tabs)."
-  :tag "Indentation mode"
-  :type '(choice (const :tag "Spaces" spaces)
-                 (const :tag "Tabs" tabs)
-                 (const :tag "Don't override indent-tabs-mode variable" ignore))
-  :set 'eide-i-config-set-indent-mode
-  :initialize 'custom-initialize-default
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-default-tab-width 4 "Default tab width. For languages that are listed below, tab width is indentation offset."
-  :tag "Default tab width"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set 'eide-i-config-set-default-tab-width
-  :initialize 'custom-initialize-default
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-c-indent-offset 2 "Indentation offset for C/C++."
-  :tag "Indentation offset for C/C++"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-sh-indent-offset 2 "Indentation offset for shell scripts."
-  :tag "Indentation offset for shell scripts"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-lisp-indent-offset 2 "Indentation offset for Emacs Lisp."
-  :tag "Indentation offset for Emacs Lisp"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-perl-indent-offset 2 "Indentation offset for Perl."
-  :tag "Indentation offset for Perl"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-python-indent-offset 4 "Indentation offset for Python."
-  :tag "Indentation offset for Python"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-sgml-indent-offset 2 "Indentation offset for SGML (HTML, XML...)."
-  :tag "Indentation offset for SGML"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
 
 (defgroup eide-search nil "Cscope option."
   :tag "Search"
@@ -203,29 +78,6 @@
 ;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-i-config-set-indent-mode (param value)
-  "Set indentation mode (spaces or tabs).
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (if (and eide-custom-override-emacs-settings
-             (not (equal value 'ignore)))
-      (setq-default indent-tabs-mode (if (equal value 'spaces) nil t))
-      (setq-default indent-tabs-mode eide-config-user-indent-tabs-mode))))
-
-(defun eide-i-config-set-default-tab-width (param value)
-  "Set default tab width.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (if eide-config-ready
-    (if (and eide-custom-override-emacs-settings value)
-      (setq-default tab-width value)
-      (setq-default tab-width eide-config-user-tab-width))))
-
 (defun eide-i-config-apply-emacs-settings ()
   "Apply \"Emacs settings\" options."
   (if eide-config-ready
@@ -233,34 +85,18 @@ Arguments:
       (eide-display-apply-extended-color-theme)
       (eide-menu-update-background-color)
       (eide-display-apply-emacs-settings)
-      (eide-i-config-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
-      (eide-i-config-set-default-tab-width 'eide-custom-default-tab-width eide-custom-default-tab-width)
+      (eide-coding-apply-emacs-settings)
       (eide-search-apply-customization))))
-
-;; ----------------------------------------------------------------------------
-;; INTERNAL FUNCTIONS
-;; ----------------------------------------------------------------------------
-
-(defun eide-i-config-save-emacs-settings ()
-  "Save Emacs settings."
-  (setq eide-config-user-indent-tabs-mode indent-tabs-mode)
-  (setq eide-config-user-tab-width tab-width)
-  (eide-display-save-emacs-settings)
-  (eide-search-save-emacs-settings))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-config-open-customization ()
-  "Display customization (full frame)."
-  (eide-windows-layout-unbuild)
-  (eide-keys-configure-for-special-buffer)
-  (customize-group 'eide))
-
 (defun eide-config-init ()
-  "Initialize config."
-  (eide-i-config-save-emacs-settings))
+  "Config initialization: save Emacs settings."
+  (eide-coding-save-emacs-settings)
+  (eide-display-save-emacs-settings)
+  (eide-search-save-emacs-settings))
 
 (defun eide-config-apply ()
   "Apply config."
@@ -276,5 +112,11 @@ Arguments:
   (eide-display-apply-color-theme)
   (eide-i-config-apply-emacs-settings)
   (eide-vc-apply-customization))
+
+(defun eide-config-open-customization ()
+  "Display customization (full frame)."
+  (eide-windows-layout-unbuild)
+  (eide-keys-configure-for-special-buffer)
+  (customize-group 'eide))
 
 ;;; eide-config.el ends here
