@@ -783,6 +783,7 @@ pages)."
       (eide-vc-update-current-buffer-status)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
+        (goto-char (point-min))
         ;; Case sensitive search is necessary for buffer name
         (if (let ((case-fold-search nil))
               (or (search-forward (concat " " l-buffer " \n") nil t)
