@@ -141,11 +141,12 @@ Arguments:
 - p-highlighted-symbols-list: list of highlighted symbols.
 - p-prefix: tabulation prefix string (for recursive calls)."
   (dolist (l-element p-elements-list)
-    (eide-i-menu-insert-text p-prefix)
     (let ((l-begin-point (point)))
       (if (markerp (cdr l-element))
+        ;; l-element is a function
         (progn
-          ;; l-element is a function
+          ;; Make it clickable from the beginning of line, for keyboard shortcut
+          (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap function-name-map)
           (put-text-property l-begin-point (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
           (put-text-property l-begin-point (point) 'mouse-face 'highlight)
           (eide-i-menu-insert-text " ")
@@ -156,23 +157,28 @@ Arguments:
           (put-text-property l-begin-point (point) 'mouse-face 'highlight)
           (eide-i-menu-insert-text " \n"))
         ;; l-element is a folder
-        (if (member (car l-element) p-unfolded-symbols-folders-list)
-          (progn
-            (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
-            (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-            (eide-i-menu-insert-text " \n")
-            (eide-i-menu-insert-imenu-elements-list (cdr l-element) p-unfolded-symbols-folders-list p-highlighted-symbols-list (concat p-prefix " | ")))
-          (progn
-            (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(+) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
-            (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-            ;; Add a space after function name, because otherwise, property
-            ;; applies on whole line ("\n")
-            (eide-i-menu-insert-text " \n")))))))
+        (progn
+          ;; Make it clickable from the beginning of line, for keyboard shortcut
+          (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap unfold-symbols-folder-map)
+          (if (member (car l-element) p-unfolded-symbols-folders-list)
+            (progn
+              (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
+              (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+              (eide-i-menu-insert-text " \n")
+              (eide-i-menu-insert-imenu-elements-list (cdr l-element) p-unfolded-symbols-folders-list p-highlighted-symbols-list (concat p-prefix " | ")))
+            (progn
+              (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(+) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
+              (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+              ;; Add a space after function name, because otherwise, property
+              ;; applies on whole line ("\n")
+              (eide-i-menu-insert-text " \n"))))))))
 
-(defun eide-i-menu-insert-file (p-buffer-name)
-  "Insert a file name - and its functions if unfolded - in \"menu\" buffer.
-Argument:
-- p-buffer-name: buffer name."
+(defun eide-i-menu-insert-file (p-buffer-name &optional p-update-flag p-update-symbols-flag)
+  "Insert or update a file in \"menu\" buffer.
+Arguments:
+- p-buffer-name: buffer name.
+- p-update-flag (optional): t for update, nil for first insertion.
+- p-update-symbols-flag (optional): update unfolded status and symbols list if unfolded."
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
@@ -192,7 +198,7 @@ Argument:
       (if eide-vc-show-git-status-flag
         (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag))
       ;; If the buffer is unfolded, get functions list
-      (if l-functions-unfolded-flag
+      (if (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
         (save-excursion
           (setq l-imenu-elements-list (imenu--generic-function imenu-generic-expression))
           (setq l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
@@ -203,13 +209,37 @@ Argument:
       (setq l-is-current t)
       (setq l-is-current nil))
 
+    (beginning-of-line)
+    (if p-update-flag
+      (progn
+        (while (char-equal (char-after) ?\s) (forward-line -1))
+        (if p-update-symbols-flag
+          ;; Remove file and symbols
+          (delete-region (point)
+                         (progn
+                           (forward-line)
+                           (while (and (not (eobp))
+                                       (char-equal (char-after) ?\s))
+                             (forward-line))
+                           (point)))
+          ;; Remove file only
+          (progn
+            ;; Skip "(+) "
+            (forward-char 4)
+            ;; Remove file
+            (delete-region (point) (line-end-position))))))
+
+    (if (or (not p-update-flag) p-update-symbols-flag)
+      ;; Insert "(-) " or "(+) " depending on unfolded status
+      (let ((l-begin-point (point)))
+        (if l-functions-unfolded-flag
+          (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
+          (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
+        (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+        (eide-i-menu-insert-text " ")))
+
     (let ((l-begin-point (point)))
-      (if l-functions-unfolded-flag
-        (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
-        (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
-      (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-      (eide-i-menu-insert-text " ")
-      (put-text-property (setq l-begin-point (point)) (progn (insert p-buffer-name) (point)) 'keymap file-name-map)
+      (put-text-property l-begin-point (progn (insert p-buffer-name) (point)) 'keymap file-name-map)
       (if l-is-current
         ;; Current file
         (if (string-equal l-buffer-status "nofile")
@@ -238,7 +268,7 @@ Argument:
       (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
     ;; Add a space after filename, because otherwise, with some versions of
-    ;; emacs, property applies on whole line ("\n")
+    ;; Emacs, property applies on whole line ("\n")
     (eide-i-menu-insert-text " ")
 
     (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
@@ -252,9 +282,10 @@ Argument:
         (forward-char)
         (setq eide-menu-current-buffer-marker (point-marker))))
 
-    (eide-i-menu-insert-text "\n")
+    (if (or (not p-update-flag) p-update-symbols-flag)
+      (eide-i-menu-insert-text "\n"))
 
-    (if l-functions-unfolded-flag
+    (if (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
       ;; Insert functions
       (if l-imenu-elements-list
         (eide-i-menu-insert-imenu-elements-list l-imenu-elements-list l-unfolded-symbols-folders-list l-highlighted-symbols-list "  ")
@@ -313,40 +344,40 @@ Argument:
   "Change current file (eide-current-buffer).
 Argument:
 - p-buffer-name: new current buffer name."
-  (save-excursion
-    (beginning-of-line)
-    ;; Current position might not be on the line of buffer name: in that case
-    ;; we must search for buffer name in previous lines
-    (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
-    (forward-char)
-    ;; Marker is not set on the first char, because a problem occurs when new
-    ;; marker is on the line below old marker: when old file is removed (to be
-    ;; displayed again later without highlight), old and new markers become
-    ;; equals, and when old file is inserted, new marker remains on beginning
-    ;; of line of old file. The problem is fixed if the marker is set on second
-    ;; char (new marker will not be separated from the line related to new file)
-    (let ((eide-menu-old-current-buffer-marker eide-menu-current-buffer-marker)
-          (eide-old-current-buffer eide-current-buffer))
-      (setq eide-menu-current-buffer-marker (point-marker))
-      (setq eide-current-buffer p-buffer-name)
+  (if (not (string-equal p-buffer-name eide-current-buffer))
+    (save-excursion
+      (beginning-of-line)
+      ;; Current position might not be on the line of buffer name: in that case
+      ;; we must search for buffer name in previous lines
+      (while (char-equal (char-after) ?\s) (forward-line -1))
+      (forward-char)
+      ;; Marker is not set on the first char, because a problem occurs when new
+      ;; marker is on the line below old marker: when old file is removed (to be
+      ;; displayed again later without highlight), old and new markers become
+      ;; equals, and when old file is inserted, new marker remains on beginning
+      ;; of line of old file. The problem is fixed if the marker is set on second
+      ;; char (new marker will not be separated from the line related to new file)
+      (let ((eide-menu-old-current-buffer-marker eide-menu-current-buffer-marker)
+            (eide-old-current-buffer eide-current-buffer))
+        (setq eide-menu-current-buffer-marker (point-marker))
+        (setq eide-current-buffer p-buffer-name)
 
-      (goto-char (marker-position eide-menu-old-current-buffer-marker))
-      (eide-i-menu-remove-file)
-      (eide-i-menu-insert-file eide-old-current-buffer))
+        (goto-char (marker-position eide-menu-old-current-buffer-marker))
+        (eide-i-menu-insert-file eide-old-current-buffer t nil))
 
-    (goto-char (marker-position eide-menu-current-buffer-marker))
-    (eide-i-menu-remove-file)
-    (eide-i-menu-insert-file eide-current-buffer)))
+      (goto-char (marker-position eide-menu-current-buffer-marker))
+      (eide-i-menu-insert-file eide-current-buffer t nil))))
 
 (defun eide-i-menu-remove-file ()
-  "Remove a file from \"menu\" buffer (beginning on current line)."
+  "Remove a file from \"menu\" buffer (beginning on current or previous lines)."
   (let ((buffer-read-only nil))
     (beginning-of-line)
+    (while (char-equal (char-after) ?\s) (forward-line -1))
     (delete-region (point)
                    (progn
                      (forward-line)
                      (while (and (not (eobp))
-                                 (string-equal (char-to-string (char-after)) " "))
+                                 (char-equal (char-after) ?\s))
                        (forward-line))
                      (point)))))
 
@@ -360,31 +391,33 @@ Argument:
                      (while (and (not (eobp))
                                  (not (or (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
                                           (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
-                                          (string-equal (char-to-string (char-after)) "\n"))))
+                                          (char-equal (char-after) ?\n))))
                        (forward-line))
                      (point)))))
 
 (defun eide-i-menu-get-symbol-name-on-current-line ()
-  "Get symbol name on current line in \"menu\" buffer."
+  "Get symbol name on current line in \"menu\" buffer. Move point to beginning
+of symbol name."
   (beginning-of-line)
   (search-forward "> " nil t)
   (buffer-substring-no-properties
    (point)
-   (progn (end-of-line) (backward-char) (point))))
+   (1- (line-end-position))))
 
 (defun eide-i-menu-get-folder-name-on-current-line ()
-  "Get folder name on current line in \"menu\" buffer."
+  "Get folder name on current line in \"menu\" buffer. Move point to beginning
+of buffer name."
   (beginning-of-line)
   (search-forward ") " nil t)
   (buffer-substring-no-properties
    (point)
-   (progn (end-of-line) (backward-char) (point))))
+   (1- (line-end-position))))
 
 (defun eide-i-menu-get-buffer-name-on-previous-lines ()
   "Get buffer name on previous lines in \"menu\" buffer."
-  (beginning-of-line)
   (save-excursion
-    (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
+    (beginning-of-line)
+    (while (char-equal (char-after) ?\s) (forward-line -1))
     (eide-menu-get-buffer-name-on-current-line)))
 
 (defun eide-i-menu-insert-project-name ()
@@ -452,13 +485,15 @@ Argument:
   (interactive)
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line)))
     (eide-i-menu-update-current-buffer l-buffer)
-    (eide-windows-select-source-window t)
-    (switch-to-buffer l-buffer)))
+    (switch-to-buffer l-buffer))
+  (if (not (listp last-nonmenu-event))
+    ;; Called from keyboard (see yes-or-no-p): stay in the "menu" window
+    (select-window eide-windows-menu-window)))
 
 (defun eide-i-menu-file-unfold-functions ()
   "Fold / unfold list of functions for selected file."
   (interactive)
-  (let ((l-buffer-name (eide-menu-get-buffer-name-on-current-line)))
+  (let ((l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
     (save-current-buffer
       (set-buffer l-buffer-name)
       (if eide-menu-local-functions-unfolded-flag
@@ -466,15 +501,15 @@ Argument:
         (progn
           (make-local-variable 'eide-menu-local-functions-unfolded-flag)
           (setq eide-menu-local-functions-unfolded-flag t))))
-    (eide-i-menu-remove-file)
     (save-excursion
-      (eide-i-menu-insert-file l-buffer-name))))
+      (eide-i-menu-insert-file l-buffer-name t t))))
 
 (defun eide-i-menu-file-unfold-symbols-folder ()
   "Fold / unfold symbols folder for selected file."
   (interactive)
-  ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
-  (save-excursion
+  ;; save-excursion cannot be used, because the content is removed and inserted again.
+  ;; Instead we save the position (integer), which should not change.
+  (let ((l-point (point)))
     (let ((l-folder-name (eide-i-menu-get-folder-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
       (save-current-buffer
@@ -485,12 +520,8 @@ Argument:
           (setq eide-menu-local-unfolded-symbols-folders-list (remove l-folder-name eide-menu-local-unfolded-symbols-folders-list))
           ;; Not unfolded yet => add it
           (push l-folder-name eide-menu-local-unfolded-symbols-folders-list)))
-      ;; Current position might not be on the line of buffer name: in that case
-      ;; we must search for buffer name in previous lines
-      ;; TODO: factoriser !
-      (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
-      (eide-i-menu-remove-file)
-      (eide-i-menu-insert-file l-buffer-name))))
+      (eide-i-menu-insert-file l-buffer-name t t))
+    (goto-char l-point)))
 
 (defun eide-i-menu-get-symbol-marker-in-imenu-list (p-symbol p-list)
   "Get symbol marker in imenu list (recursive function).
@@ -518,8 +549,9 @@ Argument:
 (defun eide-i-menu-file-highlight-function ()
   "Enable / disable highlight on selected function."
   (interactive)
-  ;; TODO: position non conservée (on se retrouve au niveau du nom du fichier)
-  (save-excursion
+  ;; save-excursion cannot be used, because the content is removed and inserted again.
+  ;; Instead we save the position (integer), which should not change.
+  (let ((l-point (point)))
     (let ((l-symbol-name (eide-i-menu-get-symbol-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
       (save-current-buffer
@@ -530,12 +562,8 @@ Argument:
           (setq eide-menu-local-highlighted-symbols-list (remove l-symbol-name eide-menu-local-highlighted-symbols-list))
           ;; Not highlighted yet => add it
           (push l-symbol-name eide-menu-local-highlighted-symbols-list)))
-      ;; Current position might not be on the line of buffer name: in that case
-      ;; we must search for buffer name in previous lines
-      ;; TODO: factoriser !
-      (while (string-equal (char-to-string (char-after)) " ") (forward-line -1))
-      (eide-i-menu-remove-file)
-      (eide-i-menu-insert-file l-buffer-name))))
+      (eide-i-menu-insert-file l-buffer-name t t))
+    (goto-char l-point)))
 
 (defun eide-i-menu-goto-function ()
   "Go to selected function."
@@ -546,7 +574,10 @@ Argument:
     (eide-windows-select-source-window t)
     (switch-to-buffer l-buffer-name)
     (goto-char (marker-position (eide-i-menu-get-symbol-marker l-symbol-name)))
-    (recenter)))
+    (recenter))
+  (if (not (listp last-nonmenu-event))
+    ;; Called from keyboard (see yes-or-no-p): stay in the "menu" window
+    (select-window eide-windows-menu-window)))
 
 (defun eide-i-menu-is-file-edited-p (p-buffer-name)
   "Check if a file has been edited (REF/NEW or version control).
@@ -792,8 +823,7 @@ pages)."
                   (search-forward (concat " " l-buffer " (M) *\n") nil t)))
           (progn
             (forward-line -1)
-            (eide-i-menu-remove-file)
-            (eide-i-menu-insert-file l-buffer)))))))
+            (eide-i-menu-insert-file l-buffer t nil)))))))
 
 (defun eide-menu-get-directory-name-on-current-line ()
   "Get directory name on current line in \"menu\" buffer."
@@ -833,7 +863,7 @@ Argument:
             (if (or (eobp)
                     (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
                     (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
-                    (string-equal (char-to-string (char-after)) "\n"))
+                    (char-equal (char-after) ?\n))
               ;; It was the last file of the group
               (progn
                 (forward-line -1)
@@ -929,8 +959,7 @@ Argument:
   (forward-line -1)
   (save-excursion
     (forward-line)
-    (eide-i-menu-remove-file)
-    (eide-i-menu-insert-file p-buffer-name))
+    (eide-i-menu-insert-file p-buffer-name t t))
   ;; Move one line forward, to restore expected position.
   (forward-line)
   ;; Select "source" window
@@ -1088,17 +1117,27 @@ Arguments:
 (setq file-name-map (make-sparse-keymap))
 (define-key file-name-map [mouse-1] 'eide-i-menu-file-open)
 (define-key file-name-map [mouse-3] 'eide-popup-open-menu-for-file)
+(define-key file-name-map "\r" 'eide-i-menu-file-open)
+(define-key file-name-map " " 'eide-i-menu-file-unfold-functions)
 
 (setq unfold-functions-map (make-sparse-keymap))
 (define-key unfold-functions-map [mouse-1] 'eide-i-menu-file-unfold-functions)
+(define-key unfold-functions-map "\r" 'eide-i-menu-file-open)
+(define-key unfold-functions-map " " 'eide-i-menu-file-unfold-functions)
 
 (setq unfold-symbols-folder-map (make-sparse-keymap))
 (define-key unfold-symbols-folder-map [mouse-1] 'eide-i-menu-file-unfold-symbols-folder)
+(define-key unfold-symbols-folder-map "\r" 'eide-i-menu-file-unfold-symbols-folder)
+(define-key unfold-symbols-folder-map " " 'eide-i-menu-file-unfold-functions)
 
 (setq function-name-highlight-map (make-sparse-keymap))
 (define-key function-name-highlight-map [mouse-1] 'eide-i-menu-file-highlight-function)
+(define-key function-name-highlight-map "\r" 'eide-i-menu-goto-function)
+(define-key function-name-highlight-map " " 'eide-i-menu-file-unfold-functions)
 
 (setq function-name-map (make-sparse-keymap))
 (define-key function-name-map [mouse-1] 'eide-i-menu-goto-function)
+(define-key function-name-map "\r" 'eide-i-menu-goto-function)
+(define-key function-name-map " " 'eide-i-menu-file-unfold-functions)
 
 ;;; eide-menu.el ends here
