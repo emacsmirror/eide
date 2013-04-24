@@ -43,22 +43,6 @@
 ;; KEYS BINDINGS
 ;; ----------------------------------------------------------------------------
 
-;;(defun eide-local-insert-user-defined-lines-1 ()
-;;  (interactive)
-;;  (beginning-of-line)
-;;  (insert "#ifdef FLAG\n#else\n")
-;;  (forward-line)
-;;  (beginning-of-line)
-;;  (insert "#endif\n"))
-
-;;(defun eide-local-insert-user-defined-lines-2 ()
-;;  (interactive)
-;;  (beginning-of-line)
-;;  (insert "#ifndef FLAG\n")
-;;  (forward-line)
-;;  (beginning-of-line)
-;;  (insert "#endif\n"))
-
 ;; To delete selected text
 (if (fboundp 'pc-selection-mode)
   ;; emacs24: pc-selection-mode is deprecated (this is now the default behaviour)
@@ -175,12 +159,10 @@
   (global-set-key [f12] 'eide-shell-open)
 
   (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
-
+  (global-set-key "\M-\r" 'eide-windows-show-hide-layout)
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
-
   ;; Shift + Wheel up (horizontal scrolling)
   (global-set-key [S-mouse-4] 'eide-i-keys-scroll-right-one-step)
-
   ;; Shift + Wheel down (horizontal scrolling)
   (global-set-key [S-mouse-5] 'eide-i-keys-scroll-left-one-step))
 
@@ -200,24 +182,20 @@
   (global-unset-key [f12])
 
   (global-unset-key [mouse-3])
-
   (global-unset-key [S-down-mouse-3])
-
   ;; Control + Wheel up (resize windows layout)
   (global-unset-key [C-mouse-4])
-
   ;; Control + Wheel down (resize windows layout)
   (global-unset-key [C-mouse-5])
-
   ;; Shift + Wheel up (horizontal scrolling)
   (global-unset-key [S-mouse-4])
-
   ;; Shift + Wheel down (horizontal scrolling)
   (global-unset-key [S-mouse-5]))
 
 (defun eide-i-keys-enable-keys-for-ediff ()
   "Set key bindings for ediff session."
   (global-set-key [mouse-3] 'eide-compare-quit)
+  (global-set-key "\M-\r" 'eide-compare-quit)
   (global-set-key [f1] 'eide-compare-copy-a-to-b)
   (global-set-key [f2] 'eide-compare-copy-b-to-a)
   (global-set-key [f5] 'eide-compare-update)
@@ -226,13 +204,13 @@
 
 (defun eide-i-keys-enable-keys-for-gdb ()
   "Set key bindings for gdb session."
-  (global-set-key [mouse-3] 'eide-windows-handle-mouse-3))
+  (global-set-key [mouse-3] 'eide-project-debug-mode-stop)
+  (global-set-key "\M-\r" 'eide-project-debug-mode-stop))
 
 (defun eide-i-keys-enable-keys-for-special-buffer ()
   "Set key bindings for configuration editing."
-  (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
-  (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3))
-
+  (global-set-key [mouse-3] 'eide-windows-switch-to-editor-mode)
+  (global-set-key "\M-\r" 'eide-windows-switch-to-editor-mode))
 
 (global-set-key [mouse-2] 'eide-windows-handle-mouse-2)
 
@@ -242,9 +220,6 @@
 
 ;;(if (not (eq system-type 'windows-nt))
 ;;  (global-set-key [vertical-scroll-bar mouse-1] 'scroll-bar-drag))
-
-;;(global-set-key [C-S-f1] 'eide-local-insert-user-defined-lines-1)
-;;(global-set-key [C-S-f2] 'eide-local-insert-user-defined-lines-2)
 
 ;; Disable some mode-line default key bindings (mouse-delete-window and mouse-delete-other-windows)
 (global-set-key [mode-line mouse-2] nil)

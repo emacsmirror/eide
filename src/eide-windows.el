@@ -70,10 +70,7 @@ Argument:
       (if eide-windows-is-layout-visible-flag
         (if (string-equal eide-menu-buffer-name p-buffer-name)
           eide-windows-menu-window
-          ;; Let WoMan display in a frame
-          (if (string-match "^\*WoMan.*" p-buffer-name)
-            nil
-            eide-windows-output-window))
+          eide-windows-output-window)
         ;; Layout is not built => "menu" and "output" windows don't exist
         nil)
       (save-current-buffer
@@ -104,8 +101,9 @@ Arguments (same as display-buffer function):
     ;;(message (concat "eide-i-windows-display-buffer-function: " l-buffer-name))
     (save-current-buffer
       (set-buffer l-buffer-name)
-      (if (or (equal major-mode 'dired-mode)
-              (equal major-mode 'Buffer-menu-mode))
+      (if (and (not eide-project-is-gdb-session-visible-flag)
+               (or (equal major-mode 'dired-mode)
+                   (equal major-mode 'Buffer-menu-mode)))
         (setq l-browsing-mode-flag t)))
     (if l-browsing-mode-flag
       (progn
@@ -210,8 +208,9 @@ ones."
         (if (get-buffer l-buffer-name)
           (save-current-buffer
             (set-buffer l-buffer-name)
-            (if (or (equal major-mode 'dired-mode)
-                    (equal major-mode 'Buffer-menu-mode))
+            (if (and (not eide-project-is-gdb-session-visible-flag)
+                     (or (equal major-mode 'dired-mode)
+                         (equal major-mode 'Buffer-menu-mode)))
               (setq l-browsing-mode-flag t))))
         (if l-browsing-mode-flag
           (progn
@@ -495,7 +494,7 @@ before gdb builds its own."
       (setq buffer-read-only t)
       ;; This window should be used for this buffer only
       (set-window-dedicated-p eide-windows-menu-window t)
-      ;;(setq window-min-width 1) ; TODO: sans effet ?
+      ;; Restore last window size
       (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
 
       ;; "Output" window
@@ -546,6 +545,16 @@ before gdb builds its own."
       (setq eide-windows-is-layout-visible-flag nil)
       (eide-windows-skip-unwanted-buffers-in-source-window)
       (ad-activate 'select-window))))
+
+(defun eide-windows-show-hide-layout ()
+  "Show/hide the full windows layout."
+  (interactive)
+  (if eide-windows-is-layout-visible-flag
+    (eide-windows-layout-unbuild)
+    (eide-windows-layout-build))
+  (if (not (listp last-nonmenu-event))
+    ;; Called from keyboard (see yes-or-no-p): select the "menu" window
+    (select-window eide-windows-menu-window)))
 
 (defun eide-windows-select-source-window (p-force-build-flag)
   "Select \"source\" window.
@@ -623,81 +632,41 @@ and display it. Current buffer is kept if correct."
 (defun eide-windows-handle-mouse-3 ()
   "Handle mouse-3 (right click) action."
   (interactive)
-  (if eide-project-is-gdb-session-visible-flag
-    (eide-project-debug-mode-stop)
+  ;; Select the window where the mouse is
+  (eide-i-windows-select-window-at-mouse-position)
+  (if (eq mark-active t)
+    ;; Text is selected
+    (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
+      ;; Text is selected on a single line
+      (eide-popup-open-menu-for-search)
+      ;; Text is selected on several lines
+      (eide-popup-open-menu-for-cleaning))
+    ;; No text selected
     (progn
-      ;; Select the window where the mouse is
-      (eide-i-windows-select-window-at-mouse-position)
-      (if (or (string-equal (buffer-name) "* Help *") (string-equal (buffer-name) eide-project-projects-buffer-name))
-        ;; Close "help" or projects list
-        (progn
-          (kill-this-buffer)
-          (eide-display-set-colors-for-files)
-          (eide-keys-configure-for-editor)
-          (eide-windows-layout-build))
-        (if (string-match "^\*Customize.*" (buffer-name))
-          ;; Close customization
-          (progn
-            ;; NB: Exit button does not work...
-            (kill-this-buffer)
-            (eide-keys-configure-for-editor)
-            (eide-windows-layout-build))
-          (if (string-equal (buffer-name) eide-project-config-file)
-            ;; Display another buffer (other than ".emacs-ide-project.cfg")
+      ;; If windows layout is supposed to be visible, but one of
+      ;; the three windows is not visible, first unbuild, to
+      ;; force rebuild
+      (if (and eide-windows-is-layout-visible-flag
+               (or (not (window-live-p eide-windows-menu-window))
+                   (not (window-live-p eide-windows-output-window))
+                   (not (window-live-p eide-windows-source-window))))
+        (eide-windows-layout-unbuild))
+      (if (eide-i-windows-is-output-window-selected-p)
+        ;; "Output" window: open search results popup menu
+        (eide-popup-open-menu-for-search-results)
+        (if (eide-i-windows-is-menu-window-selected-p)
+          ;; "Menu" window: open project popup menu
+          (eide-popup-open-menu)
+          ;; "Source" window
+          (if eide-windows-is-layout-visible-flag
+            ;; Hide
+            (eide-windows-layout-unbuild)
+            ;; Show
             (progn
-              (save-buffer)
-              (if (eide-project-rebuild-config-file nil)
-                ;; Project name has changed
-                (progn
-                  (eide-menu-update-project-name)
-                  (eide-project-update-name)))
-              ;; This buffer must not be closed
-              (switch-to-buffer eide-current-buffer)
-              (eide-display-set-colors-for-files)
-              (eide-keys-configure-for-editor)
-              (eide-windows-layout-build))
-            (if (string-equal (buffer-name) eide-project-notes-file)
-              ;; Close ".emacs-ide-project.txt"
-              (progn
-                (save-buffer)
-                (kill-buffer eide-project-notes-file)
-                (eide-display-set-colors-for-files)
-                (eide-keys-configure-for-editor)
-                (eide-windows-layout-build))
-              (progn
-                (if (eq mark-active t)
-                  ;; Text is selected
-                  (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
-                    ;; Text is selected on a single line
-                    (eide-popup-open-menu-for-search)
-                    ;; Text is selected on several lines
-                    (eide-popup-open-menu-for-cleaning))
-                  ;; No text selected
-                  (progn
-                    ;; If windows layout is supposed to be visible, but one of
-                    ;; the three windows is not visible, first unbuild, to
-                    ;; force rebuild
-                    (if (and eide-windows-is-layout-visible-flag
-                             (or (not (window-live-p eide-windows-menu-window))
-                                 (not (window-live-p eide-windows-output-window))
-                                 (not (window-live-p eide-windows-source-window))))
-                      (eide-windows-layout-unbuild))
-                    (if (eide-i-windows-is-output-window-selected-p)
-                      ;; "Output" window: open search results popup menu
-                      (eide-popup-open-menu-for-search-results)
-                      (if (eide-i-windows-is-menu-window-selected-p)
-                        ;; "Menu" window: open project popup menu
-                        (eide-popup-open-menu)
-                        ;; "Source" window
-                        (if eide-windows-is-layout-visible-flag
-                          ;; Hide
-                          (eide-windows-layout-unbuild)
-                          ;; Show
-                          (progn
-                            (if eide-menu-browsing-mode-flag
-                              (eide-menu-browsing-mode-stop))
-                            ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
-                            (eide-windows-layout-build)))))))))))))))
+              (if eide-menu-browsing-mode-flag
+                (eide-menu-browsing-mode-stop))
+              ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
+              (eide-windows-layout-build))))))))
 
 (defun eide-windows-handle-mouse-2 ()
   "Handle mouse-2 (middle click) action."
@@ -716,6 +685,37 @@ and display it. Current buffer is kept if correct."
   (if (eide-i-windows-is-output-window-selected-p)
     ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)))
+
+(defun eide-windows-switch-to-editor-mode ()
+  "Switch to editor mode and build the layout."
+  (interactive)
+  (if (or (string-equal (buffer-name) "* Help *")
+          (string-match (buffer-name) "^\*Customize.*")
+          (string-equal (buffer-name) eide-project-projects-buffer-name))
+    ;; Close "help", customization, or projects list
+    ;; NB: In customization, exit button does not work...
+    (kill-this-buffer)
+    (if (string-equal (buffer-name) eide-project-config-file)
+        ;; Display another buffer (other than ".emacs-ide-project.cfg")
+        (progn
+          (save-buffer)
+          (if (eide-project-rebuild-config-file nil)
+            ;; Project name has changed
+            (progn
+              (eide-menu-update-project-name)
+              (eide-project-update-name)))
+          ;; This buffer must not be closed
+          (switch-to-buffer eide-current-buffer))
+        (if (string-equal (buffer-name) eide-project-notes-file)
+          ;; Close ".emacs-ide-project.txt"
+          (progn
+            (save-buffer)
+            (kill-buffer eide-project-notes-file)))))
+  (eide-display-set-colors-for-files)
+  (eide-keys-configure-for-editor)
+  (if eide-menu-browsing-mode-flag
+    (eide-menu-browsing-mode-stop))
+  (eide-windows-layout-build))
 
 (defun eide-windows-find-file-without-advice (p-file)
   "Load a file without using advice (when \"menu\" buffer must not be updated).

@@ -995,6 +995,7 @@ Argument:
 
 (defun eide-project-debug-mode-stop ()
   "Stop debug mode."
+  (interactive)
   (eide-keys-configure-for-editor)
   (eide-windows-layout-build)
   (if window-system

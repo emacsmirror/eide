@@ -144,7 +144,7 @@ You can modify the layout in configuration.
 Right click behaviour depends on mouse position:
 
 In 'source' window:
-    Hide/show other windows (to view code full screen).
+    Show/hide other windows (to view code full screen).
 
 In 'menu' window:
     Open project popup menu:
@@ -381,6 +381,12 @@ Control-g ..................... cancel current command
 ")
 
   (eide-i-help-insert-header-1 "New key bindings")
+
+  (eide-i-help-insert-header-2 "Windows layout")
+
+  (insert"
+    Alt - return ...... Show/hide windows layout
+")
 
   (eide-i-help-insert-header-2 "Editing")
 
