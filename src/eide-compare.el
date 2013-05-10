@@ -156,13 +156,10 @@ Arguments:
 ;; ----------------------------------------------------------------------------
 
 (defun eide-compare-select-another-project (p-project-name p-project-directory)
-  "Select another project for comparison.
+  "Select another project for comparison. Unselect it if both arguments are nil.
 Arguments:
 - p-project-name: project name.
 - p-project-directory: project directory."
-  ;; Get project name from directory
-  ;; directory-file-name removes last "/"
-  ;; file-name-nondirectory retrieves last directory name from complete path
   (setq eide-compare-other-project-name p-project-name)
   (setq eide-compare-other-project-directory p-project-directory))
 

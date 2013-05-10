@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.10+")
-(defvar eide-release-date "2013-04")
+(defvar eide-release-date "2013-05")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -382,10 +382,11 @@ Control-g ..................... cancel current command
 
   (eide-i-help-insert-header-1 "New key bindings")
 
-  (eide-i-help-insert-header-2 "Windows layout")
+  (eide-i-help-insert-header-2 "Access to the menus")
 
   (insert"
-    Alt - return ...... Show/hide windows layout
+          Alt - return .... Show/hide windows layout
+Control - Alt - return .... Enter/exit projects list
 ")
 
   (eide-i-help-insert-header-2 "Editing")
@@ -465,12 +466,22 @@ debug commands - are not available from the keyboard, but only from project
 popup menu.
 ")
 
-  ;;  (eide-i-help-insert-header-2 "User defined text insertions")
+  (eide-i-help-insert-header-1 "Key bindings in menus")
 
-  ;;  (insert "
-  ;;Control - Shift - F1 .. Insert text #1
-  ;;Control - Shift - F2 .. Insert text #2
-  ;;")
+  (eide-i-help-insert-header-2 "Menu window")
+
+  (insert "
+       Enter .......... Open file / Go to symbol
+       Space .......... Fold/unfold symbols
+")
+
+  (eide-i-help-insert-header-2 "Projects list")
+
+  (insert "
+       Enter .......... Open project
+       Space .......... Select/unselect project for comparison
+         Del .......... Remove project from workspace
+")
 
   (eide-i-help-insert-header-1 "Windows layout overview during diff session")
   (insert "

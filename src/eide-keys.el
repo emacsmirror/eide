@@ -159,7 +159,8 @@
   (global-set-key [f12] 'eide-shell-open)
 
   (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
-  (global-set-key "\M-\r" 'eide-windows-show-hide-layout)
+  (global-set-key [M-return] 'eide-windows-show-hide-layout)
+  (global-set-key [C-M-return] 'eide-project-open-list)
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
   ;; Shift + Wheel up (horizontal scrolling)
   (global-set-key [S-mouse-4] 'eide-i-keys-scroll-right-one-step)
@@ -182,6 +183,8 @@
   (global-unset-key [f12])
 
   (global-unset-key [mouse-3])
+  (global-unset-key [M-return])
+  (global-unset-key [C-M-return])
   (global-unset-key [S-down-mouse-3])
   ;; Control + Wheel up (resize windows layout)
   (global-unset-key [C-mouse-4])
@@ -195,7 +198,7 @@
 (defun eide-i-keys-enable-keys-for-ediff ()
   "Set key bindings for ediff session."
   (global-set-key [mouse-3] 'eide-compare-quit)
-  (global-set-key "\M-\r" 'eide-compare-quit)
+  (global-set-key [M-return] 'eide-compare-quit)
   (global-set-key [f1] 'eide-compare-copy-a-to-b)
   (global-set-key [f2] 'eide-compare-copy-b-to-a)
   (global-set-key [f5] 'eide-compare-update)
@@ -205,12 +208,13 @@
 (defun eide-i-keys-enable-keys-for-gdb ()
   "Set key bindings for gdb session."
   (global-set-key [mouse-3] 'eide-project-debug-mode-stop)
-  (global-set-key "\M-\r" 'eide-project-debug-mode-stop))
+  (global-set-key [M-return] 'eide-project-debug-mode-stop))
 
 (defun eide-i-keys-enable-keys-for-special-buffer ()
   "Set key bindings for configuration editing."
   (global-set-key [mouse-3] 'eide-windows-switch-to-editor-mode)
-  (global-set-key "\M-\r" 'eide-windows-switch-to-editor-mode))
+  (global-set-key [M-return] 'eide-windows-switch-to-editor-mode)
+  (global-set-key [C-M-return] 'eide-windows-switch-to-editor-mode))
 
 (global-set-key [mouse-2] 'eide-windows-handle-mouse-2)
 

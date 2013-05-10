@@ -467,7 +467,7 @@ Argument:
     (forward-line -1)
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-selected-project)" t)
-    (eide-i-popup-menu-add-action "Select this project for comparison" "(eide-project-select-for-comparison)" (not (string-equal l-project-dir eide-compare-other-project-directory)))
+    (eide-i-popup-menu-add-action (if (string-equal l-project-dir eide-compare-other-project-directory) "Unselect this project for comparison" "Select this project for comparison") "(eide-project-select-unselect-for-comparison)" t)
     (eide-i-popup-menu-close-action-list "Project")
     (eide-i-popup-menu-open (concat "Project: " l-project-name))))
 
