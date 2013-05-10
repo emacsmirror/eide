@@ -551,10 +551,11 @@ before gdb builds its own."
   (interactive)
   (if eide-windows-is-layout-visible-flag
     (eide-windows-layout-unbuild)
-    (eide-windows-layout-build))
-  (if (not (listp last-nonmenu-event))
-    ;; Called from keyboard (see yes-or-no-p): select the "menu" window
-    (select-window eide-windows-menu-window)))
+    (progn
+      (eide-windows-layout-build)
+      (if (not (listp last-nonmenu-event))
+        ;; Called from keyboard (see yes-or-no-p): select the "menu" window
+        (select-window eide-windows-menu-window)))))
 
 (defun eide-windows-select-source-window (p-force-build-flag)
   "Select \"source\" window.
