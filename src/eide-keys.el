@@ -45,7 +45,7 @@
 
 ;; To delete selected text
 (if (fboundp 'pc-selection-mode)
-  ;; emacs24: pc-selection-mode is deprecated (this is now the default behaviour)
+  ;; Emacs 24: pc-selection-mode is deprecated (this is now the default behaviour)
   (pc-selection-mode))
 
 ;; Cut-copy-paste
@@ -159,7 +159,7 @@
   (global-set-key [f12] 'eide-shell-open)
 
   (global-set-key [mouse-3] 'eide-windows-handle-mouse-3)
-  (global-set-key [M-return] 'eide-windows-show-hide-layout)
+  (global-set-key [M-return] 'eide-windows-show-hide-ide-windows)
   (global-set-key [C-M-return] 'eide-project-open-list)
   (global-set-key [S-down-mouse-3] 'eide-windows-handle-shift-mouse-3)
   ;; Shift + Wheel up (horizontal scrolling)

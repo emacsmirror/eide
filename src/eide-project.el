@@ -301,12 +301,12 @@ Arguments:
               ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
               ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
               ;; otherwise we get errors for non-existing windows
-              (eide-windows-layout-unbuild)
+              (eide-windows-hide-ide-windows)
               ;; Set root directory
               (setq eide-root-directory l-project-dir)
               (eide-project-load-root-directory-content nil)
               (eide-menu-update t)))
-          (eide-windows-layout-build))
+          (eide-windows-show-ide-windows))
         (if (eide-popup-question-yes-or-no-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
           (let ((buffer-read-only nil))
             (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
@@ -482,13 +482,13 @@ Argument:
         (if (not eide-no-desktop-option)
           (progn
             ;; Clear desktop (even if a project is defined)
-            (eide-windows-layout-unbuild)
+            (eide-windows-hide-ide-windows)
             (desktop-save-mode -1)
             ;; Close all buffers
             (desktop-clear)
             (setq desktop-dirname nil)
             (eide-menu-update t)
-            (eide-windows-layout-build)))
+            (eide-windows-show-ide-windows)))
         (eide-i-project-update-internal-projects-list)
         ;; Update default directory if current buffer is not visiting a file
         (if (not buffer-file-name)
@@ -617,7 +617,7 @@ Argument:
           ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
           ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
           ;; otherwise we get errors for non-existing windows
-          (eide-windows-layout-unbuild)
+          (eide-windows-hide-ide-windows)
           (call-interactively 'dired)
           ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
           (setq eide-root-directory (expand-file-name default-directory))
@@ -626,7 +626,7 @@ Argument:
           (eide-project-load-root-directory-content nil)
           (eide-menu-update t)
           (if l-layout-visible-flag
-            (eide-windows-layout-build)))))
+            (eide-windows-show-ide-windows)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-open-list ()
@@ -642,7 +642,8 @@ Argument:
         ;; The internal projects list will also be rebuilt
         (setq eide-project-current-projects-list nil)
         (setq eide-project-comparison-project-point nil)
-        (eide-windows-layout-unbuild)
+        (eide-windows-hide-ide-windows)
+        (eide-windows-save-and-unbuild-layout)
         (eide-i-project-set-colors-for-config)
         (eide-keys-configure-for-special-buffer)
         (ad-deactivate 'switch-to-buffer)
@@ -906,7 +907,8 @@ Argument:
 
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
-  (eide-windows-layout-unbuild)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
@@ -914,7 +916,8 @@ Argument:
 
 (defun eide-project-open-notes-file ()
   "Display project notes file (full frame)."
-  (eide-windows-layout-unbuild)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
@@ -990,7 +993,7 @@ Argument:
   ;; Restore colors (in case user was reading help or config)
   (eide-display-set-colors-for-files)
   (eide-keys-configure-for-gdb)
-  (eide-windows-layout-unbuild)
+  (eide-windows-hide-ide-windows)
   (if window-system
     (progn
       ;; Show gdb toolbar
@@ -1007,7 +1010,7 @@ Argument:
   "Stop debug mode."
   (interactive)
   (eide-keys-configure-for-editor)
-  (eide-windows-layout-build)
+  (eide-windows-show-ide-windows)
   (if window-system
     ;; Hide tool bar if necessary (restore previous state)
     (tool-bar-mode (if eide-project-tool-bar-mode-before-debug 1 -1)))

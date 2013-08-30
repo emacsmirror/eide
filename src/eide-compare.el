@@ -101,8 +101,8 @@
   (goto-char eide-compare-current-point)
   ;; Back to current buffer
   (switch-to-buffer eide-current-buffer)
-  ;; Build windows layout
-  (eide-windows-layout-build)
+  ;; Show IDE windows
+  (eide-windows-show-ide-windows)
   (kill-buffer eide-compare-other-buffer-name))
 
 (defun eide-i-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
@@ -115,8 +115,8 @@ Arguments:
   \".ref\" or \".new\" files)"
   (eide-i-compare-ediff-mode-start)
   (setq ediff-quit-hook 'eide-i-compare-ediff-quit-hook)
-  ;; Hide menu
-  (eide-windows-layout-unbuild)
+  ;; Hide IDE windows
+  (eide-windows-hide-ide-windows)
   ;; Save current position in buffer to compare
   (set-buffer eide-compare-buffer-name)
   (setq eide-compare-current-point (point))

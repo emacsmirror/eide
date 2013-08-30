@@ -53,7 +53,7 @@
 (require 'dired)
 
 (defvar eide-menu-browsing-mode-flag nil)
-(defvar eide-i-menu-layout-should-be-built-after-browsing-mode-flag nil)
+(defvar eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil)
 
 (defvar eide-menu-background-color nil)
 (defvar eide-menu-foreground-color nil)
@@ -1084,8 +1084,9 @@ Arguments:
   "Start browsing mode (dired and buffer menu modes)."
   (if eide-windows-is-layout-visible-flag
     (progn
-      (setq eide-i-menu-layout-should-be-built-after-browsing-mode-flag t)
-      (eide-windows-layout-unbuild)))
+      (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag t)
+      (eide-windows-hide-ide-windows)))
+  (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
   (setq eide-menu-browsing-mode-flag t))
 
@@ -1093,11 +1094,11 @@ Arguments:
   "Stop browsing mode (dired and buffer menu modes)."
   (eide-keys-configure-for-editor) ;; must be done first, for eide-i-windows-get-window-for-buffer
   (eide-windows-skip-unwanted-buffers-in-source-window)
-  (if eide-i-menu-layout-should-be-built-after-browsing-mode-flag
+  (if eide-i-menu-restore-ide-windows-after-browsing-mode-flag
     (progn
-      ;; Build windows layout
-      (eide-windows-layout-build)
-      (setq eide-i-menu-layout-should-be-built-after-browsing-mode-flag nil)))
+      (eide-windows-show-ide-windows)
+      (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil)))
+  (eide-windows-restore-layout)
   ;; Kill all browsing buffers
   (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
     (save-current-buffer

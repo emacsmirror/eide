@@ -115,7 +115,8 @@
 
 (defun eide-config-open-customization ()
   "Display customization (full frame)."
-  (eide-windows-layout-unbuild)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
   (customize-group 'eide))
 

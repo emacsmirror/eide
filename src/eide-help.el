@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.10+")
-(defvar eide-release-date "2013-05")
+(defvar eide-release-date "2013-08")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -90,8 +90,8 @@ Argument:
 
 (defun eide-help-open ()
   "Display help (full frame)."
-  ;; Close menu
-  (eide-windows-layout-unbuild)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
   (eide-i-help-set-colors-for-help)
   (eide-keys-configure-for-special-buffer)
 

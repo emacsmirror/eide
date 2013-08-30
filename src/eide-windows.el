@@ -39,6 +39,7 @@
 
 (defvar eide-windows-output-window-height nil)
 (defvar eide-windows-menu-window-width nil)
+(defvar eide-windows-configuration nil)
 
 (defvar eide-windows-update-output-buffer-id nil)
 
@@ -384,10 +385,11 @@ before gdb builds its own."
   (if (string-equal (buffer-name) "*Buffer List*")
     (kill-this-buffer))
 
+  (setq eide-windows-source-window (selected-window))
   (setq eide-windows-output-window-height (/ (frame-height) 5))
   (setq eide-windows-menu-window-width (/ (frame-width) 5))
   (if window-system
-    (eide-windows-layout-build))
+    (eide-windows-show-ide-windows))
   (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
@@ -439,54 +441,88 @@ before gdb builds its own."
   "Initialize windows."
   (add-hook 'window-setup-hook 'eide-i-windows-window-setup-hook))
 
-(defun eide-windows-layout-build ()
-  "Build windows layout."
+(defun eide-windows-show-ide-windows ()
+  "Show \"menu\" and \"ouput\" windows."
   (if (not eide-windows-is-layout-visible-flag)
     (progn
       (ad-deactivate 'select-window)
-      (delete-other-windows)
-      ;; Make sure that current window is not dedicated
-      (set-window-dedicated-p (selected-window) nil)
-      ;; Split into 3 windows ("source", "menu", "output")
-      (if (equal eide-custom-menu-window-height 'full)
+      (if (< emacs-major-version 24)
+        ;; Emacs 23 doesn't have internal windows, only live windows.
+        ;; Internal windows are necessary to group several "source" windows
+        ;; before splitting to create "menu" and "output" windows.
+        ;; Therefore, with Emacs 23, it is not possible to keep windows layout
+        ;; unchanged when showing/hiding the "menu" and "output" windows.
+        ;; It is necessary to keep the old behaviour and switch to a single
+        ;; "source" window.
         (progn
-          (split-window-horizontally)
-          (if (equal eide-custom-menu-window-position 'left)
-            ;; Menu on left side
+          (delete-other-windows)
+          ;; Make sure that current window is not dedicated
+          (set-window-dedicated-p (selected-window) nil)
+          ;; Split into 3 windows ("source", "menu", "output")
+          (if (equal eide-custom-menu-window-height 'full)
             (progn
-              (setq eide-windows-menu-window (selected-window))
-              (select-window (next-window))
-              (split-window-vertically)
-              (setq eide-windows-source-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-output-window (selected-window)))
-            ;; Menu on right side
+              (split-window-horizontally)
+              (if (equal eide-custom-menu-window-position 'left)
+                ;; Menu on left side
+                (progn
+                  (setq eide-windows-menu-window (selected-window))
+                  (select-window (next-window))
+                  (split-window-vertically)
+                  (setq eide-windows-source-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-output-window (selected-window)))
+                ;; Menu on right side
+                (progn
+                  (split-window-vertically)
+                  (setq eide-windows-source-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-output-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-menu-window (selected-window)))))
             (progn
               (split-window-vertically)
-              (setq eide-windows-source-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-output-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-menu-window (selected-window)))))
+              (split-window-horizontally)
+              (if (equal eide-custom-menu-window-position 'left)
+                ;; Menu on left side
+                (progn
+                  (setq eide-windows-menu-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-source-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-output-window (selected-window)))
+                ;; Menu on right side
+                (progn
+                  (setq eide-windows-source-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-menu-window (selected-window))
+                  (select-window (next-window))
+                  (setq eide-windows-output-window (selected-window)))))))
+        ;; Emacs 24 have internal and live windows.
+        ;; When showing/hiding the "menu" and "output" windows, it is now possible
+        ;; to keep the "source" windows layout unchanged.
         (progn
-          (split-window-vertically)
-          (split-window-horizontally)
-          (if (equal eide-custom-menu-window-position 'left)
-            ;; Menu on left side
-            (progn
-              (setq eide-windows-menu-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-source-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-output-window (selected-window)))
-            ;; Menu on right side
-            (progn
-              (setq eide-windows-source-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-menu-window (selected-window))
-              (select-window (next-window))
-              (setq eide-windows-output-window (selected-window))))))
-
+          ;; Split to create 2 new windows ("menu" and "output")
+          (if (equal eide-custom-menu-window-height 'full)
+            ;; "Menu" window uses the whole frame height
+            (if (equal eide-custom-menu-window-position 'left)
+              ;; Menu on left side
+              (progn
+                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
+              ;; Menu on right side
+              (progn
+                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
+            ;; "Output" window uses the whole frame width
+            (if (equal eide-custom-menu-window-position 'left)
+              ;; Menu on left side
+              (progn
+                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
+                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
+              ;; Menu on right side
+              (progn
+                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
+                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))))
       ;; "Menu" window
       (select-window eide-windows-menu-window)
       (switch-to-buffer eide-menu-buffer-name)
@@ -494,13 +530,16 @@ before gdb builds its own."
       (setq buffer-read-only t)
       ;; This window should be used for this buffer only
       (set-window-dedicated-p eide-windows-menu-window t)
-      ;; Restore last window size
-      (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width)))
+      (if (< emacs-major-version 24)
+        ;; Restore last window size
+        (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width))))
 
       ;; "Output" window
       (select-window eide-windows-output-window)
       (setq window-min-height 2)
-      (enlarge-window (- eide-windows-output-window-height (window-height)))
+      (if (< emacs-major-version 24)
+        ;; Restore last window size
+        (enlarge-window (- eide-windows-output-window-height (window-height))))
       (switch-to-buffer (get-buffer-create "*results*"))
       (if eide-windows-output-window-buffer
         (switch-to-buffer eide-windows-output-window-buffer)
@@ -514,8 +553,8 @@ before gdb builds its own."
         (eide-menu-update nil))
       (ad-activate 'select-window))))
 
-(defun eide-windows-layout-unbuild ()
-  "Unbuild windows layout (keep only \"source\" window)."
+(defun eide-windows-hide-ide-windows ()
+  "Hide \"menu\" and \"output\" windows."
   (if eide-windows-is-layout-visible-flag
     (progn
       (ad-deactivate 'select-window)
@@ -526,18 +565,33 @@ before gdb builds its own."
         (progn
           ;; Remember "menu" window width
           (eide-windows-select-menu-window)
-          (setq eide-windows-menu-window-width (window-width))
+          (if (< emacs-major-version 24)
+            (setq eide-windows-menu-window-width (window-width))
+            ;; Testing if window-total-width is available is not necessary
+            ;; (Emacs version is already tested) but avoids a warning when compiling
+            ;; with Emacs 23
+            (if (fboundp 'window-total-width)
+              (setq eide-windows-menu-window-width (window-total-width))
+              (setq eide-windows-menu-window-width (window-width))))
           ;; Remember "output" window height
           (eide-windows-select-output-window)
           (setq eide-windows-output-window-height (window-height))
           ;; Remember which result buffer is displayed in "output" window
           (setq eide-windows-output-window-buffer (buffer-name))))
-      (if (window-live-p eide-windows-source-window)
-        ;; Keep only "source" window
-        (eide-windows-select-source-window t))
-      (delete-other-windows)
-      ;; Make sure that current window is not dedicated
-      (set-window-dedicated-p (selected-window) nil)
+      (if (< emacs-major-version 24)
+        (progn
+          ;; Keep only "source" window
+          (if (window-live-p eide-windows-source-window)
+            (eide-windows-select-source-window t))
+          (delete-other-windows)
+          ;; Make sure that current window is not dedicated
+          (set-window-dedicated-p (selected-window) nil))
+        (progn
+          ;; Close "menu" and "output" windows
+          (if (window-live-p eide-windows-menu-window)
+            (delete-window eide-windows-menu-window))
+          (if (window-live-p eide-windows-output-window)
+            (delete-window eide-windows-output-window))))
       ;; Current window becomes - if not already - "source" window
       (setq eide-windows-menu-window nil)
       (setq eide-windows-output-window nil)
@@ -546,16 +600,26 @@ before gdb builds its own."
       (eide-windows-skip-unwanted-buffers-in-source-window)
       (ad-activate 'select-window))))
 
-(defun eide-windows-show-hide-layout ()
-  "Show/hide the full windows layout."
+(defun eide-windows-show-hide-ide-windows ()
+  "Show/hide \"menu\" and \"ouput\" windows."
   (interactive)
   (if eide-windows-is-layout-visible-flag
-    (eide-windows-layout-unbuild)
+    (eide-windows-hide-ide-windows)
     (progn
-      (eide-windows-layout-build)
+      (eide-windows-show-ide-windows)
       (if (not (listp last-nonmenu-event))
         ;; Called from keyboard (see yes-or-no-p): select the "menu" window
         (select-window eide-windows-menu-window)))))
+
+(defun eide-windows-save-and-unbuild-layout ()
+  "Save the windows layout and keep only one window."
+  (setq eide-windows-configuration (current-window-configuration))
+  (select-window eide-windows-source-window)
+  (delete-other-windows))
+
+(defun eide-windows-restore-layout ()
+  "Restore the windows layout."
+  (set-window-configuration eide-windows-configuration))
 
 (defun eide-windows-select-source-window (p-force-build-flag)
   "Select \"source\" window.
@@ -564,19 +628,19 @@ Argument:
   (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
     (progn
       (if (not eide-windows-is-layout-visible-flag)
-        (eide-windows-layout-build))
+        (eide-windows-show-ide-windows))
       (select-window eide-windows-source-window))))
 
 (defun eide-windows-select-menu-window ()
   "Select \"menu\" window (build windows layout if necessary)."
   (if (not eide-windows-is-layout-visible-flag)
-    (eide-windows-layout-build))
+    (eide-windows-show-ide-windows))
   (select-window eide-windows-menu-window))
 
 (defun eide-windows-select-output-window ()
   "Select \"output\" window (build windows layout if necessary)."
   (if (not eide-windows-is-layout-visible-flag)
-    (eide-windows-layout-build))
+    (eide-windows-show-ide-windows))
   (select-window eide-windows-output-window))
 
 (defun eide-windows-is-file-special-p (l-buffer-name)
@@ -651,7 +715,7 @@ and display it. Current buffer is kept if correct."
                (or (not (window-live-p eide-windows-menu-window))
                    (not (window-live-p eide-windows-output-window))
                    (not (window-live-p eide-windows-source-window))))
-        (eide-windows-layout-unbuild))
+        (eide-windows-hide-ide-windows))
       (if (eide-i-windows-is-output-window-selected-p)
         ;; "Output" window: open search results popup menu
         (eide-popup-open-menu-for-search-results)
@@ -661,13 +725,13 @@ and display it. Current buffer is kept if correct."
           ;; "Source" window
           (if eide-windows-is-layout-visible-flag
             ;; Hide
-            (eide-windows-layout-unbuild)
+            (eide-windows-hide-ide-windows)
             ;; Show
             (progn
               (if eide-menu-browsing-mode-flag
                 (eide-menu-browsing-mode-stop))
-              ;; Build windows layout (if not already built by eide-menu-browsing-mode-stop)
-              (eide-windows-layout-build))))))))
+              ;; Show IDE windows (if not already restored by eide-menu-browsing-mode-stop)
+              (eide-windows-show-ide-windows))))))))
 
 (defun eide-windows-handle-mouse-2 ()
   "Handle mouse-2 (middle click) action."
@@ -716,7 +780,8 @@ and display it. Current buffer is kept if correct."
   (eide-keys-configure-for-editor)
   (if eide-menu-browsing-mode-flag
     (eide-menu-browsing-mode-stop))
-  (eide-windows-layout-build))
+  (eide-windows-restore-layout)
+  (eide-windows-show-ide-windows))
 
 (defun eide-windows-find-file-without-advice (p-file)
   "Load a file without using advice (when \"menu\" buffer must not be updated).
