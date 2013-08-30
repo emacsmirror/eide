@@ -287,7 +287,9 @@ Arguments:
 (defun eide-i-project-open-selected-project ()
   "Open project on current line."
   (interactive)
-  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+  (if (or (not eide-project-name)
+          (and eide-search-tags-available-flag
+               (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
     (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
       (if (file-directory-p l-project-dir)
         (progn
