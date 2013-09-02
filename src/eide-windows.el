@@ -387,7 +387,11 @@ before gdb builds its own."
 
   (setq eide-windows-source-window (selected-window))
   (setq eide-windows-output-window-height (/ (frame-height) 5))
-  (setq eide-windows-menu-window-width (/ (frame-width) 5))
+  (if (< emacs-major-version 24)
+    (setq eide-windows-menu-window-width (/ (frame-width) 5))
+    ;; With split-window (used only with Emacs 24), it seems more appropriate
+    ;; to divide by 3, for equivalent result
+    (setq eide-windows-menu-window-width (/ (frame-width) 3)))
   (if window-system
     (eide-windows-show-ide-windows))
   (ad-activate 'select-window)
