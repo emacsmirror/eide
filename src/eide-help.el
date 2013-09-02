@@ -480,7 +480,7 @@ popup menu.
   (insert "
        Enter .......... Open project
        Space .......... Select/unselect project for comparison
-         Del .......... Remove project from workspace
+   Backspace .......... Remove project from workspace
 ")
 
   (eide-i-help-insert-header-1 "Windows layout overview during diff session")
