@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.10+")
-(defvar eide-release-date "2013-08")
+(defvar eide-release-date "2013-09")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -371,13 +371,13 @@ and will be applied to all files for which it is allowed.
   (eide-i-help-insert-header-1 "Standard key bindings")
 
   (insert "
-Control-x Control-b ........... list all buffers
-Control-x Control-f ........... load a file or open a directory (file browsing)
-Control-x Control-s ........... save current file
-Control-s ..................... search
+Ctrl-x Ctrl-b ................. list all buffers
+Ctrl-x Ctrl-f ................. load a file or open a directory (file browsing)
+Ctrl-x Ctrl-s ................. save current file
+Ctrl-s ........................ search
 Alt-% ......................... replace
-Control-_ ..................... undo
-Control-g ..................... cancel current command
+Ctrl-_ ........................ undo
+Ctrl-g ........................ cancel current command
 ")
 
   (eide-i-help-insert-header-1 "New key bindings")
@@ -385,20 +385,20 @@ Control-g ..................... cancel current command
   (eide-i-help-insert-header-2 "Access to the menus")
 
   (insert"
-          Alt - return .... Show/hide windows layout
-Control - Alt - return .... Enter/exit projects list
+       Alt - Enter ............ Show/hide menu and output windows
+Ctrl - Alt - Enter ............ Enter/exit projects list
 ")
 
   (eide-i-help-insert-header-2 "Editing")
 
   (insert "
-    Alt - left ........ Cut
-    Alt - down ........ Copy
-    Alt - right ....... Paste
+    Alt - left ......... Cut
+    Alt - down ......... Copy
+    Alt - right ........ Paste
 
-Control - mouse 1 ..... Cut
-Control - mouse 2 ..... Copy
-Control - mouse 3 ..... Paste
+Ctrl - left click ...... Cut
+Ctrl - middle click .... Copy
+Ctrl - right click ..... Paste
 ")
 
   (eide-i-help-insert-header-2 "Code browsing with tags/cscope")
@@ -424,10 +424,10 @@ Control - mouse 3 ..... Paste
   ;;(eide-i-help-insert-header-2 "{...} block hiding")
 
   ;;(insert "
-;;Control - F1 .......... Hide block
-;;Control - F2 .......... Show block
-;;Control - F3 .......... Hide all blocks in current buffer
-;;Control - F4 .......... Show all blocks in current buffer
+;;Ctrl - F1 .......... Hide block
+;;Ctrl - F2 .......... Show block
+;;Ctrl - F3 .......... Hide all blocks in current buffer
+;;Ctrl - F4 .......... Show all blocks in current buffer
 ;;")
 
   (eide-i-help-insert-header-2 "Display")
@@ -510,8 +510,8 @@ popup menu.
 These commands must be typed in 'control' window:
 
 ! ..................... update diffs
-<backspace> ........... go to previous diff
-<space> ............... go to next diff
+Backspace ............. go to previous diff
+Space ................. go to next diff
 a ..................... copy highlighted region A --> B
 b ..................... copy highlighted region A <-- B
 wa .................... save file A
@@ -526,7 +526,7 @@ F2 .................... copy highlighted region A <-- B
 F5 .................... update diffs
 F7 .................... go to previous diff
 F8 .................... go to next diff
-<right click> ......... quit (yes to confirm)
+Right click ........... quit (yes to confirm)
 
 ")
   (setq buffer-read-only t)
