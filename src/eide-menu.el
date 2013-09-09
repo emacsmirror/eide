@@ -1094,11 +1094,11 @@ Arguments:
   "Stop browsing mode (dired and buffer menu modes)."
   (eide-keys-configure-for-editor) ;; must be done first, for eide-i-windows-get-window-for-buffer
   (eide-windows-skip-unwanted-buffers-in-source-window)
+  (eide-windows-restore-layout)
   (if eide-i-menu-restore-ide-windows-after-browsing-mode-flag
     (progn
       (eide-windows-show-ide-windows)
       (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil)))
-  (eide-windows-restore-layout)
   ;; Kill all browsing buffers
   (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
     (save-current-buffer

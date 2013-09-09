@@ -131,6 +131,9 @@ Arguments (same as display-buffer function):
             (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
             (if (not l-window)
               (setq l-window l-selected-window))))
+        (if (and (equal l-window eide-windows-source-window)
+                 eide-menu-browsing-mode-flag)
+          (eide-menu-browsing-mode-stop))
         (set-window-buffer l-window p-buffer)
         ;; Result buffer name is updated asynchronously
         (if eide-windows-update-output-buffer-id
@@ -143,13 +146,8 @@ Arguments (same as display-buffer function):
                   (setq eide-shell-buffer l-buffer-name))))
             (setq eide-windows-update-output-buffer-id nil)))
         (if (equal l-window eide-windows-source-window)
-          (progn
-            (if (and eide-menu-browsing-mode-flag
-                     (not (equal major-mode 'dired-mode))
-                     (not (equal major-mode 'Buffer-menu-mode)))
-              (eide-menu-browsing-mode-stop))
-            ;; Update menu if necessary
-            (eide-menu-update nil)))
+          ;; Update menu if necessary
+          (eide-menu-update nil))
         (if (string-equal l-buffer-name "*Completions*")
           (progn
             (select-window l-window)
@@ -233,6 +231,9 @@ ones."
                 (if l-window
                   (select-window l-window)
                   (setq l-window (selected-window)))
+                (if (and (equal l-window eide-windows-source-window)
+                         eide-menu-browsing-mode-flag)
+                    (eide-menu-browsing-mode-stop))
                 ad-do-it
                 (set-buffer l-buffer-name)
                 (if (and eide-custom-override-emacs-settings
@@ -250,13 +251,8 @@ ones."
                         (recenter)
                         (setq eide-search-find-symbol-definition-flag nil)))
                     (if (equal l-window eide-windows-source-window)
-                      (progn
-                        (if (and eide-menu-browsing-mode-flag
-                                 (not (equal major-mode 'dired-mode))
-                                 (not (equal major-mode 'Buffer-menu-mode)))
-                          (eide-menu-browsing-mode-stop))
                         ;; Update menu if necessary
-                        (eide-menu-update nil)))))
+                        (eide-menu-update nil))))
                 ;; Select buffer window
                 (select-window l-window)
                 ;; Return the buffer that it switched to
