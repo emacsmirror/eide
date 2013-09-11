@@ -70,7 +70,7 @@
   :tag "Coding rules"
   :group 'eide-emacs-settings)
 
-(defgroup eide-search nil "Cscope option."
+(defgroup eide-search nil "Tags and cscope options."
   :tag "Search"
   :group 'eide-emacs-settings)
 

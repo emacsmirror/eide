@@ -30,7 +30,7 @@ shift $(($OPTIND - 1))
 if [ $option_local -eq 0 ]; then
   printf "\033[1mCheck root privileges:\033[0m "
   if [ $(id -u) -eq 0 ]; then
-    printf "\033[1;32mOK\033[0m\n\n"
+    printf "\033[1;32mOK\033[0m\n"
   else
     printf "\033[1;31mFAILED: You need root privileges to uninstall\033[0m\n"
     printf "If Emacs-IDE was installed locally for this user (install -l), you should use -l option\n"
