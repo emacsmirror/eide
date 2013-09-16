@@ -124,23 +124,6 @@ Arguments:
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-i-search-get-string-to-search ()
-  "Get string to search (either selected text, or word at cursor position)."
-  (if (eq mark-active t)
-    ;; Text is selected
-    (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
-      (buffer-substring-no-properties (region-beginning) (region-end))
-      (progn
-        (message "Text is selected over several lines: cannot search for it...")
-        nil))
-    ;; No text is selected
-    (let ((l-string (find-tag-default))) ; (cscope-extract-symbol-at-cursor nil)
-      (if l-string
-        l-string
-        (progn
-          (message "No text to search at cursor position...")
-          nil)))))
-
 (defun eide-i-search-tags-sentinel (p-process p-event)
   "Sentinel for \"create tags\" process.
 Arguments:
@@ -207,7 +190,8 @@ Argument:
 (defun eide-search-find-tag-without-prompt ()
   "Go to definition of symbol at cursor position."
   (interactive)
-  (setq eide-search-tag-string (eide-i-search-get-string-to-search))
+  ;; Save string in order to call eide-search-find-alternate-tag later on
+  (setq eide-search-tag-string (find-tag-default))
   (if eide-search-tag-string
     (eide-search-find-tag eide-search-tag-string)))
 
@@ -292,6 +276,13 @@ Argument:
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
 
+(defun eide-search-find-symbol-without-prompt ()
+  "Find symbol at cursor position with cscope."
+  (interactive)
+  (let ((l-string (find-tag-default)))
+    (if l-string
+      (eide-search-find-symbol l-string))))
+
 (defun eide-search-find-symbol-with-prompt ()
   "Find a symbol with cscope (prompt for it)."
   (interactive)
@@ -300,17 +291,6 @@ Argument:
       (let ((l-string (read-string "Find symbol with cscope: ")))
         (if (string-equal l-string "")
           (message "Cannot find empty symbol...")
-          (eide-search-find-symbol l-string)))
-      (message eide-search-cscope-no-file-string))
-    (message eide-search-cscope-not-ready-string)))
-
-(defun eide-search-find-symbol-without-prompt ()
-  "Find symbol at cursor position with cscope."
-  (interactive)
-  (if eide-search-cscope-available-flag
-    (if eide-search-cscope-files-flag
-      (let ((l-string (eide-i-search-get-string-to-search)))
-        (if l-string
           (eide-search-find-symbol l-string)))
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
@@ -344,7 +324,7 @@ Argument:
 (defun eide-search-grep-local-without-prompt ()
   "Grep word at cursor position, in current directory."
   (interactive)
-  (let ((l-string (eide-i-search-get-string-to-search)))
+  (let ((l-string (find-tag-default)))
     (if l-string
       (eide-search-grep-local l-string))))
 
@@ -388,7 +368,7 @@ Argument:
 (defun eide-search-grep-global-without-prompt ()
   "Grep word at cursor position, in the whole project."
   (interactive)
-  (let ((l-string (eide-i-search-get-string-to-search)))
+  (let ((l-string (find-tag-default)))
     (if l-string
       (eide-search-grep-global l-string))))
 
