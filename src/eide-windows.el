@@ -619,7 +619,8 @@ before gdb builds its own."
 
 (defun eide-windows-restore-layout ()
   "Restore the windows layout."
-  (set-window-configuration eide-windows-configuration))
+  (set-window-configuration eide-windows-configuration)
+  (setq eide-windows-source-window (selected-window)))
 
 (defun eide-windows-select-source-window (p-force-build-flag)
   "Select \"source\" window.

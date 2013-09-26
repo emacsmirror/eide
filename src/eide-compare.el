@@ -77,12 +77,16 @@
 (defun eide-i-compare-ediff-mode-start ()
   "Start ediff mode."
   (ad-deactivate 'select-window)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-ediff))
 
 (defun eide-i-compare-ediff-mode-stop ()
   "Stop ediff mode."
   (ad-activate 'select-window)
-  (eide-keys-configure-for-editor))
+  (eide-keys-configure-for-editor)
+  (eide-windows-restore-layout)
+  (eide-windows-show-ide-windows))
 
 (defun eide-i-compare-ediff-quit-hook ()
   "Hook for exiting ediff: Close temporary buffer, and restore display."
@@ -91,18 +95,11 @@
   ;; Restore default hook
   (setq ediff-quit-hook 'ediff-cleanup-mess)
   (eide-i-compare-ediff-mode-stop)
-  ;; Delete other windows, otherwise current line is not restored in
-  ;; eide-compare-buffer-name, unless it is the same as eide-current-buffer
-  ;; (and I don't know why!)
-  ;;(delete-other-windows)
   ;; Restore cursor position in the buffer that has been compared
-  ;; TODO: Restoring cursor position does not work anymore
   (set-buffer eide-compare-buffer-name)
   (goto-char eide-compare-current-point)
   ;; Back to current buffer
   (switch-to-buffer eide-current-buffer)
-  ;; Show IDE windows
-  (eide-windows-show-ide-windows)
   (kill-buffer eide-compare-other-buffer-name))
 
 (defun eide-i-compare-ediff-buffer-and-file (p-other-buffer-filename p-other-buffer-name-prefix p-buffer-in-left-window-flag p-force-major-mode-flag)
