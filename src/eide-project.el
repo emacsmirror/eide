@@ -69,6 +69,8 @@
 
 (defvar eide-project-config-target-buffer nil)
 
+(defvar eide-project-commands-enabled-flag nil)
+
 ;; Config files
 (make-face 'eide-project-config-comment-face)
 (make-face 'eide-project-config-parameter-face)
@@ -409,6 +411,10 @@ Argument:
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-project-set-commands-state (p-state-flag)
+  "Disable/enable project commands."
+  (setq eide-project-commands-enabled-flag p-state-flag))
 
 (defun eide-project-apply-color-theme ()
   "Apply color theme (for project)."
@@ -963,32 +969,38 @@ Argument:
 (defun eide-project-compile-1 ()
   "Compile project (1st compile command)."
   (interactive)
-  (eide-i-project-compile "compile_command_1"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-compile "compile_command_1")))
 
 (defun eide-project-compile-2 ()
   "Compile project (2nd compile command)."
   (interactive)
-  (eide-i-project-compile "compile_command_2"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-compile "compile_command_2")))
 
 (defun eide-project-compile-3 ()
   "Compile project (3rd compile command)."
   (interactive)
-  (eide-i-project-compile "compile_command_3"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-compile "compile_command_3")))
 
 (defun eide-project-compile-4 ()
   "Compile project (4th compile command)."
   (interactive)
-  (eide-i-project-compile "compile_command_4"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-compile "compile_command_4")))
 
 (defun eide-project-run-1 ()
   "Run project (1st run command)."
   (interactive)
-  (eide-i-project-run "run_command_1"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-run "run_command_1")))
 
 (defun eide-project-run-2 ()
   "Run project (2nd run command)."
   (interactive)
-  (eide-i-project-run "run_command_2"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-run "run_command_2")))
 
 (defun eide-project-debug-mode-start ()
   "Start debug mode."
@@ -1022,12 +1034,14 @@ Argument:
 (defun eide-project-debug-1 ()
   "Debug project (1st debug command)."
   (interactive)
-  (eide-i-project-debug "debug_program_1"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-debug "debug_program_1")))
 
 (defun eide-project-debug-2 ()
   "Debug project (2nd debug command)."
   (interactive)
-  (eide-i-project-debug "debug_program_2"))
+  (if eide-project-commands-enabled-flag
+    (eide-i-project-debug "debug_program_2")))
 
 ;; ----------------------------------------------------------------------------
 ;; KEYMAPS

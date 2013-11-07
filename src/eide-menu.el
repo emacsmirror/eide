@@ -60,6 +60,8 @@
 (defvar eide-menu-file-highlight-background-color nil)
 (defvar eide-menu-use-specific-background-color-flag nil)
 
+(defvar eide-menu-update-enabled-flag nil)
+
 ;; Faces
 (make-face 'eide-menu-default-face)
 (make-face 'eide-menu-project-header-face)
@@ -608,6 +610,10 @@ Argument:
     (set-buffer eide-menu-buffer-name)
     (setq buffer-read-only t)))
 
+(defun eide-menu-set-update-state (p-state-flag)
+  "Disable/enable update of buffers."
+  (setq eide-menu-update-enabled-flag p-state-flag))
+
 (defun eide-menu-apply-color-theme ()
   "Apply color theme (for menu)."
   (if (equal eide-custom-color-theme 'dark)
@@ -1037,43 +1043,47 @@ Arguments:
   ;; Extract the "short" directory from the buffer file name
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
 
-(defun eide-menu-revert-buffers ()
-  "Revert all open files from disk."
+(defun eide-menu-update-buffers ()
+  "Reload all open files from disk."
   (interactive)
-  (eide-windows-select-source-window nil)
-  (save-current-buffer
-    (dolist (l-buffer-name eide-menu-files-list)
-      (set-buffer l-buffer-name)
-      (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
-            (l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
-            (l-functions-with-highlight eide-menu-local-highlighted-symbols-list))
-        (if (file-exists-p buffer-file-name)
-          (revert-buffer))
+  (if eide-menu-update-enabled-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (save-current-buffer
+        (dolist (l-buffer-name eide-menu-files-list)
+          (set-buffer l-buffer-name)
+          (let ((l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
+                (l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
+                (l-functions-with-highlight eide-menu-local-highlighted-symbols-list))
+            (if (file-exists-p buffer-file-name)
+              (revert-buffer))
 
-        ;; NB: This part of code was in find-file-hook, which has been moved to
-        ;; switch-to-buffer advice. But with revert-buffer, switch-to-buffer is not
-        ;; called (while find-file-hook was). Therefore, this part of code has been
-        ;; moved here.
+            ;; NB: This part of code was in find-file-hook, which has been moved to
+            ;; switch-to-buffer advice. But with revert-buffer, switch-to-buffer is not
+            ;; called (while find-file-hook was). Therefore, this part of code has been
+            ;; moved here.
 
-        ;; Preserve local variables (necessary for menu update)
-        (make-local-variable 'eide-menu-local-functions-unfolded-flag)
-        (setq eide-menu-local-functions-unfolded-flag l-functions-unfolded-flag)
-        (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
-        (setq eide-menu-local-unfolded-symbols-folders-list l-unfolded-symbols-folders-list)
-        (make-local-variable 'eide-menu-local-highlighted-symbols-list)
-        (setq eide-menu-local-highlighted-symbols-list l-functions-with-highlight)
-        (make-local-variable 'eide-menu-local-edit-status)
-        (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-        (eide-vc-update-current-buffer-status))))
-  ;; Update menu (complete refresh, in case a file has changed (read/write status...)
-  (eide-menu-update t t))
+            ;; Preserve local variables (necessary for menu update)
+            (make-local-variable 'eide-menu-local-functions-unfolded-flag)
+            (setq eide-menu-local-functions-unfolded-flag l-functions-unfolded-flag)
+            (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
+            (setq eide-menu-local-unfolded-symbols-folders-list l-unfolded-symbols-folders-list)
+            (make-local-variable 'eide-menu-local-highlighted-symbols-list)
+            (setq eide-menu-local-highlighted-symbols-list l-functions-with-highlight)
+            (make-local-variable 'eide-menu-local-edit-status)
+            (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+            (eide-vc-update-current-buffer-status))))
+      ;; Update menu (complete refresh, in case a file has changed (read/write status...)
+      (eide-menu-update t t))))
 
 (defun eide-menu-kill-buffer ()
   "Close current file."
   (interactive)
-  (eide-windows-select-source-window nil)
-  (kill-this-buffer)
-  (eide-windows-skip-unwanted-buffers-in-source-window))
+  (if eide-menu-update-enabled-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (kill-this-buffer)
+      (eide-windows-skip-unwanted-buffers-in-source-window))))
 
 (defun eide-menu-dired-open ()
   "Open directory (dired mode)."

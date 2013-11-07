@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.11+")
-(defvar eide-release-date "2013-09")
+(defvar eide-release-date "2013-11")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -404,6 +404,8 @@ Ctrl - right click ..... Paste
   (eide-i-help-insert-header-2 "Code browsing with tags/cscope")
 
   (insert "
+NB: F1-F12 key bindings can be customized. The default bindings are shown below.
+
           F1 .......... Back from symbol definition
           F2 .......... Go to symbol definition (at cursor position, or selected text if any)
   Shift - F2 .......... Go to symbol definition (prompt for symbol)

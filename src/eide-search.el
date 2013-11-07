@@ -69,6 +69,9 @@
 (defvar eide-search-user-tags-case-fold-search nil)
 (defvar eide-search-user-cscope-do-not-update-database nil)
 
+(defvar eide-search-tags-and-cscope-enabled-flag nil)
+(defvar eide-search-grep-enabled-flag nil)
+
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
@@ -161,6 +164,14 @@ Arguments:
   (if eide-search-use-cscope-flag
     (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database)))
 
+(defun eide-search-set-tags-and-cscope-state (p-state-flag)
+  "Disable/enable tags and cscope functions."
+  (setq eide-search-tags-and-cscope-enabled-flag p-state-flag))
+
+(defun eide-search-set-grep-state (p-state-flag)
+  "Disable/enable grep functions."
+  (setq eide-search-grep-enabled-flag p-state-flag))
+
 (defun eide-search-create-tags ()
   "Create tags."
   (message "Creating tags...")
@@ -172,9 +183,11 @@ Arguments:
 (defun eide-search-back-from-tag ()
   "Go back from definition."
   (interactive)
-  (eide-windows-select-source-window nil)
-  (call-interactively 'pop-tag-mark)
-  (eide-menu-update nil))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (progn
+      (eide-windows-select-source-window nil)
+      (call-interactively 'pop-tag-mark)
+      (eide-menu-update nil))))
 
 (defun eide-search-find-tag (p-string)
   "Go to definition of a symbol.
@@ -190,37 +203,43 @@ Argument:
 (defun eide-search-find-tag-without-prompt ()
   "Go to definition of symbol at cursor position."
   (interactive)
-  ;; Save string in order to call eide-search-find-alternate-tag later on
-  (setq eide-search-tag-string (find-tag-default))
-  (if eide-search-tag-string
-    (eide-search-find-tag eide-search-tag-string)))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (if eide-search-tags-available-flag
+      (progn
+        ;; Save string in order to call eide-search-find-alternate-tag later on
+        (setq eide-search-tag-string (find-tag-default))
+        (if eide-search-tag-string
+          (eide-search-find-tag eide-search-tag-string)))
+      (message eide-search-tags-not-ready-string))))
 
 (defun eide-search-find-tag-with-prompt ()
   "Go to definition of a symbol (prompt for it)."
   (interactive)
-  (if eide-search-tags-available-flag
-    (progn
-      (eide-windows-select-source-window nil)
-      (call-interactively 'find-tag)
-      ;; Saving string is necessary for calling eide-search-find-alternate-tag
-      ;; later on... but there is no completion!
-      ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
-      ;;(if (string-equal eide-search-tag-string "")
-      ;;  (message "Cannot find empty symbol...")
-      ;;  (eide-search-find-tag eide-search-tag-string))
-      (recenter))
-    (message eide-search-tags-not-ready-string)))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (if eide-search-tags-available-flag
+      (progn
+        (eide-windows-select-source-window nil)
+        (call-interactively 'find-tag)
+        ;; Saving string is necessary for calling eide-search-find-alternate-tag
+        ;; later on... but there is no completion!
+        ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
+        ;;(if (string-equal eide-search-tag-string "")
+        ;;  (message "Cannot find empty symbol...")
+        ;;  (eide-search-find-tag eide-search-tag-string))
+        (recenter))
+      (message eide-search-tags-not-ready-string))))
 
 (defun eide-search-find-alternate-tag ()
   "Go to alternate definition of previously searched symbol."
   (interactive)
-  (if eide-search-tags-available-flag
-    (progn
-      (eide-windows-select-source-window nil)
-      (call-interactively 'pop-tag-mark)
-      (find-tag eide-search-tag-string t)
-      (recenter))
-    (message eide-search-tags-not-ready-string)))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (if eide-search-tags-available-flag
+      (progn
+        (eide-windows-select-source-window nil)
+        (call-interactively 'pop-tag-mark)
+        (find-tag eide-search-tag-string t)
+        (recenter))
+      (message eide-search-tags-not-ready-string))))
 
 (defun eide-search-update-cscope-status ()
   "Set cscope status (disabled if list of files is empty)."
@@ -279,21 +298,23 @@ Argument:
 (defun eide-search-find-symbol-without-prompt ()
   "Find symbol at cursor position with cscope."
   (interactive)
-  (let ((l-string (find-tag-default)))
-    (if l-string
-      (eide-search-find-symbol l-string))))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (let ((l-string (find-tag-default)))
+      (if l-string
+        (eide-search-find-symbol l-string)))))
 
 (defun eide-search-find-symbol-with-prompt ()
   "Find a symbol with cscope (prompt for it)."
   (interactive)
-  (if eide-search-cscope-available-flag
-    (if eide-search-cscope-files-flag
-      (let ((l-string (read-string "Find symbol with cscope: ")))
-        (if (string-equal l-string "")
-          (message "Cannot find empty symbol...")
-          (eide-search-find-symbol l-string)))
-      (message eide-search-cscope-no-file-string))
-    (message eide-search-cscope-not-ready-string)))
+  (if eide-search-tags-and-cscope-enabled-flag
+    (if eide-search-cscope-available-flag
+      (if eide-search-cscope-files-flag
+        (let ((l-string (read-string "Find symbol with cscope: ")))
+          (if (string-equal l-string "")
+            (message "Cannot find empty symbol...")
+            (eide-search-find-symbol l-string)))
+        (message eide-search-cscope-no-file-string))
+      (message eide-search-cscope-not-ready-string))))
 
 (defun eide-search-grep-local (p-string)
   "Grep a string in current directory.
@@ -324,17 +345,19 @@ Argument:
 (defun eide-search-grep-local-without-prompt ()
   "Grep word at cursor position, in current directory."
   (interactive)
-  (let ((l-string (find-tag-default)))
-    (if l-string
-      (eide-search-grep-local l-string))))
+  (if eide-search-grep-enabled-flag
+    (let ((l-string (find-tag-default)))
+      (if l-string
+        (eide-search-grep-local l-string)))))
 
 (defun eide-search-grep-local-with-prompt ()
   "Grep a string in current directory (prompt for it)."
   (interactive)
-  (let ((l-string (read-string "Grep (in current directory): ")))
-    (if (string-equal l-string "")
-      (message "Cannot grep empty string...")
-      (eide-search-grep-local l-string))))
+  (if eide-search-grep-enabled-flag
+    (let ((l-string (read-string "Grep (in current directory): ")))
+      (if (string-equal l-string "")
+        (message "Cannot grep empty string...")
+        (eide-search-grep-local l-string)))))
 
 (defun eide-search-grep-global (p-string)
   "Grep a string in the whole project.
@@ -368,41 +391,47 @@ Argument:
 (defun eide-search-grep-global-without-prompt ()
   "Grep word at cursor position, in the whole project."
   (interactive)
-  (let ((l-string (find-tag-default)))
-    (if l-string
-      (eide-search-grep-global l-string))))
+  (if eide-search-grep-enabled-flag
+    (let ((l-string (find-tag-default)))
+      (if l-string
+        (eide-search-grep-global l-string)))))
 
 (defun eide-search-grep-global-with-prompt ()
   "Grep a string in the whole project (prompt for it)."
   (interactive)
-  (let ((l-string (read-string "Grep (in whole project): ")))
-    (if (string-equal l-string "")
-      (message "Cannot grep empty string...")
-      (eide-search-grep-global l-string))))
+  (if eide-search-grep-enabled-flag
+    (let ((l-string (read-string "Grep (in whole project): ")))
+      (if (string-equal l-string "")
+        (message "Cannot grep empty string...")
+        (eide-search-grep-global l-string)))))
 
 (defun eide-search-grep-go-to-previous ()
   "Go to previous grep match (or compilation error)."
   (interactive)
-  (previous-error)
-  (if (not eide-windows-is-layout-visible-flag)
-    ;; Close grep window (appears automatically with previous-error)
-    (delete-other-windows))
-  (recenter)
-  ;; Update menu because a new file may have been opened
-  (eide-menu-update nil)
-  (eide-windows-select-source-window nil))
+  (if eide-search-grep-enabled-flag
+    (progn
+      (previous-error)
+      (if (not eide-windows-is-layout-visible-flag)
+        ;; Close grep window (appears automatically with previous-error)
+        (delete-other-windows))
+      (recenter)
+      ;; Update menu because a new file may have been opened
+      (eide-menu-update nil)
+      (eide-windows-select-source-window nil))))
 
 (defun eide-search-grep-go-to-next ()
   "Go to next grep match (or compilation error)."
   (interactive)
-  (next-error)
-  (if (not eide-windows-is-layout-visible-flag)
-    ;; Close grep window (appears automatically with next-error)
-    (delete-other-windows))
-  (recenter)
-  ;; Update menu because a new file may have been opened
-  (eide-menu-update nil)
-  (eide-windows-select-source-window nil))
+  (if eide-search-grep-enabled-flag
+    (progn
+      (next-error)
+      (if (not eide-windows-is-layout-visible-flag)
+        ;; Close grep window (appears automatically with next-error)
+        (delete-other-windows))
+      (recenter)
+      ;; Update menu because a new file may have been opened
+      (eide-menu-update nil)
+      (eide-windows-select-source-window nil))))
 
 (defun eide-search-read-man (p-args)
   "Read man page.

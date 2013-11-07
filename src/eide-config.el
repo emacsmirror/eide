@@ -86,7 +86,8 @@
       (eide-menu-update-background-color)
       (eide-display-apply-emacs-settings)
       (eide-coding-apply-emacs-settings)
-      (eide-search-apply-customization))))
+      (eide-search-apply-customization)
+      (eide-keys-apply-emacs-settings))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -96,7 +97,8 @@
   "Config initialization: save Emacs settings."
   (eide-coding-save-emacs-settings)
   (eide-display-save-emacs-settings)
-  (eide-search-save-emacs-settings))
+  (eide-search-save-emacs-settings)
+  (eide-keys-save-emacs-settings))
 
 (defun eide-config-apply ()
   "Apply config."
