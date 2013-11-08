@@ -159,6 +159,11 @@
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
+(defcustom eide-custom-project-default-tags-exclude "" "Default space separated list of patterns (files or directories) to exclude when creating tags."
+  :tag "Default tags exclude patterns"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
@@ -883,6 +888,9 @@ Argument:
       (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
       (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
       (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
+
+      (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
+      (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
 
       ;; Replace source file by target buffer if different
       (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))

@@ -176,9 +176,15 @@ Arguments:
   "Create tags."
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
-  (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command))))
-    ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
-    (set-process-sentinel l-process 'eide-i-search-tags-sentinel)))
+  (let ((l-create-tags-exclude-options "") (l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
+    ;; Create a string with the --exclude options if "tags_exclude" list is not
+    ;; empty in project configuration
+    (if (not (string-equal l-tags-exclude-list ""))
+      (setq l-create-tags-exclude-options (concat " " (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-tags-exclude-list) " "))))
+    ;; Execute the command (standard command + --exclude options if any)
+    (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command l-create-tags-exclude-options))))
+      ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
+      (set-process-sentinel l-process 'eide-i-search-tags-sentinel))))
 
 (defun eide-search-back-from-tag ()
   "Go back from definition."
