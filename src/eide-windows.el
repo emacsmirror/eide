@@ -27,7 +27,7 @@
 (defvar eide-windows-output-window nil)
 (defvar eide-windows-window-completion nil)
 
-(defvar eide-windows-is-layout-visible-flag nil)
+(defvar eide-windows-ide-windows-visible-flag nil)
 (defvar eide-windows-menu-update-request-pending-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-update-status-flag nil)
@@ -68,7 +68,7 @@ Argument:
 - p-buffer-name: buffer name."
   (if eide-keys-is-editor-configuration-active-flag
     (if (string-match "^\*.*" p-buffer-name)
-      (if eide-windows-is-layout-visible-flag
+      (if eide-windows-ide-windows-visible-flag
         (if (string-equal eide-menu-buffer-name p-buffer-name)
           eide-windows-menu-window
           eide-windows-output-window)
@@ -113,7 +113,7 @@ Arguments (same as display-buffer function):
         (setq l-window l-selected-window)
         (set-window-buffer l-window p-buffer))
       (progn
-        (if (and (not eide-windows-is-layout-visible-flag)
+        (if (and (not eide-windows-ide-windows-visible-flag)
                  (string-equal l-buffer-name "*Completions*"))
           (progn
             (setq l-window (get-buffer-window l-buffer-name))
@@ -443,7 +443,7 @@ before gdb builds its own."
 
 (defun eide-windows-show-ide-windows ()
   "Show \"menu\" and \"ouput\" windows."
-  (if (not eide-windows-is-layout-visible-flag)
+  (if (not eide-windows-ide-windows-visible-flag)
     (progn
       (ad-deactivate 'select-window)
       (if (< emacs-major-version 24)
@@ -547,7 +547,7 @@ before gdb builds its own."
 
       (select-window eide-windows-source-window)
       (eide-windows-skip-unwanted-buffers-in-source-window)
-      (setq eide-windows-is-layout-visible-flag t)
+      (setq eide-windows-ide-windows-visible-flag t)
       ;; Update menu if necessary
       (if eide-windows-menu-update-request-pending-flag
         (eide-menu-update nil))
@@ -555,7 +555,7 @@ before gdb builds its own."
 
 (defun eide-windows-hide-ide-windows ()
   "Hide \"menu\" and \"output\" windows."
-  (if eide-windows-is-layout-visible-flag
+  (if eide-windows-ide-windows-visible-flag
     (progn
       (ad-deactivate 'select-window)
       (if (and (window-live-p eide-windows-menu-window)
@@ -596,14 +596,14 @@ before gdb builds its own."
       (setq eide-windows-menu-window nil)
       (setq eide-windows-output-window nil)
       (setq eide-windows-source-window (selected-window))
-      (setq eide-windows-is-layout-visible-flag nil)
+      (setq eide-windows-ide-windows-visible-flag nil)
       (eide-windows-skip-unwanted-buffers-in-source-window)
       (ad-activate 'select-window))))
 
 (defun eide-windows-show-hide-ide-windows ()
   "Show/hide \"menu\" and \"ouput\" windows."
   (interactive)
-  (if eide-windows-is-layout-visible-flag
+  (if eide-windows-ide-windows-visible-flag
     (eide-windows-hide-ide-windows)
     (progn
       (eide-windows-show-ide-windows)
@@ -626,21 +626,21 @@ before gdb builds its own."
   "Select \"source\" window.
 Argument:
 - p-force-build-flag: t = build windows layout if not visible."
-  (if (or eide-windows-is-layout-visible-flag p-force-build-flag)
+  (if (or eide-windows-ide-windows-visible-flag p-force-build-flag)
     (progn
-      (if (not eide-windows-is-layout-visible-flag)
+      (if (not eide-windows-ide-windows-visible-flag)
         (eide-windows-show-ide-windows))
       (select-window eide-windows-source-window))))
 
 (defun eide-windows-select-menu-window ()
   "Select \"menu\" window (build windows layout if necessary)."
-  (if (not eide-windows-is-layout-visible-flag)
+  (if (not eide-windows-ide-windows-visible-flag)
     (eide-windows-show-ide-windows))
   (select-window eide-windows-menu-window))
 
 (defun eide-windows-select-output-window ()
   "Select \"output\" window (build windows layout if necessary)."
-  (if (not eide-windows-is-layout-visible-flag)
+  (if (not eide-windows-ide-windows-visible-flag)
     (eide-windows-show-ide-windows))
   (select-window eide-windows-output-window))
 
@@ -712,7 +712,7 @@ and display it. Current buffer is kept if correct."
       ;; If windows layout is supposed to be visible, but one of
       ;; the three windows is not visible, first unbuild, to
       ;; force rebuild
-      (if (and eide-windows-is-layout-visible-flag
+      (if (and eide-windows-ide-windows-visible-flag
                (or (not (window-live-p eide-windows-menu-window))
                    (not (window-live-p eide-windows-output-window))
                    (not (window-live-p eide-windows-source-window))))
@@ -724,7 +724,7 @@ and display it. Current buffer is kept if correct."
           ;; "Menu" window: open project popup menu
           (eide-popup-open-menu)
           ;; "Source" window
-          (if eide-windows-is-layout-visible-flag
+          (if eide-windows-ide-windows-visible-flag
             ;; Hide
             (eide-windows-hide-ide-windows)
             ;; Show
@@ -739,7 +739,7 @@ and display it. Current buffer is kept if correct."
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
-  (if (and eide-windows-is-layout-visible-flag (eide-i-windows-is-menu-window-selected-p))
+  (if (and eide-windows-ide-windows-visible-flag (eide-i-windows-is-menu-window-selected-p))
     (eide-menu-dired-open)
     (yank)))
 

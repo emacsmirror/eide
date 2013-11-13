@@ -417,7 +417,7 @@ Argument:
   (if eide-search-grep-enabled-flag
     (progn
       (previous-error)
-      (if (not eide-windows-is-layout-visible-flag)
+      (if (not eide-windows-ide-windows-visible-flag)
         ;; Close grep window (appears automatically with previous-error)
         (delete-other-windows))
       (recenter)
@@ -431,7 +431,7 @@ Argument:
   (if eide-search-grep-enabled-flag
     (progn
       (next-error)
-      (if (not eide-windows-is-layout-visible-flag)
+      (if (not eide-windows-ide-windows-visible-flag)
         ;; Close grep window (appears automatically with next-error)
         (delete-other-windows))
       (recenter)

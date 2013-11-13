@@ -626,7 +626,7 @@ Argument:
                (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
         (setq l-do-it nil))
       (if l-do-it
-        (let ((l-layout-visible-flag eide-windows-is-layout-visible-flag))
+        (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
           ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
           ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
           ;; otherwise we get errors for non-existing windows
@@ -638,7 +638,7 @@ Argument:
           (eide-menu-browsing-mode-stop)
           (eide-project-load-root-directory-content nil)
           (eide-menu-update t)
-          (if l-layout-visible-flag
+          (if l-ide-windows-visible-flag
             (eide-windows-show-ide-windows)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 

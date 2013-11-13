@@ -721,7 +721,7 @@ Arguments:
   buffer has changed.
 - p-force-update-status-flag (optional): t = update files status, nil = do not
   update."
-  (if eide-windows-is-layout-visible-flag
+  (if eide-windows-ide-windows-visible-flag
     (progn
       ;; Cancel pending request
       (setq eide-windows-menu-update-request-pending-flag nil)
@@ -1092,7 +1092,7 @@ Arguments:
 
 (defun eide-menu-browsing-mode-start ()
   "Start browsing mode (dired and buffer menu modes)."
-  (if eide-windows-is-layout-visible-flag
+  (if eide-windows-ide-windows-visible-flag
     (progn
       (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag t)
       (eide-windows-hide-ide-windows)))
