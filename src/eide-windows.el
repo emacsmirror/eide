@@ -376,11 +376,13 @@ before gdb builds its own."
   "Hook to be called once the frame has been resized."
   (eide-config-apply)
 
-  ;; Close buffer "*Buffer List*" if it exists.
-  ;; It is created when Emacs is launched with files in arguments.
+  ;; In case Emacs is launched with several files in arguments:
+  ;; 1) Close "*Buffer List*"
   (let ((l-buffer (get-buffer "*Buffer List*")))
     (if l-buffer
       (kill-buffer l-buffer)))
+  ;; 2) Keep only one source window
+  (delete-other-windows)
 
   (setq eide-windows-source-window (selected-window))
   (setq eide-windows-output-window-height (/ (frame-height) 5))
