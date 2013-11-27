@@ -164,6 +164,11 @@
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
+(defcustom eide-custom-project-default-cscope-exclude "" "Default space separated list of patterns (path relative to project root directory, beginning with ./) to exclude when creating cscope list of files."
+  :tag "Default cscope exclude patterns"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
@@ -890,7 +895,22 @@ Argument:
       (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
 
       (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
+      (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
+      (insert "# Examples:\n")
+      (insert "# - Use foo pattern to exclude all directories and files named foo.\n")
+      (insert "# - Use *foo* pattern to exclude all directories and files containing foo.\n")
+      (insert "# - Use some/path/foo pattern to exclude only some/path/foo directory or file.\n")
       (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
+
+      (insert "# Space separated list of patterns (path relative to project root directory, beginning with ./)\n")
+      (insert "# to exclude when creating cscope list of files.\n")
+      (insert "# Each <pattern> adds an option ! -path \"<pattern>\" to find command.\n")
+      (insert "# Examples:\n")
+      (insert "# - Use */foo/* pattern to exclude all directories named foo.\n")
+      (insert "# - Use */foo pattern to exclude all files named foo.\n")
+      (insert "# - Use ./some/path/foo/* pattern to exclude only ./some/path/foo directory.\n")
+      (insert "# - Use ./some/path/foo pattern to exclude only ./some/path/foo file.\n")
+      (eide-i-project-rebuild-config-line "cscope_exclude" eide-custom-project-default-cscope-exclude)
 
       ;; Replace source file by target buffer if different
       (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
