@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.11+")
-(defvar eide-release-date "2013-11")
+(defvar eide-release-date "2013-12")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)

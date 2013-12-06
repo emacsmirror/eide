@@ -215,6 +215,21 @@ Arguments:
   ;; file-name-nondirectory retrieves last directory name from complete path: current_project
   (setq eide-project-name (file-name-nondirectory (directory-file-name eide-root-directory)))
 
+  ;; Some options from project configuration are necessary to load a project
+  ;; (exclude patterns for tags and cscope list of files, for example).
+  ;; It is necessary to rebuild - or simply create - the config file now.
+  ;; In case of creation, it will use the default values from customization.
+
+  ;; Close any existing config file, to make sure we will use the right one
+  (if (get-buffer eide-project-config-file)
+    (kill-buffer eide-project-config-file))
+  ;; Rebuild or create project file
+  (eide-project-rebuild-config-file p-startup-flag)
+
+  ;; Tags and cscope list of files creation is started as soon as possible,
+  ;; because it is executed in another process, in parallel with the loading of
+  ;; the desktop.
+
   ;; Create tags if necessary
   (if (file-exists-p (concat eide-root-directory "TAGS"))
     (setq eide-search-tags-available-flag t)
@@ -276,11 +291,13 @@ Arguments:
   (if eide-search-use-cscope-flag
     (cscope-set-initial-directory eide-root-directory))
 
-  ;; Close any existing config file, to make sure we will use the right one
+  ;; Close any existing config file, to make sure we will use the right one.
+  ;; It was opened and rebuilt at the beginning, but the loading of the desktop
+  ;; might have replaced it with another one.
   (if (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
-  ;; Rebuild project file after the desktop has been changed (in case of project switching)
-  (eide-project-rebuild-config-file p-startup-flag)
+  ;; Open config file (already rebuilt at the beginning)
+  (find-file-noselect (concat eide-root-directory eide-project-config-file))
   ;; Add the project to current workspace
   (eide-project-add-in-list p-startup-flag))
 
