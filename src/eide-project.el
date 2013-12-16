@@ -164,8 +164,23 @@
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-cscope-exclude "" "Default space separated list of patterns (path relative to project root directory, beginning with ./) to exclude when creating cscope list of files."
-  :tag "Default cscope exclude patterns"
+(defcustom eide-custom-project-default-cscope-exclude-files "" "Default space separated list of files patterns to exclude when creating cscope list of files."
+  :tag "Default cscope exclude files patterns"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-cscope-exclude-dirs "" "Default space separated list of directories patterns to exclude when creating cscope list of files."
+  :tag "Default cscope exclude directories patterns"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-grep-exclude-files "" "Default space separated list of files patterns to exclude when searching with grep."
+  :tag "Default grep exclude files patterns"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-grep-exclude-dirs "" "Default space separated list of directories patterns to exclude when searching with grep."
+  :tag "Default grep exclude directories patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
@@ -919,15 +934,33 @@ Argument:
       (insert "# - Use some/path/foo pattern to exclude only some/path/foo directory or file.\n")
       (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
 
-      (insert "# Space separated list of patterns (path relative to project root directory, beginning with ./)\n")
-      (insert "# to exclude when creating cscope list of files.\n")
-      (insert "# Each <pattern> adds an option ! -path \"<pattern>\" to find command.\n")
+      (insert "# Space separated list of files patterns to exclude when creating cscope list of files.\n")
+      (insert "# Each <pattern> adds an option ! -name \"<pattern>\" to find command.\n")
       (insert "# Examples:\n")
-      (insert "# - Use */foo/* pattern to exclude all directories named foo.\n")
-      (insert "# - Use */foo pattern to exclude all files named foo.\n")
-      (insert "# - Use ./some/path/foo/* pattern to exclude only ./some/path/foo directory.\n")
-      (insert "# - Use ./some/path/foo pattern to exclude only ./some/path/foo file.\n")
-      (eide-i-project-rebuild-config-line "cscope_exclude" eide-custom-project-default-cscope-exclude)
+      (insert "# - Use foo pattern to exclude all files named foo.\n")
+      (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
+      (eide-i-project-rebuild-config-line "cscope_exclude_files" eide-custom-project-default-cscope-exclude-files)
+
+      (insert "# Space separated list of directories patterns to exclude when creating cscope list of files.\n")
+      (insert "# Each <pattern> adds an option ! -path \"*/<pattern>/*\" to find command.\n")
+      (insert "# Examples:\n")
+      (insert "# - Use foo pattern to exclude all directories named foo.\n")
+      (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
+      (eide-i-project-rebuild-config-line "cscope_exclude_dirs" eide-custom-project-default-cscope-exclude-dirs)
+
+      (insert "# Space separated list of files patterns to exclude when searching with grep.\n")
+      (insert "# Each <pattern> adds an option --exclude=<pattern> to grep command.\n")
+      (insert "# Examples:\n")
+      (insert "# - Use foo pattern to exclude all files named foo.\n")
+      (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
+      (eide-i-project-rebuild-config-line "grep_exclude_files" eide-custom-project-default-grep-exclude-files)
+
+      (insert "# Space separated list of directories patterns to exclude when searching with grep.\n")
+      (insert "# Each <pattern> adds an option --exclude-dir=<pattern> to grep command.\n")
+      (insert "# Examples:\n")
+      (insert "# - Use foo pattern to exclude all directories named foo.\n")
+      (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
+      (eide-i-project-rebuild-config-line "grep_exclude_dirs" eide-custom-project-default-grep-exclude-dirs)
 
       ;; Replace source file by target buffer if different
       (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
