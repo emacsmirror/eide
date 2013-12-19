@@ -192,6 +192,30 @@ Arguments (same as switch-to-buffer function):
 - p-buffer: buffer.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
+  ;; C-x C-f saves the windows layout before displaying completion buffer,
+  ;; and restores it when the file is selected - just before calling switch-to-buffer.
+  ;; If the user has changed the windows layout in between, it is lost.
+  ;; In particular, if the user has changed IDE windows visibility, is is lost,
+  ;; and the internal state is incorrect: we must fix it!
+  (if eide-windows-ide-windows-visible-flag
+    (if (not (get-buffer-window eide-menu-buffer-name))
+      ;; IDE windows are supposed to be shown, but an old layout has been restored:
+      ;; let's clear internal status.
+      (progn
+        (setq eide-windows-ide-windows-visible-flag nil)
+        (setq eide-windows-menu-window nil)
+        (setq eide-windows-output-window nil)))
+    (let ((l-menu-window (get-buffer-window eide-menu-buffer-name)))
+      (if l-menu-window
+        ;; IDE windows are supposed to be hidden, but an old layout has been restored:
+        ;; let's update internal status with menu buffer and possible output buffer.
+        (progn
+          (setq eide-windows-ide-windows-visible-flag t)
+          (setq eide-windows-menu-window l-menu-window)
+          (dolist (l-window (window-list))
+            (if (string-match "^\*.*" (buffer-name (window-buffer l-window)))
+              (setq eide-windows-output-window l-window)))))))
+
   (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
       ;; Get buffer name from buffer
@@ -449,6 +473,13 @@ before gdb builds its own."
   (if (not eide-windows-ide-windows-visible-flag)
     (progn
       (ad-deactivate 'select-window)
+      ;; If completion buffer is displayed, let's close its current window
+      ;; and display it in new output window.
+      (let ((l-completion-window (get-buffer-window "*Completions*")))
+        (if l-completion-window
+          (progn
+            (delete-window l-completion-window)
+            (setq eide-windows-output-window-buffer "*Completions*"))))
       (if (< emacs-major-version 24)
         ;; Emacs 23 doesn't have internal windows, only live windows.
         ;; Internal windows are necessary to group several "source" windows
@@ -526,6 +557,11 @@ before gdb builds its own."
               (progn
                 (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
                 (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))))
+
+      ;; Temporarily disable switch-to-buffer advice
+      ;; It is useless and would check IDE windows while they're being created...
+      (ad-deactivate 'switch-to-buffer)
+
       ;; "Menu" window
       (select-window eide-windows-menu-window)
       (switch-to-buffer eide-menu-buffer-name)
@@ -547,6 +583,9 @@ before gdb builds its own."
       (if eide-windows-output-window-buffer
         (switch-to-buffer eide-windows-output-window-buffer)
         (setq eide-windows-output-window-buffer "*results*"))
+
+      ;; Enable switch-to-buffer advice again
+      (ad-activate 'switch-to-buffer)
 
       (select-window eide-windows-source-window)
       (eide-windows-skip-unwanted-buffers-in-source-window)
