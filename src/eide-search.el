@@ -72,6 +72,10 @@
 (defvar eide-search-tags-and-cscope-enabled-flag nil)
 (defvar eide-search-grep-enabled-flag nil)
 
+(defvar eide-search-tags-exclude-enabled-flag t)
+(defvar eide-search-cscope-exclude-enabled-flag t)
+(defvar eide-search-grep-exclude-enabled-flag t)
+
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
@@ -172,16 +176,49 @@ Arguments:
   "Disable/enable grep functions."
   (setq eide-search-grep-enabled-flag p-state-flag))
 
+(defun eide-search-toggle-tags-exclude-state ()
+  "Disable/enable tags exclude filters (defined in project configuration)."
+  (interactive)
+  (if eide-search-tags-available-flag
+    (progn
+      (if eide-search-tags-exclude-enabled-flag
+        (setq eide-search-tags-exclude-enabled-flag nil)
+        (setq eide-search-tags-exclude-enabled-flag t))
+      ;; Update tags according to the new state of filters
+      (eide-search-create-tags))
+    (eide-popup-message "Cannot toggle activation of tags exclude filters while tags are being created...")))
+
+(defun eide-search-toggle-cscope-exclude-state ()
+  "Disable/enable cscope exclude filters (defined in project configuration)."
+  (interactive)
+  (if eide-search-cscope-available-flag
+    (progn
+      (if eide-search-cscope-exclude-enabled-flag
+        (setq eide-search-cscope-exclude-enabled-flag nil)
+        (setq eide-search-cscope-exclude-enabled-flag t))
+      ;; Update cscope list of files according to the new state of filters
+      (eide-search-create-cscope-list-of-files))
+    (eide-popup-message "Cannot toggle activation of cscope exclude filters while cscope list of files is being created...")))
+
+(defun eide-search-toggle-grep-exclude-state ()
+  "Disable/enable grep exclude filters (defined in project configuration)."
+  (interactive)
+  (if eide-search-grep-exclude-enabled-flag
+    (setq eide-search-grep-exclude-enabled-flag nil)
+    (setq eide-search-grep-exclude-enabled-flag t)))
+
 (defun eide-search-create-tags ()
   "Create tags."
   (interactive)
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
-  (let ((l-create-tags-exclude-options "") (l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
-    ;; Create a string with --exclude options if "tags_exclude" list is not
-    ;; empty in project configuration
-    (if (not (string-equal l-tags-exclude-list ""))
-      (setq l-create-tags-exclude-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-tags-exclude-list) " ")))
+  (let ((l-create-tags-exclude-options ""))
+    (if eide-search-tags-exclude-enabled-flag
+      (let ((l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
+        ;; Create a string with --exclude options if "tags_exclude" list is not
+        ;; empty in project configuration
+        (if (not (string-equal l-tags-exclude-list ""))
+          (setq l-create-tags-exclude-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-tags-exclude-list) " ")))))
     ;; Execute the command (standard command + --exclude options if any)
     (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command l-create-tags-exclude-options))))
       ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
@@ -261,17 +298,18 @@ Argument:
   (setq eide-search-cscope-available-flag nil)
   (setq eide-search-cscope-update-database-request-pending-flag t)
   (let ((l-create-cscope-exclude-files-options "")
-        (l-create-cscope-exclude-dirs-options "")
-        (l-cscope-exclude-files-list (eide-project-get-config-value "cscope_exclude_files"))
-        (l-cscope-exclude-dirs-list (eide-project-get-config-value "cscope_exclude_dirs")))
-    ;; Create a string with ! -name options if "cscope_exclude_files" list is not
-    ;; empty in project configuration
-    (if (not (string-equal l-cscope-exclude-files-list ""))
-      (setq l-create-cscope-exclude-files-options (mapconcat (function (lambda(x) (concat "! -name \"" x "\""))) (split-string l-cscope-exclude-files-list) " ")))
-    ;; Create a string with ! -path options if "cscope_exclude_dirs" list is not
-    ;; empty in project configuration
-    (if (not (string-equal l-cscope-exclude-dirs-list ""))
-      (setq l-create-cscope-exclude-dirs-options (mapconcat (function (lambda(x) (concat "! -path \"*/" x "/*\""))) (split-string l-cscope-exclude-dirs-list) " ")))
+        (l-create-cscope-exclude-dirs-options ""))
+    (if eide-search-cscope-exclude-enabled-flag
+      (let ((l-cscope-exclude-files-list (eide-project-get-config-value "cscope_exclude_files"))
+            (l-cscope-exclude-dirs-list (eide-project-get-config-value "cscope_exclude_dirs")))
+        ;; Create a string with ! -name options if "cscope_exclude_files" list is not
+        ;; empty in project configuration
+        (if (not (string-equal l-cscope-exclude-files-list ""))
+          (setq l-create-cscope-exclude-files-options (mapconcat (function (lambda(x) (concat "! -name \"" x "\""))) (split-string l-cscope-exclude-files-list) " ")))
+        ;; Create a string with ! -path options if "cscope_exclude_dirs" list is not
+        ;; empty in project configuration
+        (if (not (string-equal l-cscope-exclude-dirs-list ""))
+          (setq l-create-cscope-exclude-dirs-options (mapconcat (function (lambda(x) (concat "! -path \"*/" x "/*\""))) (split-string l-cscope-exclude-dirs-list) " ")))))
     ;; Execute the command (standard command + ! -name and ! -path options if any)
     (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command l-create-cscope-exclude-files-options l-create-cscope-exclude-dirs-options " > cscope.files"))))
       ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
@@ -353,12 +391,13 @@ Argument:
         (setq l-do-it-flag nil)))
     (if l-do-it-flag
       (progn
-        (let ((l-grep-exclude-files-options "")
-              (l-grep-exclude-files-list (eide-project-get-config-value "grep_exclude_files")))
-          ;; Create a string with --exclude options if "grep_exclude_files" list is not
-          ;; empty in project configuration
-          (if (not (string-equal l-grep-exclude-files-list ""))
-            (setq l-grep-exclude-files-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-grep-exclude-files-list) " ")))
+        (let ((l-grep-exclude-files-options ""))
+          (if eide-search-grep-exclude-enabled-flag
+            (let ((l-grep-exclude-files-list (eide-project-get-config-value "grep_exclude_files")))
+              ;; Create a string with --exclude options if "grep_exclude_files" list is not
+              ;; empty in project configuration
+              (if (not (string-equal l-grep-exclude-files-list ""))
+                (setq l-grep-exclude-files-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-grep-exclude-files-list) " ")))))
           ;; grep options: I (no binary), n (show line number), e (pattern may start with '-')
           ;; 2> /dev/null is used to hide warnings about missing files
           ;; 'cd' is used first, in case shell init changes current directory
@@ -404,17 +443,18 @@ Argument:
     (if l-do-it-flag
       (progn
         (let ((l-grep-exclude-files-options "")
-              (l-grep-exclude-dirs-options "")
-              (l-grep-exclude-files-list (eide-project-get-config-value "grep_exclude_files"))
-              (l-grep-exclude-dirs-list (eide-project-get-config-value "grep_exclude_dirs")))
-          ;; Create a string with --exclude options if "grep_exclude_files" list is not
-          ;; empty in project configuration
-          (if (not (string-equal l-grep-exclude-files-list ""))
-            (setq l-grep-exclude-files-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-grep-exclude-files-list) " ")))
-          ;; Create a string with --exclude-dir options if "grep_exclude_dirs" list is not
-          ;; empty in project configuration
-          (if (not (string-equal l-grep-exclude-dirs-list ""))
-            (setq l-grep-exclude-dirs-options (mapconcat (function (lambda(x) (concat "--exclude-dir=" x))) (split-string l-grep-exclude-dirs-list) " ")))
+              (l-grep-exclude-dirs-options ""))
+          (if eide-search-grep-exclude-enabled-flag
+            (let ((l-grep-exclude-files-list (eide-project-get-config-value "grep_exclude_files"))
+                  (l-grep-exclude-dirs-list (eide-project-get-config-value "grep_exclude_dirs")))
+              ;; Create a string with --exclude options if "grep_exclude_files" list is not
+              ;; empty in project configuration
+              (if (not (string-equal l-grep-exclude-files-list ""))
+                (setq l-grep-exclude-files-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-grep-exclude-files-list) " ")))
+              ;; Create a string with --exclude-dir options if "grep_exclude_dirs" list is not
+              ;; empty in project configuration
+              (if (not (string-equal l-grep-exclude-dirs-list ""))
+                (setq l-grep-exclude-dirs-options (mapconcat (function (lambda(x) (concat "--exclude-dir=" x))) (split-string l-grep-exclude-dirs-list) " ")))))
           ;; Temporarily change current directory, so that grep results are relative to root directory
           (let ((default-directory eide-root-directory))
             ;; grep options: r (recursive), I (no binary), n (show line number), e (pattern may start with '-')

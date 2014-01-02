@@ -305,8 +305,8 @@ Argument:
       (eide-i-popup-menu-close-action-list "Grep results")))
   (if eide-menu-cscope-results-list
     (progn
-      (dolist (l-csope-result eide-menu-cscope-results-list)
-        (eide-i-popup-menu-add-action l-csope-result (concat "(eide-search-view-output-buffer \"" l-csope-result "\")") t))
+      (dolist (l-cscope-result eide-menu-cscope-results-list)
+        (eide-i-popup-menu-add-action l-cscope-result (concat "(eide-search-view-output-buffer \"" l-cscope-result "\")") t))
       (eide-i-popup-menu-close-action-list "Cscope results")))
   (if eide-menu-man-pages-list
     (progn
