@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE, search
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -174,6 +174,7 @@ Arguments:
 
 (defun eide-search-create-tags ()
   "Create tags."
+  (interactive)
   (message "Creating tags...")
   (setq eide-search-tags-available-flag nil)
   (let ((l-create-tags-exclude-options "") (l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
@@ -255,6 +256,7 @@ Argument:
 
 (defun eide-search-create-cscope-list-of-files ()
   "Create cscope list of files."
+  (interactive)
   (message "Creating cscope list of files...")
   (setq eide-search-cscope-available-flag nil)
   (setq eide-search-cscope-update-database-request-pending-flag t)
@@ -278,6 +280,7 @@ Argument:
 
 (defun eide-search-update-cscope-database ()
   "Update cscope database (on next search)."
+  (interactive)
   (setq eide-search-cscope-update-database-request-pending-flag t)
   (message "On next cscope search, database will be updated"))
 

@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE, help
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -23,7 +23,7 @@
 (require 'eide-windows)
 
 (defvar eide-version "1.11+")
-(defvar eide-release-date "2013-12")
+(defvar eide-release-date "2014-01")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -90,6 +90,7 @@ Argument:
 
 (defun eide-help-open ()
   "Display help (full frame)."
+  (interactive)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-i-help-set-colors-for-help)

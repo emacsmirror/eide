@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE, project
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -214,6 +214,38 @@ has already been called."
   (if eide-project-name
     (setq frame-title-format (concat eide-project-name " - Emacs"))
     (setq frame-title-format (concat eide-root-directory " - Emacs"))))
+
+(defun eide-i-project-set-current-workspace (p-workspace-number)
+  "Set current workspace.
+Argument:
+- p-workspace-number: new workspace number."
+  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+    (if (<= p-workspace-number eide-custom-number-of-workspaces)
+      (progn
+        (setq eide-project-current-workspace p-workspace-number)
+        ;; Change projects list file
+        (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+        ;; Restore initial root directory
+        (setq eide-project-name nil)
+        (setq eide-root-directory eide-root-directory-at-startup)
+        ;; Clear the project selected for comparison
+        (setq eide-compare-other-project-name nil)
+        (setq eide-compare-other-project-directory nil)
+        (if (not eide-no-desktop-option)
+          (progn
+            ;; Clear desktop (even if a project is defined)
+            (eide-windows-hide-ide-windows)
+            (desktop-save-mode -1)
+            ;; Close all buffers
+            (desktop-clear)
+            (setq desktop-dirname nil)
+            (eide-menu-update t)
+            (eide-windows-show-ide-windows)))
+        (eide-i-project-update-internal-projects-list)
+        ;; Update default directory if current buffer is not visiting a file
+        (if (not buffer-file-name)
+          (setq default-directory eide-root-directory))))
+    (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-i-project-load (p-startup-flag p-creation-flag)
   "Update environment according to the project in root directory:
@@ -513,40 +545,49 @@ Argument:
       (setq l-workspace-number (+ l-workspace-number 1))))
   (eide-i-project-update-internal-projects-list))
 
-(defun eide-project-set-current-workspace (p-workspace-number)
-  "Set current workspace.
-Argument:
-- p-workspace-number: new workspace number."
-  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
-    (if (<= p-workspace-number eide-custom-number-of-workspaces)
-      (progn
-        (setq eide-project-current-workspace p-workspace-number)
-        ;; Change projects list file
-        (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
-        ;; Restore initial root directory
-        (setq eide-project-name nil)
-        (setq eide-root-directory eide-root-directory-at-startup)
-        ;; Clear the project selected for comparison
-        (setq eide-compare-other-project-name nil)
-        (setq eide-compare-other-project-directory nil)
-        (if (not eide-no-desktop-option)
-          (progn
-            ;; Clear desktop (even if a project is defined)
-            (eide-windows-hide-ide-windows)
-            (desktop-save-mode -1)
-            ;; Close all buffers
-            (desktop-clear)
-            (setq desktop-dirname nil)
-            (eide-menu-update t)
-            (eide-windows-show-ide-windows)))
-        (eide-i-project-update-internal-projects-list)
-        ;; Update default directory if current buffer is not visiting a file
-        (if (not buffer-file-name)
-          (setq default-directory eide-root-directory))))
-    (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
+(defun eide-project-switch-to-workspace-1 ()
+  "Switch to workspace 1."
+  (interactive)
+  (eide-i-project-set-current-workspace 1))
+
+(defun eide-project-switch-to-workspace-2 ()
+  "Switch to workspace 2."
+  (interactive)
+  (eide-i-project-set-current-workspace 2))
+
+(defun eide-project-switch-to-workspace-3 ()
+  "Switch to workspace 3."
+  (interactive)
+  (eide-i-project-set-current-workspace 3))
+
+(defun eide-project-switch-to-workspace-4 ()
+  "Switch to workspace 4."
+  (interactive)
+  (eide-i-project-set-current-workspace 4))
+
+(defun eide-project-switch-to-workspace-5 ()
+  "Switch to workspace 5."
+  (interactive)
+  (eide-i-project-set-current-workspace 5))
+
+(defun eide-project-switch-to-workspace-6 ()
+  "Switch to workspace 6."
+  (interactive)
+  (eide-i-project-set-current-workspace 6))
+
+(defun eide-project-switch-to-workspace-7 ()
+  "Switch to workspace 7."
+  (interactive)
+  (eide-i-project-set-current-workspace 7))
+
+(defun eide-project-switch-to-workspace-8 ()
+  "Switch to workspace 8."
+  (interactive)
+  (eide-i-project-set-current-workspace 8))
 
 (defun eide-project-create ()
   "Create a project in root directory, and add it in projects list."
+  (interactive)
   (if (eide-popup-question-yes-or-no-p (concat "Create a project in " eide-root-directory " ?"))
     (progn
       (eide-windows-select-source-window t)
@@ -562,6 +603,7 @@ Argument:
 
 (defun eide-project-delete ()
   "Delete current project."
+  (interactive)
   (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
     (progn
       ;; Stop creation of tags and cscope list of files (in case it is not finished yet)
@@ -656,6 +698,7 @@ Argument:
 
 (defun eide-project-change-root ()
   "Change root directory."
+  (interactive)
   (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
     (let ((l-do-it t))
       (if (and (not eide-project-name)
@@ -734,6 +777,7 @@ Argument:
   "Add current project to the projects list of current workspace.
 Argument:
 - p-startup-flag: t when called from the init."
+  (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
       (progn
@@ -779,6 +823,7 @@ Argument:
 
 (defun eide-project-remove-from-list ()
   "Remove current project from the projects list of current workspace."
+  (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
       (progn
@@ -993,6 +1038,7 @@ Argument:
 
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
+  (interactive)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)
@@ -1002,6 +1048,7 @@ Argument:
 
 (defun eide-project-open-notes-file ()
   "Display project notes file (full frame)."
+  (interactive)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)

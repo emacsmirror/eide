@@ -1,6 +1,6 @@
 ;;; eide-config.el --- Emacs-IDE, config
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -117,6 +117,7 @@
 
 (defun eide-config-open-customization ()
   "Display customization (full frame)."
+  (interactive)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)

@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE, windows
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -763,8 +763,8 @@ and display it. Current buffer is kept if correct."
         ;; "Output" window: open search results popup menu
         (eide-popup-open-menu-for-search-results)
         (if (eide-i-windows-is-menu-window-selected-p)
-          ;; "Menu" window: open project popup menu
-          (eide-popup-open-menu)
+          ;; "Menu" window: open global popup menu
+          (eval (x-popup-menu t eide-menu-keymap))
           ;; "Source" window
           (if eide-windows-ide-windows-visible-flag
             ;; Hide
@@ -849,5 +849,163 @@ on previous state)."
         (setq eide-windows-frame-fullscreen-value l-frame-fullscreen-value)
         ;; Switch to fullboth mode
         (set-frame-parameter nil 'fullscreen 'fullboth)))))
+
+;; ----------------------------------------------------------------------------
+;; KEYMAPS
+;; ----------------------------------------------------------------------------
+
+;; Global menu (right click over "menu" window)
+(defvar eide-menu-keymap (make-sparse-keymap "Emacs-IDE"))
+
+(define-key eide-menu-keymap [eide-menu-close-all-files]
+  '(menu-item "Close all files"
+              eide-menu-close-all-files
+              :visible eide-menu-files-list))
+
+(define-key-after eide-menu-keymap [sep-close-all-files] '(menu-item "--" nil :visible eide-menu-files-list))
+
+(define-key-after eide-menu-keymap [eide-project-create]
+  '(menu-item "Create a project in this directory"
+              eide-project-create
+              :visible (not eide-project-name)))
+
+(define-key-after eide-menu-keymap [eide-project-compile-1]
+  '(menu-item (concat "Compile (1): "(eide-project-get-full-command "compile_command_1"))
+              eide-project-compile-1
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_1") "")))))
+(define-key-after eide-menu-keymap [eide-project-compile-2]
+  '(menu-item (concat "Compile (2): "(eide-project-get-full-command "compile_command_2"))
+              eide-project-compile-2
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_2") "")))))
+(define-key-after eide-menu-keymap [eide-project-compile-3]
+  '(menu-item (concat "Compile (3): "(eide-project-get-full-command "compile_command_3"))
+              eide-project-compile-3
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_3") "")))))
+(define-key-after eide-menu-keymap [eide-project-compile-4]
+  '(menu-item (concat "Compile (4): "(eide-project-get-full-command "compile_command_4"))
+              eide-project-compile-4
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_4") "")))))
+(define-key-after eide-menu-keymap [eide-project-run-1]
+  '(menu-item (concat "Run (1): "(eide-project-get-full-command "run_command_1"))
+              eide-project-run-1
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "run_command_1") "")))))
+(define-key-after eide-menu-keymap [eide-project-run-2]
+  '(menu-item (concat "Run (2): "(eide-project-get-full-command "run_command_2"))
+              eide-project-run-2
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "run_command_2") "")))))
+(define-key-after eide-menu-keymap [eide-project-debug-1]
+  '(menu-item (concat "Debug (1): "(eide-project-get-full-command "debug_command_1"))
+              eide-project-debug-1
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "debug_command_1") "")))))
+(define-key-after eide-menu-keymap [eide-project-debug-2]
+  '(menu-item (concat "Debug (2): "(eide-project-get-full-command "debug_command_2"))
+              eide-project-debug-2
+              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "debug_command_2") "")))))
+
+(define-key-after eide-menu-keymap [sep-project-commands] '(menu-item "--" nil))
+
+(define-key-after eide-menu-keymap [eide-search-create-tags]
+  '(menu-item "Update tags"
+              eide-search-create-tags
+              :visible eide-project-name))
+(define-key-after eide-menu-keymap [eide-search-create-cscope-list-of-files]
+  '(menu-item "Update cscope list of files"
+              eide-search-create-cscope-list-of-files
+              :visible (and eide-project-name eide-search-use-cscope-flag)))
+(define-key-after eide-menu-keymap [eide-search-update-cscope-database]
+  '(menu-item "Update cscope database"
+              eide-search-update-cscope-database
+              :visible (and eide-project-name eide-search-use-cscope-flag eide-custom-override-emacs-settings (or (not eide-custom-update-cscope-database) (equal eide-custom-update-cscope-database 'auto)))))
+
+(define-key-after eide-menu-keymap [sep-project-search] '(menu-item "--" nil :visible eide-project-name))
+
+(define-key-after eide-menu-keymap [eide-project-open-config-file]
+  '(menu-item "Project configuration"
+              eide-project-open-config-file
+              :visible eide-project-name))
+(define-key-after eide-menu-keymap [eide-project-open-notes-file]
+  '(menu-item "Project notes"
+              eide-project-open-notes-file
+              :visible eide-project-name))
+
+(define-key-after eide-menu-keymap [sep-project-config] '(menu-item "--" nil :visible eide-project-name))
+
+(define-key-after eide-menu-keymap [eide-project-delete]
+  '(menu-item "Delete this project"
+              eide-project-delete
+              :visible eide-project-name))
+
+(define-key-after eide-menu-keymap [sep-project-delete] '(menu-item "--" nil :visible eide-project-name))
+
+(define-key-after eide-menu-keymap [eide-project-change-root]
+  '(menu-item "Change root directory"
+              eide-project-change-root))
+(define-key-after eide-menu-keymap [eide-project-open-list]
+  '(menu-item (concat "Display projects list (workspace " (number-to-string eide-project-current-workspace) ")")
+              eide-project-open-list
+              :enable (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0))))
+(define-key-after eide-menu-keymap [eide-project-remove-from-list]
+  '(menu-item "Remove this project from current workspace"
+              eide-project-remove-from-list
+              :visible (and eide-project-name (member eide-root-directory eide-project-current-projects-list))))
+(define-key-after eide-menu-keymap [eide-project-add-in-list]
+  '(menu-item "Add this project in current workspace"
+              eide-project-add-in-list
+              :visible (and eide-project-name (not (member eide-root-directory eide-project-current-projects-list)))))
+
+(define-key-after eide-menu-keymap [sep-project-selection] '(menu-item "--" nil))
+
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-1]
+  '(menu-item "Switch to workspace 1"
+              eide-project-switch-to-workspace-1
+              :visible (> eide-custom-number-of-workspaces 1)
+              :enable (not (equal eide-project-current-workspace 1))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-2]
+  '(menu-item "Switch to workspace 2"
+              eide-project-switch-to-workspace-2
+              :visible (>= eide-custom-number-of-workspaces 2)
+              :enable (not (equal eide-project-current-workspace 2))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-3]
+  '(menu-item "Switch to workspace 3"
+              eide-project-switch-to-workspace-3
+              :visible (>= eide-custom-number-of-workspaces 3)
+              :enable (not (equal eide-project-current-workspace 3))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-4]
+  '(menu-item "Switch to workspace 4"
+              eide-project-switch-to-workspace-4
+              :visible (>= eide-custom-number-of-workspaces 4)
+              :enable (not (equal eide-project-current-workspace 4))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-5]
+  '(menu-item "Switch to workspace 5"
+              eide-project-switch-to-workspace-5
+              :visible (>= eide-custom-number-of-workspaces 5)
+              :enable (not (equal eide-project-current-workspace 5))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-6]
+  '(menu-item "Switch to workspace 6"
+              eide-project-switch-to-workspace-6
+              :visible (>= eide-custom-number-of-workspaces 6)
+              :enable (not (equal eide-project-current-workspace 6))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-7]
+  '(menu-item "Switch to workspace 7"
+              eide-project-switch-to-workspace-7
+              :visible (>= eide-custom-number-of-workspaces 7)
+              :enable (not (equal eide-project-current-workspace 7))))
+(define-key-after eide-menu-keymap [eide-project-switch-to-workspace-8]
+  '(menu-item "Switch to workspace 8"
+              eide-project-switch-to-workspace-8
+              :visible (= eide-custom-number-of-workspaces 8)
+              :enable (not (equal eide-project-current-workspace 8))))
+
+(define-key-after eide-menu-keymap [sep-workspace-selection] '(menu-item "--" nil :visible (> eide-custom-number-of-workspaces 1)))
+
+(define-key-after eide-menu-keymap [eide-config-open-customization]
+  '(menu-item "Configuration"
+              eide-config-open-customization))
+(define-key-after eide-menu-keymap [eide-help-open]
+  '(menu-item "Help"
+              eide-help-open))
+
+;; Add to menu bar
+;;(define-key-after global-map [menu-bar eide-menu] (cons "Emacs-IDE" eide-menu-keymap))
 
 ;;; eide-windows.el ends here

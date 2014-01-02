@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE, popup
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -109,82 +109,6 @@ Argument:
 Argument:
 - p-string: message."
   (x-popup-dialog t (cons p-string eide-message-dialog)))
-
-(defun eide-popup-open-menu ()
-  "Open a popup menu related to project."
-  (let ((l-popup-header ""))
-    (eide-i-popup-menu-init)
-
-    (if eide-menu-files-list
-      (progn
-        (eide-i-popup-menu-add-action "Close all files" "(eide-menu-close-all-files)" t)
-        (eide-i-popup-menu-close-action-list "Files")))
-
-    (if eide-project-name
-      ;; Project already created
-      (progn
-        (if (not (string-equal (eide-project-get-config-value "compile_command_1") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (1): " (eide-project-get-full-command "compile_command_1")) "(eide-project-compile-1)" t))
-        (if (not (string-equal (eide-project-get-config-value "compile_command_2") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (2): " (eide-project-get-full-command "compile_command_2")) "(eide-project-compile-2)" t))
-        (if (not (string-equal (eide-project-get-config-value "compile_command_3") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (3): " (eide-project-get-full-command "compile_command_3")) "(eide-project-compile-3)" t))
-        (if (not (string-equal (eide-project-get-config-value "compile_command_4") ""))
-          (eide-i-popup-menu-add-action (concat "Compile (4): " (eide-project-get-full-command "compile_command_4")) "(eide-project-compile-4)" t))
-        (if (not (string-equal (eide-project-get-config-value "run_command_1") ""))
-          (eide-i-popup-menu-add-action (concat "Run (1): " (eide-project-get-full-command "run_command_1")) "(eide-project-run-1)" t))
-        (if (not (string-equal (eide-project-get-config-value "run_command_2") ""))
-          (eide-i-popup-menu-add-action (concat "Run (2): " (eide-project-get-full-command "run_command_2")) "(eide-project-run-2)" t))
-        (if (not (string-equal (eide-project-get-config-value "debug_program_1") ""))
-          (eide-i-popup-menu-add-action (concat "Debug (1): " (eide-project-get-short-gdb-command "debug_program_1")) "(eide-project-debug-1)" t))
-        (if (not (string-equal (eide-project-get-config-value "debug_program_2") ""))
-          (eide-i-popup-menu-add-action (concat "Debug (2): " (eide-project-get-short-gdb-command "debug_program_2")) "(eide-project-debug-2)" t))
-        (eide-i-popup-menu-close-action-list "Execute")
-        (eide-i-popup-menu-add-action "Update tags" "(eide-search-create-tags)" t)
-        (if eide-search-use-cscope-flag
-          (progn
-            (eide-i-popup-menu-add-action "Update cscope list of files" "(eide-search-create-cscope-list-of-files)" t)
-            (if (and eide-custom-override-emacs-settings
-                     (or (not eide-custom-update-cscope-database)
-                         (equal eide-custom-update-cscope-database 'auto)))
-              (eide-i-popup-menu-add-action "Update cscope database" "(eide-search-update-cscope-database)" t))))
-        (eide-i-popup-menu-close-action-list "Update")
-        (eide-i-popup-menu-add-action "Project configuration" "(eide-project-open-config-file)" t)
-        (eide-i-popup-menu-add-action "Project notes" "(eide-project-open-notes-file)" t)
-        (eide-i-popup-menu-close-action-list "Configuration")
-        (eide-i-popup-menu-add-action "Delete this project" "(eide-project-delete)" t)
-        (eide-i-popup-menu-close-action-list "Destroy")
-        (setq l-popup-header (concat "Project: " eide-project-name)))
-      ;; Project not created yet
-      (progn
-        (eide-i-popup-menu-add-action "Create a project in this directory" "(eide-project-create)" t)
-        (eide-i-popup-menu-close-action-list "Create")
-        (setq l-popup-header (concat "Root directory: " eide-root-directory))))
-
-    (eide-i-popup-menu-add-action "Change root directory" "(eide-project-change-root)" t)
-    (eide-i-popup-menu-add-action (concat "Display projects list (workspace " (number-to-string eide-project-current-workspace) ")") "(eide-project-open-list)" (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0)))
-    (if eide-project-name
-      (if (member eide-root-directory eide-project-current-projects-list)
-        (eide-i-popup-menu-add-action "Remove this project from current workspace" "(eide-project-remove-from-list)" t)
-        (eide-i-popup-menu-add-action "Add this project in current workspace" "(eide-project-add-in-list nil)" t)))
-    (eide-i-popup-menu-close-action-list "Project")
-
-    (if (> eide-custom-number-of-workspaces 1)
-      (progn
-        (let ((l-workspace-number 1))
-          (while (<= l-workspace-number eide-custom-number-of-workspaces)
-            (let ((l-workspace-number-string (number-to-string l-workspace-number)))
-              (eide-i-popup-menu-add-action (concat "Switch to workspace " l-workspace-number-string) (concat "(eide-project-set-current-workspace " l-workspace-number-string ")") (not (equal l-workspace-number eide-project-current-workspace))))
-            (setq l-workspace-number (+ l-workspace-number 1))))
-        (eide-i-popup-menu-close-action-list "Workspaces")))
-
-    (eide-i-popup-menu-add-action "Configuration" "(eide-config-open-customization)" t)
-    (eide-i-popup-menu-close-action-list "User config")
-
-    (eide-i-popup-menu-add-action "Help" "(eide-help-open)" t)
-    (eide-i-popup-menu-close-action-list "About")
-
-    (eide-i-popup-menu-open l-popup-header)))
 
 (defun eide-popup-open-menu-for-directory ()
   "Open a popup menu related to selected directory."

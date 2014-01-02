@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE, menu
 
-;; Copyright (C) 2008-2013 Cédric Marie
+;; Copyright (C) 2008-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -913,6 +913,7 @@ Argument:
 
 (defun eide-menu-close-all-files ()
   "Close all files."
+  (interactive)
   (if (eide-popup-question-yes-or-no-p (concat "Do you really want to close all files?"))
     (progn
       (let ((l-ask-flag nil) (l-do-it-flag t))
