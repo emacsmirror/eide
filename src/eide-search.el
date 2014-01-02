@@ -330,6 +330,8 @@ Argument:
     (if eide-search-cscope-files-flag
       (let ((l-result-buffer-name (concat "*cscope*: " p-symbol))
             (l-do-it-flag t))
+        (if (not eide-search-cscope-exclude-enabled-flag)
+          (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
         (eide-windows-select-output-window)
         (if (get-buffer l-result-buffer-name)
           (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result)?")
@@ -382,8 +384,10 @@ Argument:
 - p-string: string."
   (eide-windows-select-source-window t)
   (let ((l-buffer-directory (file-name-directory (buffer-file-name)))
-        (l-result-buffer-name (concat "*grep (local)*: " p-string "    (in " (eide-project-get-short-directory default-directory) ")"))
+        (l-result-buffer-name (concat "*grep (local)*: " p-string " (in " (eide-project-get-short-directory default-directory) ")"))
         (l-do-it-flag t))
+    (if (not eide-search-grep-exclude-enabled-flag)
+      (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
@@ -435,6 +439,8 @@ Argument:
   (eide-windows-select-source-window t)
   (let ((l-result-buffer-name (concat "*grep (global)*: " p-string))
         (l-do-it-flag t))
+    (if (not eide-search-grep-exclude-enabled-flag)
+      (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (if (get-buffer l-result-buffer-name)
       (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
