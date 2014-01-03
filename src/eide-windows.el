@@ -821,9 +821,9 @@ and display it. Current buffer is kept if correct."
                  (not (string-equal (eide-project-get-config-value "tags_exclude") eide-project-old-tags-exclude-value)))
           ;; Tags exclude value has changed
           (progn
-            (if eide-search-tags-available-flag
-              (eide-search-create-tags)
-              (eide-popup-message "Cannot update tags while they are being created..."))
+            (if eide-search-tags-creation-in-progress-flag
+              (eide-popup-message "Cannot update tags while they are being created...")
+              (eide-search-create-tags))
             (setq eide-project-old-tags-exclude-value nil)))
         (if (and eide-search-cscope-exclude-enabled-flag
                  (or (and eide-project-old-cscope-exclude-files-value
@@ -832,9 +832,9 @@ and display it. Current buffer is kept if correct."
                           (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") eide-project-old-cscope-exclude-dirs-value)))))
           ;; Cscope exclude files or dirs value has changed
           (progn
-            (if eide-search-cscope-available-flag
-              (eide-search-create-cscope-list-of-files)
-              (eide-popup-message "Cannot update cscope list of files while it is being created..."))
+            (if eide-search-cscope-creation-in-progress-flag
+              (eide-popup-message "Cannot update cscope list of files while it is being created...")
+              (eide-search-create-cscope-list-of-files))
             (setq eide-project-old-cscope-exclude-files-value nil)
             (setq eide-project-old-cscope-exclude-dirs-value nil)))
         ;; This buffer must not be closed

@@ -614,12 +614,14 @@ Argument:
   (if (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
     (progn
       ;; Stop creation of tags and cscope list of files (in case it is not finished yet)
-      (if (not eide-search-tags-available-flag)
+      (if eide-search-tags-creation-in-progress-flag
         (delete-process "create-tags"))
-      (if (not eide-search-cscope-available-flag)
+      (if eide-search-cscope-creation-in-progress-flag
         (delete-process "create-cscope"))
       (setq eide-search-tags-available-flag nil)
       (setq eide-search-cscope-available-flag nil)
+      (setq eide-search-tags-creation-in-progress-flag nil)
+      (setq eide-search-cscope-creation-in-progress-flag nil)
       (setq eide-project-name nil)
       (kill-buffer eide-project-config-file)
       (if (get-buffer "TAGS")

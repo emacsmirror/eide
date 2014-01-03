@@ -62,6 +62,9 @@
 (defvar eide-search-cscope-available-flag nil)
 (defvar eide-search-cscope-update-database-request-pending-flag nil)
 
+(defvar eide-search-tags-creation-in-progress-flag nil)
+(defvar eide-search-cscope-creation-in-progress-flag nil)
+
 (defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
 (defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
@@ -139,6 +142,7 @@ Arguments:
   (if (string-equal p-event "finished\n")
     (progn
       (setq eide-search-tags-available-flag t)
+      (setq eide-search-tags-creation-in-progress-flag nil)
       (message "Creating tags... done"))))
 
 (defun eide-i-search-cscope-sentinel (p-process p-event)
@@ -150,6 +154,7 @@ Arguments:
     (progn
       (eide-search-update-cscope-status)
       (setq eide-search-cscope-available-flag t)
+      (setq eide-search-cscope-creation-in-progress-flag nil)
       (message "Creating cscope list of files... done"))))
 
 ;; ----------------------------------------------------------------------------
@@ -179,26 +184,26 @@ Arguments:
 (defun eide-search-toggle-tags-exclude-state ()
   "Disable/enable tags exclude filters (defined in project configuration)."
   (interactive)
-  (if eide-search-tags-available-flag
+  (if eide-search-tags-creation-in-progress-flag
+    (eide-popup-message "Cannot toggle activation of tags exclude filters while tags are being created...")
     (progn
       (if eide-search-tags-exclude-enabled-flag
         (setq eide-search-tags-exclude-enabled-flag nil)
         (setq eide-search-tags-exclude-enabled-flag t))
       ;; Update tags according to the new state of filters
-      (eide-search-create-tags))
-    (eide-popup-message "Cannot toggle activation of tags exclude filters while tags are being created...")))
+      (eide-search-create-tags))))
 
 (defun eide-search-toggle-cscope-exclude-state ()
   "Disable/enable cscope exclude filters (defined in project configuration)."
   (interactive)
-  (if eide-search-cscope-available-flag
+  (if eide-search-cscope-creation-in-progress-flag
+    (eide-popup-message "Cannot toggle activation of cscope exclude filters while cscope list of files is being created...")
     (progn
       (if eide-search-cscope-exclude-enabled-flag
         (setq eide-search-cscope-exclude-enabled-flag nil)
         (setq eide-search-cscope-exclude-enabled-flag t))
       ;; Update cscope list of files according to the new state of filters
-      (eide-search-create-cscope-list-of-files))
-    (eide-popup-message "Cannot toggle activation of cscope exclude filters while cscope list of files is being created...")))
+      (eide-search-create-cscope-list-of-files))))
 
 (defun eide-search-toggle-grep-exclude-state ()
   "Disable/enable grep exclude filters (defined in project configuration)."
@@ -210,19 +215,23 @@ Arguments:
 (defun eide-search-create-tags ()
   "Create tags."
   (interactive)
-  (message "Creating tags...")
-  (setq eide-search-tags-available-flag nil)
-  (let ((l-create-tags-exclude-options ""))
-    (if eide-search-tags-exclude-enabled-flag
-      (let ((l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
-        ;; Create a string with --exclude options if "tags_exclude" list is not
-        ;; empty in project configuration
-        (if (not (string-equal l-tags-exclude-list ""))
-          (setq l-create-tags-exclude-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-tags-exclude-list) " ")))))
-    ;; Execute the command (standard command + --exclude options if any)
-    (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command l-create-tags-exclude-options))))
-      ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
-      (set-process-sentinel l-process 'eide-i-search-tags-sentinel))))
+  (if eide-search-tags-creation-in-progress-flag
+    (eide-popup-message "Cannot update tags: creation already in progress...")
+    (progn
+      (message "Creating tags...")
+      (setq eide-search-tags-available-flag nil)
+      (setq eide-search-tags-creation-in-progress-flag t)
+      (let ((l-create-tags-exclude-options ""))
+        (if eide-search-tags-exclude-enabled-flag
+          (let ((l-tags-exclude-list (eide-project-get-config-value "tags_exclude")))
+            ;; Create a string with --exclude options if "tags_exclude" list is not
+            ;; empty in project configuration
+            (if (not (string-equal l-tags-exclude-list ""))
+              (setq l-create-tags-exclude-options (mapconcat (function (lambda(x) (concat "--exclude=" x))) (split-string l-tags-exclude-list) " ")))))
+        ;; Execute the command (standard command + --exclude options if any)
+        (let ((l-process (start-process-shell-command "create-tags" nil (concat "cd " eide-root-directory " ; " eide-search-create-tags-command l-create-tags-exclude-options))))
+          ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
+          (set-process-sentinel l-process 'eide-i-search-tags-sentinel))))))
 
 (defun eide-search-back-from-tag ()
   "Go back from definition."
@@ -294,26 +303,30 @@ Argument:
 (defun eide-search-create-cscope-list-of-files ()
   "Create cscope list of files."
   (interactive)
-  (message "Creating cscope list of files...")
-  (setq eide-search-cscope-available-flag nil)
-  (setq eide-search-cscope-update-database-request-pending-flag t)
-  (let ((l-create-cscope-exclude-files-options "")
-        (l-create-cscope-exclude-dirs-options ""))
-    (if eide-search-cscope-exclude-enabled-flag
-      (let ((l-cscope-exclude-files-list (eide-project-get-config-value "cscope_exclude_files"))
-            (l-cscope-exclude-dirs-list (eide-project-get-config-value "cscope_exclude_dirs")))
-        ;; Create a string with ! -name options if "cscope_exclude_files" list is not
-        ;; empty in project configuration
-        (if (not (string-equal l-cscope-exclude-files-list ""))
-          (setq l-create-cscope-exclude-files-options (mapconcat (function (lambda(x) (concat "! -name \"" x "\""))) (split-string l-cscope-exclude-files-list) " ")))
-        ;; Create a string with ! -path options if "cscope_exclude_dirs" list is not
-        ;; empty in project configuration
-        (if (not (string-equal l-cscope-exclude-dirs-list ""))
-          (setq l-create-cscope-exclude-dirs-options (mapconcat (function (lambda(x) (concat "! -path \"*/" x "/*\""))) (split-string l-cscope-exclude-dirs-list) " ")))))
-    ;; Execute the command (standard command + ! -name and ! -path options if any)
-    (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command l-create-cscope-exclude-files-options " " l-create-cscope-exclude-dirs-options " > cscope.files"))))
-      ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
-      (set-process-sentinel l-process 'eide-i-search-cscope-sentinel))))
+  (if eide-search-cscope-creation-in-progress-flag
+    (eide-popup-message "Cannot update cscope list of files: creation already in progress...")
+    (progn
+      (message "Creating cscope list of files...")
+      (setq eide-search-cscope-available-flag nil)
+      (setq eide-search-cscope-creation-in-progress-flag t)
+      (setq eide-search-cscope-update-database-request-pending-flag t)
+      (let ((l-create-cscope-exclude-files-options "")
+            (l-create-cscope-exclude-dirs-options ""))
+        (if eide-search-cscope-exclude-enabled-flag
+          (let ((l-cscope-exclude-files-list (eide-project-get-config-value "cscope_exclude_files"))
+                (l-cscope-exclude-dirs-list (eide-project-get-config-value "cscope_exclude_dirs")))
+            ;; Create a string with ! -name options if "cscope_exclude_files" list is not
+            ;; empty in project configuration
+            (if (not (string-equal l-cscope-exclude-files-list ""))
+              (setq l-create-cscope-exclude-files-options (mapconcat (function (lambda(x) (concat "! -name \"" x "\""))) (split-string l-cscope-exclude-files-list) " ")))
+            ;; Create a string with ! -path options if "cscope_exclude_dirs" list is not
+            ;; empty in project configuration
+            (if (not (string-equal l-cscope-exclude-dirs-list ""))
+              (setq l-create-cscope-exclude-dirs-options (mapconcat (function (lambda(x) (concat "! -path \"*/" x "/*\""))) (split-string l-cscope-exclude-dirs-list) " ")))))
+        ;; Execute the command (standard command + ! -name and ! -path options if any)
+        (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command l-create-cscope-exclude-files-options " " l-create-cscope-exclude-dirs-options " > cscope.files"))))
+          ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
+          (set-process-sentinel l-process 'eide-i-search-cscope-sentinel))))))
 ;; (cscope-index-files nil))
 
 (defun eide-search-update-cscope-database ()
