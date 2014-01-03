@@ -257,7 +257,7 @@ ones."
                   (setq l-window (selected-window)))
                 (if (and (equal l-window eide-windows-source-window)
                          eide-menu-browsing-mode-flag)
-                    (eide-menu-browsing-mode-stop))
+                  (eide-menu-browsing-mode-stop))
                 ad-do-it
                 (set-buffer l-buffer-name)
                 (if (and eide-custom-override-emacs-settings
@@ -275,8 +275,8 @@ ones."
                         (recenter)
                         (setq eide-search-find-symbol-definition-flag nil)))
                     (if (equal l-window eide-windows-source-window)
-                        ;; Update menu if necessary
-                        (eide-menu-update nil))))
+                      ;; Update menu if necessary
+                      (eide-menu-update nil))))
                 ;; Select buffer window
                 (select-window l-window)
                 ;; Return the buffer that it switched to
@@ -804,21 +804,46 @@ and display it. Current buffer is kept if correct."
     ;; NB: In customization, exit button does not work...
     (kill-this-buffer)
     (if (string-equal (buffer-name) eide-project-config-file)
-        ;; Display another buffer (other than ".emacs-ide-project.cfg")
+      ;; Display another buffer (other than ".emacs-ide-project.cfg")
+      (progn
+        (save-buffer)
+        (eide-project-rebuild-config-file nil)
+        ;; Some options requires some actions if the value has been changed
+        (if (and eide-project-old-project-name
+                 (not (string-equal eide-project-name eide-project-old-project-name)))
+          ;; Project name has changed
+          (progn
+            (eide-menu-update-project-name)
+            (eide-project-update-name)
+            (setq eide-project-old-project-name nil)))
+        (if (and eide-search-tags-exclude-enabled-flag
+                 eide-project-old-tags-exclude-value
+                 (not (string-equal (eide-project-get-config-value "tags_exclude") eide-project-old-tags-exclude-value)))
+          ;; Tags exclude value has changed
+          (progn
+            (if eide-search-tags-available-flag
+              (eide-search-create-tags)
+              (eide-popup-message "Cannot update tags while they are being created..."))
+            (setq eide-project-old-tags-exclude-value nil)))
+        (if (and eide-search-cscope-exclude-enabled-flag
+                 (or (and eide-project-old-cscope-exclude-files-value
+                          (not (string-equal (eide-project-get-config-value "cscope_exclude_files") eide-project-old-cscope-exclude-files-value)))
+                     (and eide-project-old-cscope-exclude-dirs-value
+                          (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") eide-project-old-cscope-exclude-dirs-value)))))
+          ;; Cscope exclude files or dirs value has changed
+          (progn
+            (if eide-search-cscope-available-flag
+              (eide-search-create-cscope-list-of-files)
+              (eide-popup-message "Cannot update cscope list of files while it is being created..."))
+            (setq eide-project-old-cscope-exclude-files-value nil)
+            (setq eide-project-old-cscope-exclude-dirs-value nil)))
+        ;; This buffer must not be closed
+        (switch-to-buffer eide-current-buffer))
+      (if (string-equal (buffer-name) eide-project-notes-file)
+        ;; Close ".emacs-ide-project.txt"
         (progn
           (save-buffer)
-          (if (eide-project-rebuild-config-file nil)
-            ;; Project name has changed
-            (progn
-              (eide-menu-update-project-name)
-              (eide-project-update-name)))
-          ;; This buffer must not be closed
-          (switch-to-buffer eide-current-buffer))
-        (if (string-equal (buffer-name) eide-project-notes-file)
-          ;; Close ".emacs-ide-project.txt"
-          (progn
-            (save-buffer)
-            (kill-buffer eide-project-notes-file)))))
+          (kill-buffer eide-project-notes-file)))))
   (eide-display-set-colors-for-files)
   (eide-keys-configure-for-editor)
   (if eide-menu-browsing-mode-flag

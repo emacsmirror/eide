@@ -71,6 +71,13 @@
 
 (defvar eide-project-commands-enabled-flag nil)
 
+;; Some config values are saved before editing, so that actions
+;; can be performed in case they have been modified
+(defvar eide-project-old-project-name nil)
+(defvar eide-project-old-tags-exclude-value nil)
+(defvar eide-project-old-cscope-exclude-files-value nil)
+(defvar eide-project-old-cscope-exclude-dirs-value nil)
+
 ;; Config files
 (make-face 'eide-project-config-comment-face)
 (make-face 'eide-project-config-parameter-face)
@@ -941,87 +948,79 @@ Argument:
     (insert "# --> To restore the default value of a parameter, delete the line\n")
     (insert "#     (project configuration file is rebuilt when you exit this page).\n\n")
 
-    (let ((l-project-name nil) (l-project-name-has-changed-flag nil))
-      (save-current-buffer
+    (save-current-buffer
+      (set-buffer eide-project-config-file)
+      (setq eide-project-name (eide-i-project-get-config-value-if-defined "project_name")))
+    (if (or (not eide-project-name) (string-equal eide-project-name ""))
+      ;; Get project name from directory:
+      ;; - directory-file-name removes last "/"
+      ;; - file-name-nondirectory retrieves last directory name from complete path
+      (setq eide-project-name (file-name-nondirectory (directory-file-name eide-root-directory))))
+    (insert "project_name = ")
+    (insert eide-project-name)
+    (insert "\n\n")
+
+    (insert "# Init command is called before all 'compile' and 'run' commands.\n")
+    (eide-i-project-rebuild-config-line "init_command"      eide-custom-project-default-init-command)
+    (eide-i-project-rebuild-config-line "compile_command_1" eide-custom-project-default-compile-command-1)
+    (eide-i-project-rebuild-config-line "compile_command_2" eide-custom-project-default-compile-command-2)
+    (eide-i-project-rebuild-config-line "compile_command_3" eide-custom-project-default-compile-command-3)
+    (eide-i-project-rebuild-config-line "compile_command_4" eide-custom-project-default-compile-command-4)
+    (eide-i-project-rebuild-config-line "run_command_1"     eide-custom-project-default-run-command-1)
+    (eide-i-project-rebuild-config-line "run_command_2"     eide-custom-project-default-run-command-1)
+    (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
+    (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
+    (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
+
+    (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
+    (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
+    (insert "# Examples:\n")
+    (insert "# - Use foo pattern to exclude all directories and files named foo.\n")
+    (insert "# - Use *foo* pattern to exclude all directories and files containing foo.\n")
+    (insert "# - Use some/path/foo pattern to exclude only some/path/foo directory or file.\n")
+    (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
+
+    (insert "# Space separated list of files patterns to exclude when creating cscope list of files.\n")
+    (insert "# Each <pattern> adds an option ! -name \"<pattern>\" to find command.\n")
+    (insert "# Examples:\n")
+    (insert "# - Use foo pattern to exclude all files named foo.\n")
+    (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
+    (eide-i-project-rebuild-config-line "cscope_exclude_files" eide-custom-project-default-cscope-exclude-files)
+
+    (insert "# Space separated list of directories patterns to exclude when creating cscope list of files.\n")
+    (insert "# Each <pattern> adds an option ! -path \"*/<pattern>/*\" to find command.\n")
+    (insert "# Examples:\n")
+    (insert "# - Use foo pattern to exclude all directories named foo.\n")
+    (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
+    (eide-i-project-rebuild-config-line "cscope_exclude_dirs" eide-custom-project-default-cscope-exclude-dirs)
+
+    (insert "# Space separated list of files patterns to exclude when searching with grep.\n")
+    (insert "# Each <pattern> adds an option --exclude=<pattern> to grep command.\n")
+    (insert "# Examples:\n")
+    (insert "# - Use foo pattern to exclude all files named foo.\n")
+    (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
+    (eide-i-project-rebuild-config-line "grep_exclude_files" eide-custom-project-default-grep-exclude-files)
+
+    (insert "# Space separated list of directories patterns to exclude when searching with grep.\n")
+    (insert "# Each <pattern> adds an option --exclude-dir=<pattern> to grep command.\n")
+    (insert "# Examples:\n")
+    (insert "# - Use foo pattern to exclude all directories named foo.\n")
+    (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
+    (eide-i-project-rebuild-config-line "grep_exclude_dirs" eide-custom-project-default-grep-exclude-dirs)
+
+    ;; Replace source file by target buffer if different
+    (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
+      (progn
         (set-buffer eide-project-config-file)
-        (setq l-project-name (eide-i-project-get-config-value-if-defined "project_name")))
-      (if (or (not l-project-name) (string-equal l-project-name ""))
-        ;; Get project name from directory:
-        ;; - directory-file-name removes last "/"
-        ;; - file-name-nondirectory retrieves last directory name from complete path
-        (setq l-project-name (file-name-nondirectory (directory-file-name eide-root-directory))))
-      (insert "project_name = ")
-      (insert l-project-name)
-      (insert "\n\n")
-
-      (if (not (and eide-project-name (string-equal eide-project-name l-project-name)))
-        (progn
-          (setq eide-project-name l-project-name)
-          (setq l-project-name-has-changed-flag t)))
-
-      (insert "# Init command is called before all 'compile' and 'run' commands.\n")
-      (eide-i-project-rebuild-config-line "init_command"      eide-custom-project-default-init-command)
-      (eide-i-project-rebuild-config-line "compile_command_1" eide-custom-project-default-compile-command-1)
-      (eide-i-project-rebuild-config-line "compile_command_2" eide-custom-project-default-compile-command-2)
-      (eide-i-project-rebuild-config-line "compile_command_3" eide-custom-project-default-compile-command-3)
-      (eide-i-project-rebuild-config-line "compile_command_4" eide-custom-project-default-compile-command-4)
-      (eide-i-project-rebuild-config-line "run_command_1"     eide-custom-project-default-run-command-1)
-      (eide-i-project-rebuild-config-line "run_command_2"     eide-custom-project-default-run-command-1)
-      (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
-      (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
-      (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
-
-      (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
-      (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
-      (insert "# Examples:\n")
-      (insert "# - Use foo pattern to exclude all directories and files named foo.\n")
-      (insert "# - Use *foo* pattern to exclude all directories and files containing foo.\n")
-      (insert "# - Use some/path/foo pattern to exclude only some/path/foo directory or file.\n")
-      (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
-
-      (insert "# Space separated list of files patterns to exclude when creating cscope list of files.\n")
-      (insert "# Each <pattern> adds an option ! -name \"<pattern>\" to find command.\n")
-      (insert "# Examples:\n")
-      (insert "# - Use foo pattern to exclude all files named foo.\n")
-      (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
-      (eide-i-project-rebuild-config-line "cscope_exclude_files" eide-custom-project-default-cscope-exclude-files)
-
-      (insert "# Space separated list of directories patterns to exclude when creating cscope list of files.\n")
-      (insert "# Each <pattern> adds an option ! -path \"*/<pattern>/*\" to find command.\n")
-      (insert "# Examples:\n")
-      (insert "# - Use foo pattern to exclude all directories named foo.\n")
-      (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
-      (eide-i-project-rebuild-config-line "cscope_exclude_dirs" eide-custom-project-default-cscope-exclude-dirs)
-
-      (insert "# Space separated list of files patterns to exclude when searching with grep.\n")
-      (insert "# Each <pattern> adds an option --exclude=<pattern> to grep command.\n")
-      (insert "# Examples:\n")
-      (insert "# - Use foo pattern to exclude all files named foo.\n")
-      (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
-      (eide-i-project-rebuild-config-line "grep_exclude_files" eide-custom-project-default-grep-exclude-files)
-
-      (insert "# Space separated list of directories patterns to exclude when searching with grep.\n")
-      (insert "# Each <pattern> adds an option --exclude-dir=<pattern> to grep command.\n")
-      (insert "# Examples:\n")
-      (insert "# - Use foo pattern to exclude all directories named foo.\n")
-      (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
-      (eide-i-project-rebuild-config-line "grep_exclude_dirs" eide-custom-project-default-grep-exclude-dirs)
-
-      ;; Replace source file by target buffer if different
-      (if (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
-        (progn
-          (set-buffer eide-project-config-file)
-          (erase-buffer)
-          (insert-buffer-substring eide-project-config-target-buffer)
-          (if (not p-startup-flag)
-            (ad-deactivate 'save-buffer))
-          (save-buffer)
-          (if (not p-startup-flag)
-            (ad-activate 'save-buffer))))
-      ;; Close temporary buffer
-      (kill-buffer eide-project-config-target-buffer)
-      ;; Return t if the project name has changed, nil otherwise
-      l-project-name-has-changed-flag)))
+        (erase-buffer)
+        (insert-buffer-substring eide-project-config-target-buffer)
+        (if (not p-startup-flag)
+          (ad-deactivate 'save-buffer))
+        (save-buffer)
+        (if (not p-startup-flag)
+          (ad-activate 'save-buffer))))
+    ;; Close temporary buffer
+    (kill-buffer eide-project-config-target-buffer)))
 
 (defun eide-project-get-config-value (p-parameter)
   "Get the value of a parameter in project config (empty string if not defined).
@@ -1039,6 +1038,13 @@ Argument:
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
   (interactive)
+
+  ;; Save some config values (actions are required if they are modified)
+  (setq eide-project-old-project-name eide-project-name)
+  (setq eide-project-old-tags-exclude-value (eide-project-get-config-value "tags_exclude"))
+  (setq eide-project-old-cscope-exclude-files-value (eide-project-get-config-value "cscope_exclude_files"))
+  (setq eide-project-old-cscope-exclude-dirs-value (eide-project-get-config-value "cscope_exclude_dirs"))
+
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)
