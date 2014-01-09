@@ -361,8 +361,7 @@ Argument:
                   (setq eide-search-cscope-update-database-request-pending-flag nil))
                 (setq cscope-do-not-update-database t)))
             (cscope-find-this-symbol p-symbol)
-            (save-current-buffer
-              (set-buffer "*cscope*")
+            (with-current-buffer "*cscope*"
               (rename-buffer l-result-buffer-name t))
             (eide-menu-build-files-lists))
           (eide-search-view-output-buffer l-result-buffer-name))
@@ -419,8 +418,7 @@ Argument:
           ;; 2> /dev/null is used to hide warnings about missing files
           ;; 'cd' is used first, in case shell init changes current directory
           (grep-find (concat "echo ; cd " l-buffer-directory " ; grep -In " eide-search-grep-exclude-options l-grep-exclude-files-options " -e \"" p-string "\" * .* 2> /dev/null")))
-        (save-current-buffer
-          (set-buffer "*grep*")
+        (with-current-buffer "*grep*"
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
       (eide-search-view-output-buffer l-result-buffer-name))
@@ -480,8 +478,7 @@ Argument:
             ;; 2> /dev/null is used to hide warnings about missing files
             ;; 'cd' is used first, in case shell init changes current directory
             (grep-find (concat "echo ; cd " eide-root-directory " ; grep -rIn " eide-search-grep-exclude-options l-grep-exclude-files-options " " l-grep-exclude-dirs-options " -e \"" p-string "\" . 2> /dev/null"))))
-        (save-current-buffer
-          (set-buffer "*grep*")
+        (with-current-buffer "*grep*"
           (rename-buffer l-result-buffer-name t))
         (eide-menu-build-files-lists))
       (eide-search-view-output-buffer l-result-buffer-name))

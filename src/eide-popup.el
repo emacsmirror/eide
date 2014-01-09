@@ -133,8 +133,7 @@ Argument:
       (dolist (l-buffer eide-menu-files-list)
         (if (eide-menu-is-file-in-directory-p l-buffer l-directory-name)
           ;; The buffer is located in the directory
-          (save-current-buffer
-            (set-buffer l-buffer)
+          (with-current-buffer l-buffer
             (if (not (string-equal eide-menu-local-edit-status "nofile"))
               (progn
                 ;; Check all properties
@@ -210,8 +209,7 @@ Argument:
         (l-buffer-status nil) (l-buffer-rw-flag t) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
     (eide-i-popup-menu-init)
 
-    (save-current-buffer
-      (set-buffer l-buffer)
+    (with-current-buffer l-buffer
       (setq l-buffer-status eide-menu-local-edit-status)
 
       ;; Check buffer status (r/w)

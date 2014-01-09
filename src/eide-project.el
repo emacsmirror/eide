@@ -358,8 +358,7 @@ Arguments:
 (defun eide-i-project-update-internal-projects-list ()
   ;; Create internal projects list
   (setq eide-project-current-projects-list nil)
-  (save-current-buffer
-    (set-buffer (find-file-noselect eide-project-projects-file))
+  (with-current-buffer (find-file-noselect eide-project-projects-file)
     (goto-char (point-min))
     (forward-line)
     (while (not (eobp))
@@ -430,8 +429,7 @@ Arguments:
 - p-parameter: config parameter.
 - p-default-value: config default value."
   (let ((l-value nil))
-    (save-current-buffer
-      (set-buffer eide-project-config-file)
+    (with-current-buffer eide-project-config-file
       (setq l-value (eide-i-project-get-config-value-if-defined p-parameter)))
     (if (not l-value)
       (setq l-value p-default-value))
@@ -950,8 +948,7 @@ Argument:
     (insert "# --> To restore the default value of a parameter, delete the line\n")
     (insert "#     (project configuration file is rebuilt when you exit this page).\n\n")
 
-    (save-current-buffer
-      (set-buffer eide-project-config-file)
+    (with-current-buffer eide-project-config-file
       (setq eide-project-name (eide-i-project-get-config-value-if-defined "project_name")))
     (if (or (not eide-project-name) (string-equal eide-project-name ""))
       ;; Get project name from directory:

@@ -143,8 +143,7 @@ Arguments:
 (defun eide-i-compare-select-control-window ()
   "Select ediff control window (before calling ediff command)."
   (let ((l-control-window nil))
-    (save-current-buffer
-      (set-buffer "*Ediff Control Panel*")
+    (with-current-buffer "*Ediff Control Panel*"
       (setq l-control-window ediff-control-window))
     (select-window l-control-window)))
 

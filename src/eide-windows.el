@@ -74,8 +74,7 @@ Argument:
           eide-windows-output-window)
         ;; Layout is not built => "menu" and "output" windows don't exist
         nil)
-      (save-current-buffer
-        (set-buffer p-buffer-name)
+      (with-current-buffer p-buffer-name
         (if (or (equal major-mode 'dired-mode)
                 (equal major-mode 'Buffer-menu-mode))
           nil
@@ -100,8 +99,7 @@ Arguments (same as display-buffer function):
       (setq l-buffer-name (buffer-name p-buffer))
       (setq l-buffer-name p-buffer))
     ;;(message (concat "eide-i-windows-display-buffer-function: " l-buffer-name))
-    (save-current-buffer
-      (set-buffer l-buffer-name)
+    (with-current-buffer l-buffer-name
       (if (and (not eide-project-is-gdb-session-visible-flag)
                (or (equal major-mode 'dired-mode)
                    (equal major-mode 'Buffer-menu-mode)))
@@ -229,8 +227,7 @@ ones."
       (progn
         ;;(message (concat "switch-to-buffer: " l-buffer-name))
         (if (get-buffer l-buffer-name)
-          (save-current-buffer
-            (set-buffer l-buffer-name)
+          (with-current-buffer l-buffer-name
             (if (and (not eide-project-is-gdb-session-visible-flag)
                      (or (equal major-mode 'dired-mode)
                          (equal major-mode 'Buffer-menu-mode)))

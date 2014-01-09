@@ -186,8 +186,7 @@ Arguments:
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
         (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil)
         (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
-    (save-current-buffer
-      (set-buffer p-buffer-name)
+    (with-current-buffer p-buffer-name
       (setq l-buffer-status eide-menu-local-edit-status)
       (setq l-functions-unfolded-flag eide-menu-local-functions-unfolded-flag)
       ;; Check buffer status (r/w, modified, svn or git status)
@@ -496,8 +495,7 @@ Argument:
   "Fold / unfold list of functions for selected file."
   (interactive)
   (let ((l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
-    (save-current-buffer
-      (set-buffer l-buffer-name)
+    (with-current-buffer l-buffer-name
       (if eide-menu-local-functions-unfolded-flag
         (setq eide-menu-local-functions-unfolded-flag nil)
         (progn
@@ -514,8 +512,7 @@ Argument:
   (let ((l-point (point)))
     (let ((l-folder-name (eide-i-menu-get-folder-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
-      (save-current-buffer
-        (set-buffer l-buffer-name)
+      (with-current-buffer l-buffer-name
         (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
         (if (member l-folder-name eide-menu-local-unfolded-symbols-folders-list)
           ;; Already unfolded => remove it
@@ -556,8 +553,7 @@ Argument:
   (let ((l-point (point)))
     (let ((l-symbol-name (eide-i-menu-get-symbol-name-on-current-line))
           (l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
-      (save-current-buffer
-        (set-buffer l-buffer-name)
+      (with-current-buffer l-buffer-name
         (make-local-variable 'eide-menu-local-highlighted-symbols-list)
         (if (member l-symbol-name eide-menu-local-highlighted-symbols-list)
           ;; Already highlighted => remove it
@@ -586,8 +582,7 @@ Argument:
 Argument:
 - p-buffer-name: buffer name."
   (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
-    (save-current-buffer
-      (set-buffer p-buffer-name)
+    (with-current-buffer p-buffer-name
       (setq l-buffer-edit-status eide-menu-local-edit-status)
       (if eide-vc-show-svn-status-flag
         (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
@@ -606,8 +601,7 @@ Argument:
   "Initialize \"menu\" buffer."
   ;; Menu buffer is created empty (content will be built by eide-menu-update)
   (setq eide-menu-buffer-name (buffer-name (get-buffer-create "* Menu *")))
-  (save-current-buffer
-    (set-buffer eide-menu-buffer-name)
+  (with-current-buffer eide-menu-buffer-name
     (setq buffer-read-only t)))
 
 (defun eide-menu-set-update-state (p-state-flag)
@@ -785,8 +779,7 @@ pages)."
       (if (not (or (string-match "^[ \*]" l-buffer-name)
                    (eide-windows-is-file-special-p l-buffer-name)))
         ;; This is a "useful" buffer
-        (save-current-buffer
-          (set-buffer l-buffer-name)
+        (with-current-buffer l-buffer-name
           (if (or (equal major-mode 'dired-mode)
                   (equal major-mode 'Buffer-menu-mode))
             (kill-buffer l-buffer-name)
@@ -801,8 +794,7 @@ pages)."
 
 (defun eide-menu-update-project-name ()
   "Update project name in \"menu\" buffer."
-  (save-current-buffer
-    (set-buffer eide-menu-buffer-name)
+  (with-current-buffer eide-menu-buffer-name
     (save-excursion
       (let ((buffer-read-only nil))
         (goto-char (point-min))
@@ -938,8 +930,7 @@ Argument:
 highlighted items).
 Argument:
 - p-buffer-name: buffer name."
-  (save-current-buffer
-    (set-buffer p-buffer-name)
+  (with-current-buffer p-buffer-name
     (setq eide-menu-local-functions-unfolded-flag-backup eide-menu-local-functions-unfolded-flag)
     (setq eide-menu-local-unfolded-symbols-folders-list-backup eide-menu-local-unfolded-symbols-folders-list)
     (setq eide-menu-local-highlighted-symbols-list-backup eide-menu-local-highlighted-symbols-list)))
@@ -949,8 +940,7 @@ Argument:
 items).
 Argument:
 - p-buffer-name: buffer name."
-  (save-current-buffer
-    (set-buffer p-buffer-name)
+  (with-current-buffer p-buffer-name
     (make-local-variable 'eide-menu-local-functions-unfolded-flag)
     (setq eide-menu-local-functions-unfolded-flag eide-menu-local-functions-unfolded-flag-backup)
     (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
@@ -986,8 +976,7 @@ Argument:
   ;; Save unfolded status for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
     (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-      (save-current-buffer
-        (set-buffer l-buffer-name)
+      (with-current-buffer l-buffer-name
         (push eide-menu-local-functions-unfolded-flag eide-menu-local-functions-unfolded-flags-list)
         (push eide-menu-local-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-lists-list)
         (push eide-menu-local-highlighted-symbols-list eide-menu-local-highlighted-symbols-lists-list))))
@@ -1003,8 +992,7 @@ Argument:
   ;; Restore unfolded status and highlighted functions for all files located in this directory
   (dolist (l-buffer-name eide-menu-files-list)
     (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-      (save-current-buffer
-        (set-buffer l-buffer-name)
+      (with-current-buffer l-buffer-name
         (make-local-variable 'eide-menu-local-functions-unfolded-flag)
         (setq eide-menu-local-functions-unfolded-flag (pop eide-menu-local-functions-unfolded-flags-list))
         (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
@@ -1112,8 +1100,7 @@ Arguments:
       (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil)))
   ;; Kill all browsing buffers
   (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
-    (save-current-buffer
-      (set-buffer l-buffer-name)
+    (with-current-buffer l-buffer-name
       (if (or (equal major-mode 'dired-mode)
               (equal major-mode 'Buffer-menu-mode))
         (kill-buffer l-buffer-name))))

@@ -175,8 +175,7 @@ Arguments:
           (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
     (progn
       (eide-menu-buffer-update-start p-buffer-name)
-      (save-current-buffer
-        (set-buffer p-buffer-name)
+      (with-current-buffer p-buffer-name
         (funcall p-function))
       (eide-menu-buffer-update-stop p-buffer-name))))
 
@@ -193,8 +192,7 @@ Arguments:
       (eide-menu-directory-update-start p-directory-name)
       (dolist (l-buffer-name eide-menu-files-list)
         (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-          (save-current-buffer
-            (set-buffer l-buffer-name)
+          (with-current-buffer l-buffer-name
             (if (file-exists-p buffer-file-name)
               (funcall p-function)))))
       (eide-menu-directory-update-stop p-directory-name))))
