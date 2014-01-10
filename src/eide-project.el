@@ -19,6 +19,7 @@
 
 (provide 'eide-project)
 
+(require 'compile)
 (require 'desktop)
 
 (require 'eide-compare)
@@ -462,10 +463,6 @@ Argument:
     ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
     (setq eide-windows-update-output-buffer-id "c")
     (compile l-compile-command))
-  ;; Although eide-compilation-buffer is supposed to be displayed in output window,
-  ;; it is necessary to set it as current buffer
-  (set-buffer eide-compilation-buffer)
-  (goto-char (point-max))
   (eide-windows-select-source-window t))
 
 (defun eide-i-project-run (p-parameter)
@@ -517,6 +514,7 @@ Argument:
 
 (defun eide-project-init ()
   "Initialize project."
+  (setq compilation-scroll-output 'first-error)
   (add-hook 'compilation-finish-functions 'eide-i-compilation-finished-hook))
 
 (defun eide-project-set-commands-state (p-state-flag)
