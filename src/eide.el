@@ -121,6 +121,7 @@
   ;; Coding must be initialized before the desktop is loaded, because it adds
   ;; hooks for major modes.
   (eide-coding-init)
+  (eide-project-init)
   (eide-project-load-root-directory-content t)
   (eide-menu-init)
   (eide-windows-init))

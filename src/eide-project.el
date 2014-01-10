@@ -166,6 +166,16 @@
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
+(defcustom eide-custom-project-default-compile-error-old-path-regexp "" "Default compile error old path regexp (used to modify the path of filenames in the compilation buffer)."
+  :tag "Default compile error old path regexp"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
+(defcustom eide-custom-project-default-compile-error-new-path-string "" "Default compile error new path string (used to modify the path of filenames in the compilation buffer)."
+  :tag "Default compile error new path string"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
+  :group 'eide-project)
 (defcustom eide-custom-project-default-tags-exclude "" "Default space separated list of patterns (files or directories) to exclude when creating tags."
   :tag "Default tags exclude patterns"
   :type 'string
@@ -487,9 +497,27 @@ Argument:
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
+(defun eide-i-compilation-finished-hook (cur-buffer msg)
+  "Change the path of filenames in compilation buffer."
+  ;; Check that the process was a compilation (not a grep)
+  (if (and eide-compilation-buffer
+           (equal cur-buffer (get-buffer eide-compilation-buffer)))
+    (let ((l-old-regexp (eide-project-get-config-value "compile_error_old_path_regexp"))
+          (l-new-string (eide-project-get-config-value "compile_error_new_path_string")))
+      (if (not (string-equal l-old-regexp ""))
+        ;; Replace all occurrences in compilation buffer
+        (with-current-buffer cur-buffer
+          (save-excursion
+            (goto-char (point-min))
+            (perform-replace l-old-regexp l-new-string nil t nil)))))))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-project-init ()
+  "Initialize project."
+  (add-hook 'compilation-finish-functions 'eide-i-compilation-finished-hook))
 
 (defun eide-project-set-commands-state (p-state-flag)
   "Disable/enable project commands."
@@ -970,6 +998,15 @@ Argument:
     (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
     (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
     (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
+
+    (insert "# In the compilation buffer, in the clickable filenames displayed when warnings or errors occur,\n")
+    (insert "# you can replace all occurrences of 'compile_error_old_path_regexp' (a regular expression)\n")
+    (insert "# with 'compile_error_new_path_string'\n")
+    (insert "# It can be useful if the sources are copied to another place before being compiled,\n")
+    (insert "# or if you need to modify a relative path.\n")
+    (insert "# In both cases, you want to be able to open the right file when selecting an error.\n")
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp" eide-custom-project-default-compile-error-old-path-regexp)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string" eide-custom-project-default-compile-error-new-path-string)
 
     (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
     (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
