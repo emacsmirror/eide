@@ -419,6 +419,9 @@ Arguments:
 
 (defun eide-i-project-set-colors-for-config ()
   "Set colors for config buffer."
+  ;; Save current colors
+  (setq eide-display-background-color (face-background 'default))
+  (setq eide-display-foreground-color (face-foreground 'default))
   (set-background-color eide-project-background-color)
   (set-foreground-color eide-project-foreground-color)
   (set-face-background 'fringe eide-project-background-color))
@@ -525,7 +528,7 @@ Argument:
   "Apply color theme (for project)."
   (if eide-config-ready
     (progn
-      (if (equal eide-custom-color-theme 'dark)
+      (if (equal eide-display-color-theme 'dark)
         ;; "Dark" color theme
         (progn
           (setq eide-project-background-color "gray20")

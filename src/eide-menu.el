@@ -602,6 +602,9 @@ Argument:
   ;; Menu buffer is created empty (content will be built by eide-menu-update)
   (setq eide-menu-buffer-name (buffer-name (get-buffer-create "* Menu *")))
   (with-current-buffer eide-menu-buffer-name
+    ;; Don't show trailing whitespace in this buffer
+    ;; (there is a space at the end of every line, because of properties)
+    (setq show-trailing-whitespace nil)
     (setq buffer-read-only t)))
 
 (defun eide-menu-set-update-state (p-state-flag)
@@ -610,7 +613,7 @@ Argument:
 
 (defun eide-menu-apply-color-theme ()
   "Apply color theme (for menu)."
-  (if (equal eide-custom-color-theme 'dark)
+  (if (equal eide-display-color-theme 'dark)
     ;; "Dark" color theme
     (progn
       (setq eide-menu-background-color "black")
@@ -654,7 +657,8 @@ Argument:
       ;; Functions
       (set-face-foreground 'eide-menu-function-face "blue")
       (set-face-background 'eide-menu-function-with-highlight-face "aquamarine")
-      (set-face-foreground 'eide-menu-function-with-highlight-face "blue"))))
+      (set-face-foreground 'eide-menu-function-with-highlight-face "blue")))
+  (eide-menu-update-background-color))
 
 (defun eide-menu-update-background-color ()
   "Update menu background color."
@@ -662,12 +666,7 @@ Argument:
     (progn
       (let ((l-menu-background-color nil))
         (let ((l-background-color nil))
-          (if (and eide-custom-override-emacs-settings
-                   eide-custom-extend-color-theme-to-source-code)
-            (if (equal eide-custom-color-theme 'dark)
-              (setq l-background-color eide-custom-dark-background)
-              (setq l-background-color eide-custom-light-background))
-            (setq l-background-color (face-background 'default)))
+          (setq l-background-color (face-background 'default))
           (if (or (not eide-custom-menu-use-specific-background-color)
                   (equal eide-menu-background-color l-background-color))
             (progn

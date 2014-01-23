@@ -56,6 +56,9 @@ Argument:
 
 (defun eide-i-help-set-colors-for-help ()
   "Set colors for \"help\" buffer."
+  ;; Save current colors
+  (setq eide-display-background-color (face-background 'default))
+  (setq eide-display-foreground-color (face-foreground 'default))
   (set-background-color eide-help-background-color)
   (set-foreground-color eide-help-foreground-color)
   (set-face-background 'fringe eide-help-background-color))
@@ -66,7 +69,7 @@ Argument:
 
 (defun eide-help-apply-color-theme ()
   "Apply color theme (for help)."
-  (if (equal eide-custom-color-theme 'dark)
+  (if (equal eide-display-color-theme 'dark)
     ;; "Dark" color theme
     (progn
       (setq eide-help-background-color "black")

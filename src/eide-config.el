@@ -19,6 +19,8 @@
 
 (provide 'eide-config)
 
+(require 'custom)
+
 (require 'eide-coding)
 (require 'eide-display)
 (require 'eide-menu)
@@ -82,9 +84,6 @@
   "Apply \"Emacs settings\" options."
   (if eide-config-ready
     (progn
-      (eide-display-apply-extended-color-theme)
-      (eide-menu-update-background-color)
-      (eide-display-apply-emacs-settings)
       (eide-coding-apply-emacs-settings)
       (eide-search-apply-customization)
       (eide-keys-apply-emacs-settings))))
@@ -95,8 +94,14 @@
 
 (defun eide-config-init ()
   "Config initialization: save Emacs settings."
+  (if (boundp 'custom-theme-load-path)
+    ;; Available only wih Emacs 24
+    ;; Not necessary with Emacs 23, because themes are searched in load-path
+    (progn
+      (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
+      (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
+      (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp")))
   (eide-coding-save-emacs-settings)
-  (eide-display-save-emacs-settings)
   (eide-search-save-emacs-settings)
   (eide-keys-save-emacs-settings))
 
@@ -115,12 +120,28 @@
   (eide-i-config-apply-emacs-settings)
   (eide-vc-apply-customization))
 
-(defun eide-config-open-customization ()
-  "Display customization (full frame)."
+(defun eide-config-customize ()
+  "Display customization of Emacs-IDE options (full frame)."
   (interactive)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
+  (ad-deactivate 'switch-to-buffer)
+  (ad-deactivate 'save-buffer)
   (customize-group 'eide))
+
+(defun eide-config-customize-themes ()
+  "Display customization of themes (full frame)."
+  (interactive)
+  (eide-windows-hide-ide-windows)
+  (eide-windows-save-and-unbuild-layout)
+  (eide-keys-configure-for-special-buffer)
+  (ad-deactivate 'switch-to-buffer)
+  (ad-deactivate 'save-buffer)
+  (setq eide-windows-themes-edited-flag t)
+  ;; customize-themes doesn't seem to be working properly
+  ;; when selecting multiple themes.
+  ;;(customize-themes))
+  (customize-option 'custom-enabled-themes))
 
 ;;; eide-config.el ends here

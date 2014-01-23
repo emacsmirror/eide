@@ -45,6 +45,8 @@
 
 (defvar eide-windows-frame-fullscreen-value nil)
 
+(defvar eide-windows-themes-edited-flag nil)
+
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
@@ -257,13 +259,6 @@ ones."
                   (eide-menu-browsing-mode-stop))
                 ad-do-it
                 (set-buffer l-buffer-name)
-                (if (and eide-custom-override-emacs-settings
-                         (not (equal eide-custom-show-trailing-spaces 'ignore))
-                         (equal l-window eide-windows-source-window))
-                  ;; Show trailing spaces if enabled in options
-                  (if eide-custom-show-trailing-spaces
-                    (setq show-trailing-whitespace t)
-                    (setq show-trailing-whitespace nil)))
                 (if eide-project-is-gdb-session-visible-flag
                   (eide-menu-update nil)
                   (progn
@@ -725,12 +720,6 @@ and display it. Current buffer is kept if correct."
               (switch-to-buffer "*scratch*"))))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
-    (if (and eide-custom-override-emacs-settings
-             (not (equal eide-custom-show-trailing-spaces 'ignore)))
-      ;; Show trailing spaces if enabled in options
-      (if eide-custom-show-trailing-spaces
-        (setq show-trailing-whitespace t)
-        (setq show-trailing-whitespace nil)))
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
 
@@ -794,8 +783,18 @@ and display it. Current buffer is kept if correct."
 (defun eide-windows-switch-to-editor-mode ()
   "Switch to editor mode and build the layout."
   (interactive)
+  (if (string-match "^\*Customize.*" (buffer-name))
+    (progn
+      (ad-activate 'switch-to-buffer)
+      (ad-activate 'save-buffer)
+      (if eide-windows-themes-edited-flag
+        (progn
+          ;; Update color theme for specific faces (in case
+          ;; the color theme for source code has changed)
+          (eide-display-apply-color-theme)
+          (setq eide-windows-themes-edited-flag nil)))))
   (if (or (string-equal (buffer-name) "* Help *")
-          (string-match (buffer-name) "^\*Customize.*")
+          (string-match "^\*Customize.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
     ;; Close "help", customization, or projects list
     ;; NB: In customization, exit button does not work...
@@ -1037,9 +1036,12 @@ on previous state)."
 
 (define-key-after eide-menu-keymap [sep-workspace-selection] '(menu-item "--" nil :visible (> eide-custom-number-of-workspaces 1)))
 
-(define-key-after eide-menu-keymap [eide-config-open-customization]
-  '(menu-item "Configuration"
-              eide-config-open-customization))
+(define-key-after eide-menu-keymap [eide-config-customize]
+  '(menu-item "Customize"
+              eide-config-customize))
+(define-key-after eide-menu-keymap [eide-config-customize-themes]
+  '(menu-item "Customize themes"
+              eide-config-customize-themes))
 (define-key-after eide-menu-keymap [eide-help-open]
   '(menu-item "Help"
               eide-help-open))
