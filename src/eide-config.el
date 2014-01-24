@@ -83,7 +83,6 @@
 (defun eide-i-config-apply-emacs-settings ()
   "Apply \"Emacs settings\" options."
   (when eide-config-ready
-    (eide-coding-apply-emacs-settings)
     (eide-search-apply-customization)
     (eide-keys-apply-emacs-settings)))
 
@@ -99,7 +98,6 @@
     (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
     (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
     (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp"))
-  (eide-coding-save-emacs-settings)
   (eide-search-save-emacs-settings)
   (eide-keys-save-emacs-settings))
 

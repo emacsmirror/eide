@@ -24,9 +24,6 @@
 (require 'eide-menu)
 (require 'eide-vc)
 
-(defvar eide-coding-user-indent-tabs-mode nil)
-(defvar eide-coding-user-tab-width nil)
-
 ;; ----------------------------------------------------------------------------
 ;; OPTIONS
 ;; ----------------------------------------------------------------------------
@@ -51,21 +48,6 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-indent-mode 'spaces "Indentation mode (spaces or tabs)."
-  :tag "Indentation mode"
-  :type '(choice (const :tag "Spaces" spaces)
-                 (const :tag "Tabs" tabs)
-                 (const :tag "Don't override indent-tabs-mode variable" ignore))
-  :set 'eide-i-coding-set-indent-mode
-  :initialize 'custom-initialize-default
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-default-tab-width 4 "Default tab width. For languages that are listed below, tab width is indentation offset."
-  :tag "Default tab width"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set 'eide-i-coding-set-default-tab-width
-  :initialize 'custom-initialize-default
-  :group 'eide-emacs-settings-coding-rules)
 (defcustom eide-custom-c-indent-offset 2 "Indentation offset for C/C++."
   :tag "Indentation offset for C/C++"
   :type '(choice (const :tag "Don't override" nil)
@@ -102,33 +84,6 @@
                  (integer :tag "Number of spaces"))
   :set '(lambda (param value) (set-default param value))
   :group 'eide-emacs-settings-coding-rules)
-
-;; ----------------------------------------------------------------------------
-;; CUSTOMIZATION FUNCTIONS
-;; ----------------------------------------------------------------------------
-
-(defun eide-i-coding-set-indent-mode (param value)
-  "Set indentation mode (spaces or tabs).
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (when eide-config-ready
-    (if (and eide-custom-override-emacs-settings
-             (not (equal value 'ignore)))
-      (setq-default indent-tabs-mode (if (equal value 'spaces) nil t))
-      (setq-default indent-tabs-mode eide-coding-user-indent-tabs-mode))))
-
-(defun eide-i-coding-set-default-tab-width (param value)
-  "Set default tab width.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (when eide-config-ready
-    (if (and eide-custom-override-emacs-settings value)
-      (setq-default tab-width value)
-      (setq-default tab-width eide-coding-user-tab-width))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -261,15 +216,5 @@ Arguments:
       (when (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
         (setq tab-width eide-custom-sgml-indent-offset)
         (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
-
-(defun eide-coding-save-emacs-settings ()
-  "Save Emacs settings (for coding)."
-  (setq eide-coding-user-indent-tabs-mode indent-tabs-mode)
-  (setq eide-coding-user-tab-width tab-width))
-
-(defun eide-coding-apply-emacs-settings ()
-  "Apply Emacs settings (for coding)."
-  (eide-i-coding-set-indent-mode 'eide-custom-indent-mode eide-custom-indent-mode)
-  (eide-i-coding-set-default-tab-width 'eide-custom-default-tab-width eide-custom-default-tab-width))
 
 ;;; eide-coding.el ends here
