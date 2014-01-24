@@ -423,7 +423,7 @@ before gdb builds its own."
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t)
 
-  (when (and eide-custom-override-emacs-settings eide-custom-start-maximized)
+  (when eide-custom-start-maximized
     (set-frame-parameter nil 'fullscreen 'maximized)))
 
 (defun eide-i-windows-select-window-at-mouse-position ()
