@@ -5,7 +5,7 @@
  'eide-display
  '(menu-bar-mode nil)
  '(tool-bar-mode nil)
- '(scroll-bar-mode (quote right)
- '(show-trailing-whitespace t)))
+ '(scroll-bar-mode (quote right))
+ '(show-trailing-whitespace t))
 
 (provide-theme 'eide-display)
