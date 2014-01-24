@@ -21,6 +21,7 @@
 
 (require 'compile)
 (require 'desktop)
+(require 'ansi-color)
 
 (require 'eide-compare)
 (require 'eide-config)
@@ -167,6 +168,13 @@
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
+(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer (requires Emacs 24)."
+  :tag "Support ANSI escape code in compilation buffer"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set 'eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer
+  :initialize 'custom-initialize-default
+  :group 'eide-project)
 (defcustom eide-custom-project-default-compile-error-old-path-regexp "" "Default compile error old path regexp (used to modify the path of filenames in the compilation buffer)."
   :tag "Default compile error old path regexp"
   :type 'string
@@ -207,6 +215,17 @@
 ;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
+(defun eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer (param value)
+  "Add/remove a hook on compilation filter to colorize output.
+Arguments:
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (when (boundp 'compilation-filter-hook)
+    (if eide-custom-support-ansi-escape-code-in-compilation-buffer
+      (add-hook 'compilation-filter-hook 'eide-i-colorize-compilation-buffer-hook)
+      (remove-hook 'compilation-filter-hook 'eide-i-colorize-compilation-buffer-hook))))
+
 (defun eide-i-project-custom-set-number-of-workspaces (param value)
   "Set number of workspaces.
 Arguments:
@@ -214,11 +233,26 @@ Arguments:
 - value: customization value."
   (set-default param value)
   (when eide-config-ready
-    (eide-project-create-workspaces)))
+    (eide-i-project-create-workspaces)))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-i-project-create-workspaces ()
+  "Create directories and files for workspaces, if missing."
+  (let ((l-workspace-number 1))
+    (while (<= l-workspace-number eide-custom-number-of-workspaces)
+      (let ((l-workspace-dir nil) (l-projects-list-file nil))
+        (setq l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number)))
+        ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
+        (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
+        (when (not (file-directory-p l-workspace-dir))
+          (make-directory l-workspace-dir))
+        (when (not (file-exists-p l-projects-list-file))
+          (shell-command (concat "touch \"" l-projects-list-file "\""))))
+      (setq l-workspace-number (+ l-workspace-number 1))))
+  (eide-i-project-update-internal-projects-list))
 
 (defun eide-i-project-force-desktop-read-hook ()
   "Hook to be called at startup, to force to read the desktop when after-init-hook
@@ -232,6 +266,12 @@ has already been called."
   (if eide-project-name
     (setq frame-title-format (concat eide-project-name " - Emacs"))
     (setq frame-title-format (concat eide-root-directory " - Emacs"))))
+
+(when (and (boundp 'compilation-filter-hook)
+           (boundp 'compilation-filter-start))
+  (defun eide-i-colorize-compilation-buffer-hook ()
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point)))))
 
 (defun eide-i-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
@@ -518,6 +558,11 @@ Argument:
   "Disable/enable project commands."
   (setq eide-project-commands-enabled-flag p-state-flag))
 
+(defun eide-project-apply-customization ()
+  "Apply project customization."
+  (eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer 'eide-custom-support-ansi-escape-code-in-compilation-buffer eide-custom-support-ansi-escape-code-in-compilation-buffer)
+  (eide-i-project-create-workspaces))
+
 (defun eide-project-apply-color-theme ()
   "Apply color theme (for project)."
   (when eide-config-ready
@@ -556,21 +601,6 @@ Argument:
         (set-face-foreground 'eide-project-project-current-name-face "red")
         (set-face-background 'eide-project-project-comparison-name-face "light green")
         (set-face-foreground 'eide-project-project-comparison-name-face "red")))))
-
-(defun eide-project-create-workspaces ()
-  "Create directories and files for workspaces, if missing."
-  (let ((l-workspace-number 1))
-    (while (<= l-workspace-number eide-custom-number-of-workspaces)
-      (let ((l-workspace-dir nil) (l-projects-list-file nil))
-        (setq l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number)))
-        ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
-        (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
-        (when (not (file-directory-p l-workspace-dir))
-          (make-directory l-workspace-dir))
-        (when (not (file-exists-p l-projects-list-file))
-          (shell-command (concat "touch \"" l-projects-list-file "\""))))
-      (setq l-workspace-number (+ l-workspace-number 1))))
-  (eide-i-project-update-internal-projects-list))
 
 (defun eide-project-switch-to-workspace-1 ()
   "Switch to workspace 1."

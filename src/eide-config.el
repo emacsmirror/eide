@@ -113,7 +113,7 @@
   ;; Moreover, in order to avoid to set different values successively, values
   ;; are not set until eide-config-ready is set (below).
   (setq eide-config-ready t)
-  (eide-project-create-workspaces)
+  (eide-project-apply-customization)
   (eide-display-apply-color-theme)
   (eide-i-config-apply-emacs-settings)
   (eide-vc-apply-customization))
