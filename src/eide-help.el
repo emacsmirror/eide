@@ -99,7 +99,7 @@ Argument:
   (eide-i-help-set-colors-for-help)
   (eide-keys-configure-for-special-buffer)
 
-  (if (get-buffer "* Help *")
+  (when (get-buffer "* Help *")
     (kill-buffer "* Help *"))
   (switch-to-buffer (get-buffer-create "* Help *"))
 
@@ -430,11 +430,11 @@ NB: F1-F12 key bindings can be customized. The default bindings are shown below.
   ;;(eide-i-help-insert-header-2 "{...} block hiding")
 
   ;;(insert "
-;;Ctrl - F1 .......... Hide block
-;;Ctrl - F2 .......... Show block
-;;Ctrl - F3 .......... Hide all blocks in current buffer
-;;Ctrl - F4 .......... Show all blocks in current buffer
-;;")
+  ;;Ctrl - F1 .......... Hide block
+  ;;Ctrl - F2 .......... Show block
+  ;;Ctrl - F3 .......... Hide all blocks in current buffer
+  ;;Ctrl - F4 .......... Show all blocks in current buffer
+  ;;")
 
   (eide-i-help-insert-header-2 "Display")
 

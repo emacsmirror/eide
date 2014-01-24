@@ -19,10 +19,9 @@
 
 (provide 'eide)
 
-(if (featurep 'xemacs)
-  (progn
-    (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
-    (kill-emacs)))
+(when (featurep 'xemacs)
+  (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
+  (kill-emacs))
 
 ;; Emacs modules
 (require 'desktop)
@@ -103,7 +102,7 @@
   ;; ediff: Highlight current diff only
   ;;(setq ediff-highlight-all-diffs nil)
   ;; ediff: Control panel in the same frame
-  (if window-system
+  (when window-system
     (ediff-toggle-multiframe))
   ;; ediff: Split horizontally for buffer comparison
   (setq ediff-split-window-function 'split-window-horizontally)
@@ -113,7 +112,7 @@
 
 (defun eide-i-init ()
   "Initialization."
-  (if (not (file-directory-p "~/.emacs-ide"))
+  (when (not (file-directory-p "~/.emacs-ide"))
     (make-directory "~/.emacs-ide"))
   ;; Emacs settings must be saved before the desktop is loaded, because it
   ;; reads some variables that might be overridden by local values in buffers.
@@ -134,7 +133,7 @@
   "Open a shell."
   (interactive)
   ;; Force to open a new shell (in current directory)
-  (if eide-shell-buffer
+  (when eide-shell-buffer
     (kill-buffer eide-shell-buffer))
   (eide-windows-select-source-window t)
   ;; Shell buffer name will be updated in eide-i-windows-display-buffer-function

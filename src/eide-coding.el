@@ -113,7 +113,7 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (if eide-config-ready
+  (when eide-config-ready
     (if (and eide-custom-override-emacs-settings
              (not (equal value 'ignore)))
       (setq-default indent-tabs-mode (if (equal value 'spaces) nil t))
@@ -125,7 +125,7 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (if eide-config-ready
+  (when eide-config-ready
     (if (and eide-custom-override-emacs-settings value)
       (setq-default tab-width value)
       (setq-default tab-width eide-coding-user-tab-width))))
@@ -140,20 +140,19 @@ Arguments:
   (add-hook
    'c-mode-hook
    '(lambda()
-      (if eide-option-select-whole-symbol-flag
+      (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (progn
-          (setq tab-width eide-custom-c-indent-offset)
-          (setq c-basic-offset eide-custom-c-indent-offset)))
+      (when (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
+        (setq tab-width eide-custom-c-indent-offset)
+        (setq c-basic-offset eide-custom-c-indent-offset))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Turn hide/show mode on
-      (if (not hs-minor-mode)
+      (when (not hs-minor-mode)
         (hs-minor-mode))
       ;; Do not hide comments when hidding all
       (setq hs-hide-comments-when-hiding-all nil)
@@ -168,20 +167,19 @@ Arguments:
   (add-hook
    'c++-mode-hook
    '(lambda()
-      (if eide-option-select-whole-symbol-flag
+      (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
         (modify-syntax-entry ?_ "w" c-mode-syntax-table))
 
       ;; Indentation
       (c-set-style "K&R") ; Indentation style
-      (if (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (progn
-          (setq tab-width eide-custom-c-indent-offset)
-          (setq c-basic-offset eide-custom-c-indent-offset)))
+      (when (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
+        (setq tab-width eide-custom-c-indent-offset)
+        (setq c-basic-offset eide-custom-c-indent-offset))
       (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
 
       ;; Turn hide/show mode on
-      (if (not hs-minor-mode)
+      (when (not hs-minor-mode)
         (hs-minor-mode))
       ;; Do not hide comments when hidding all
       (setq hs-hide-comments-when-hiding-all nil)
@@ -209,65 +207,60 @@ Arguments:
   (add-hook
    'sh-mode-hook
    '(lambda()
-      (if eide-option-select-whole-symbol-flag
+      (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
         (modify-syntax-entry ?_ "w" sh-mode-syntax-table))
       ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-sh-indent-offset)
-        (progn
-          (setq tab-width eide-custom-sh-indent-offset)
-          (setq sh-basic-offset eide-custom-sh-indent-offset)))))
+      (when (and eide-custom-override-emacs-settings eide-custom-sh-indent-offset)
+        (setq tab-width eide-custom-sh-indent-offset)
+        (setq sh-basic-offset eide-custom-sh-indent-offset))))
 
   ;; Emacs Lisp major mode
   (add-hook
    'emacs-lisp-mode-hook
    '(lambda()
-      (if eide-option-select-whole-symbol-flag
+      (when eide-option-select-whole-symbol-flag
         ;; "-" should not be a word delimiter
         (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
 
       ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-lisp-indent-offset)
-        (progn
-          (setq tab-width eide-custom-lisp-indent-offset)
-          (setq lisp-body-indent eide-custom-lisp-indent-offset)
-          ;; Indentation after "if" (with default behaviour, the "then" statement is
-          ;; more indented than the "else" statement)
-          (put 'if 'lisp-indent-function 1)))))
+      (when (and eide-custom-override-emacs-settings eide-custom-lisp-indent-offset)
+        (setq tab-width eide-custom-lisp-indent-offset)
+        (setq lisp-body-indent eide-custom-lisp-indent-offset)
+        ;; Indentation after "if" (with default behaviour, the "then" statement is
+        ;; more indented than the "else" statement)
+        (put 'if 'lisp-indent-function 1))))
 
   ;; Perl major mode
   (add-hook
    'perl-mode-hook
    '(lambda()
       ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-perl-indent-offset)
-        (progn
-          (setq tab-width eide-custom-perl-indent-offset)
-          (setq perl-indent-level eide-custom-perl-indent-offset)))))
+      (when (and eide-custom-override-emacs-settings eide-custom-perl-indent-offset)
+        (setq tab-width eide-custom-perl-indent-offset)
+        (setq perl-indent-level eide-custom-perl-indent-offset))))
 
   ;; Python major mode
   (add-hook
    'python-mode-hook
    '(lambda()
-      (if eide-option-select-whole-symbol-flag
+      (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
         (modify-syntax-entry ?_ "w" python-mode-syntax-table))
 
       ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
-        (progn
-          (setq tab-width eide-custom-python-indent-offset)
-          (setq python-indent eide-custom-python-indent-offset)))))
+      (when (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
+        (setq tab-width eide-custom-python-indent-offset)
+        (setq python-indent eide-custom-python-indent-offset))))
 
   ;; SGML (HTML, XML...) major mode
   (add-hook
    'sgml-mode-hook
    '(lambda()
       ;; Indentation
-      (if (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
-        (progn
-          (setq tab-width eide-custom-sgml-indent-offset)
-          (setq sgml-basic-offset eide-custom-sgml-indent-offset))))))
+      (when (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
+        (setq tab-width eide-custom-sgml-indent-offset)
+        (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
 
 (defun eide-coding-save-emacs-settings ()
   "Save Emacs settings (for coding)."

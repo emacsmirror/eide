@@ -60,24 +60,21 @@ Argument:
 
 (defun eide-edit-set-rw ()
   "Set write permission for current file."
-  (if buffer-read-only
-    (progn
-      (shell-command (concat "chmod +w \"" buffer-file-name "\""))
-      (revert-buffer))))
+  (when buffer-read-only
+    (shell-command (concat "chmod +w \"" buffer-file-name "\""))
+    (revert-buffer)))
 
 (defun eide-edit-set-r ()
   "Unset write permission for current file."
-  (if (not buffer-read-only)
-    (progn
-      (shell-command (concat "chmod -w \"" buffer-file-name "\""))
-      (revert-buffer))))
+  (when (not buffer-read-only)
+    (shell-command (concat "chmod -w \"" buffer-file-name "\""))
+    (revert-buffer)))
 
 (defun eide-edit-make-ref-file ()
   "Create \".ref\" version of current file, and use \".new\"."
-  (if (string-equal eide-menu-local-edit-status "")
-    (progn
-      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\" ; cp \"" buffer-file-name ".ref\" \"" buffer-file-name "\" ; chmod +w \"" buffer-file-name "\""))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "")
+    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\" ; cp \"" buffer-file-name ".ref\" \"" buffer-file-name "\" ; chmod +w \"" buffer-file-name "\""))
+    (revert-buffer)))
 
 ;;(setq nnn (file-modes buffer-file-name))
 ;;(setq mmm (logior (file-modes buffer-file-name) 128))) ; = "chmod +w"
@@ -90,79 +87,70 @@ Argument:
 
 (defun eide-edit-use-ref-file ()
   "Use \".ref\" version of current file."
-  (if (string-equal eide-menu-local-edit-status "new")
-    (progn
-      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
-      (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
-      (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch \"" buffer-file-name "\"")))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "new")
+    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
+    (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
+    (when eide-option-touch-files-when-using-flag
+      (shell-command (concat "touch \"" buffer-file-name "\"")))
+    (revert-buffer)))
 
 (defun eide-edit-use-new-file ()
   "Use \".new\" version of current file."
-  (if (string-equal eide-menu-local-edit-status "ref")
-    (progn
-      (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
-      (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
-      (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch \"" buffer-file-name "\"")))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "ref")
+    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
+    (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
+    (when eide-option-touch-files-when-using-flag
+      (shell-command (concat "touch \"" buffer-file-name "\"")))
+    (revert-buffer)))
 
 (defun eide-edit-discard-new-file ()
   "Discard \".new\" version of current file."
-  (if (string-equal eide-menu-local-edit-status "ref")
-    (progn
-      (shell-command (concat "rm -f \"" buffer-file-name ".new\""))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "ref")
+    (shell-command (concat "rm -f \"" buffer-file-name ".new\""))
+    (revert-buffer)))
 
 (defun eide-edit-restore-ref-file ()
   "Restore \".ref\" version of current file."
-  (if (string-equal eide-menu-local-edit-status "new")
-    (progn
-      (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
-      (if eide-option-touch-files-when-using-flag
-        (shell-command (concat "touch \"" buffer-file-name "\"")))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "new")
+    (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
+    (when eide-option-touch-files-when-using-flag
+      (shell-command (concat "touch \"" buffer-file-name "\"")))
+    (revert-buffer)))
 
 (defun eide-edit-discard-ref-file ()
   "Discard \".ref\" version of current file."
-  (if (string-equal eide-menu-local-edit-status "new")
-    (progn
-      (shell-command (concat "rm -f \"" buffer-file-name ".ref\""))
-      (revert-buffer))))
+  (when (string-equal eide-menu-local-edit-status "new")
+    (shell-command (concat "rm -f \"" buffer-file-name ".ref\""))
+    (revert-buffer)))
 
 (defun eide-edit-untabify-and-indent ()
   "Untabify and indent the content of current file."
-  (if (not buffer-read-only)
-    (progn
-      (untabify (point-min) (point-max))
-      (indent-region (point-min) (point-max) nil)
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer))))
+  (when (not buffer-read-only)
+    (untabify (point-min) (point-max))
+    (indent-region (point-min) (point-max) nil)
+    (ad-deactivate 'save-buffer)
+    (save-buffer)
+    (ad-activate 'save-buffer)))
 
 (defun eide-edit-dos-to-unix ()
   "Convert current file end of line from DOS to UNIX."
-  (if (not buffer-read-only)
-    (progn
-      (shell-command (concat "fromdos \"" buffer-file-name "\""))
-      (revert-buffer))))
+  (when (not buffer-read-only)
+    (shell-command (concat "fromdos \"" buffer-file-name "\""))
+    (revert-buffer)))
 
 (defun eide-edit-unix-to-dos ()
   "Convert current file end of line from UNIX to DOS."
-  (if (not buffer-read-only)
-    (progn
-      (shell-command (concat "todos \"" buffer-file-name "\""))
-      (revert-buffer))))
+  (when (not buffer-read-only)
+    (shell-command (concat "todos \"" buffer-file-name "\""))
+    (revert-buffer)))
 
 (defun eide-edit-delete-trailing-spaces ()
   "Delete all trailing spaces in current file."
-  (if (not buffer-read-only)
-    (progn
-      (delete-trailing-whitespace)
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer))))
+  (when (not buffer-read-only)
+    (delete-trailing-whitespace)
+    (ad-deactivate 'save-buffer)
+    (save-buffer)
+    (ad-activate 'save-buffer)))
 
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
   "Do an action on a file.
@@ -171,13 +159,12 @@ Arguments:
 - p-buffer-name: buffer name.
 - p-confirmation-message (optional): string for confirmation message, nil if
   confirmation is not required."
-  (if (or (not p-confirmation-message)
-          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
-    (progn
-      (eide-menu-buffer-update-start p-buffer-name)
-      (with-current-buffer p-buffer-name
-        (funcall p-function))
-      (eide-menu-buffer-update-stop p-buffer-name))))
+  (when (or (not p-confirmation-message)
+            (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
+    (eide-menu-buffer-update-start p-buffer-name)
+    (with-current-buffer p-buffer-name
+      (funcall p-function))
+    (eide-menu-buffer-update-stop p-buffer-name)))
 
 (defun eide-edit-action-on-directory (p-function p-directory-name &optional p-confirmation-message)
   "Do an action on all open files in a directory.
@@ -186,15 +173,14 @@ Arguments:
 - p-directory-name: directory name.
 - p-confirmation-message (optional): string for confirmation message, nil if
   confirmation is not required."
-  (if (or (not p-confirmation-message)
-          (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
-    (progn
-      (eide-menu-directory-update-start p-directory-name)
-      (dolist (l-buffer-name eide-menu-files-list)
-        (if (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
-          (with-current-buffer l-buffer-name
-            (if (file-exists-p buffer-file-name)
-              (funcall p-function)))))
-      (eide-menu-directory-update-stop p-directory-name))))
+  (when (or (not p-confirmation-message)
+            (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
+    (eide-menu-directory-update-start p-directory-name)
+    (dolist (l-buffer-name eide-menu-files-list)
+      (when (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)
+        (with-current-buffer l-buffer-name
+          (when (file-exists-p buffer-file-name)
+            (funcall p-function)))))
+    (eide-menu-directory-update-stop p-directory-name)))
 
 ;;; eide-edit.el ends here

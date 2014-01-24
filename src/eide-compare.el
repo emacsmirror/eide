@@ -130,7 +130,7 @@ Arguments:
       ;; Turn hide/show mode off, because if emacs is closed before this
       ;; temporary buffer is closed, it will be loaded next time, with an error
       ;; because default major mode is Fundamental
-      (if hs-minor-mode
+      (when hs-minor-mode
         (hs-minor-mode)))
     (eide-windows-find-file-without-advice p-other-buffer-filename))
 

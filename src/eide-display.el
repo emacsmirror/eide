@@ -63,26 +63,25 @@
 
 (defun eide-display-apply-color-theme ()
   "Apply color theme."
-  (if eide-config-ready
-    (progn
-      (if eide-custom-color-theme
-        ;; Color theme for Emacs-IDE specific faces is forced
-        (setq eide-display-color-theme eide-custom-color-theme)
-        ;; Color theme for Emacs-IDE specific faces is not forced
-        ;; and depends on which Emacs-IDE color theme is enabled
-        (if (custom-theme-enabled-p 'eide-dark)
-          ;; If eide-dark theme is enabled, use dark color theme for Emacs-IDE
-          ;; specific faces
-          (setq eide-display-color-theme 'dark)
-          ;; If eide-light theme is enabled, or neither eide-dark nor eide-light
-          ;; theme is enabled, use light color theme for Emacs-IDE specific faces
-          (setq eide-display-color-theme 'light)))
-      ;; Save current colors
-      (setq eide-display-background-color (face-background 'default))
-      (setq eide-display-foreground-color (face-foreground 'default))
-      (eide-menu-apply-color-theme)
-      (eide-project-apply-color-theme)
-      (eide-help-apply-color-theme))))
+  (when eide-config-ready
+    (if eide-custom-color-theme
+      ;; Color theme for Emacs-IDE specific faces is forced
+      (setq eide-display-color-theme eide-custom-color-theme)
+      ;; Color theme for Emacs-IDE specific faces is not forced
+      ;; and depends on which Emacs-IDE color theme is enabled
+      (if (custom-theme-enabled-p 'eide-dark)
+        ;; If eide-dark theme is enabled, use dark color theme for Emacs-IDE
+        ;; specific faces
+        (setq eide-display-color-theme 'dark)
+        ;; If eide-light theme is enabled, or neither eide-dark nor eide-light
+        ;; theme is enabled, use light color theme for Emacs-IDE specific faces
+        (setq eide-display-color-theme 'light)))
+    ;; Save current colors
+    (setq eide-display-background-color (face-background 'default))
+    (setq eide-display-foreground-color (face-foreground 'default))
+    (eide-menu-apply-color-theme)
+    (eide-project-apply-color-theme)
+    (eide-help-apply-color-theme)))
 
 (defun eide-display-set-colors-for-files ()
   "Set colors for edition mode."

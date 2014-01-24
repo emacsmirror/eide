@@ -82,11 +82,10 @@
 
 (defun eide-i-config-apply-emacs-settings ()
   "Apply \"Emacs settings\" options."
-  (if eide-config-ready
-    (progn
-      (eide-coding-apply-emacs-settings)
-      (eide-search-apply-customization)
-      (eide-keys-apply-emacs-settings))))
+  (when eide-config-ready
+    (eide-coding-apply-emacs-settings)
+    (eide-search-apply-customization)
+    (eide-keys-apply-emacs-settings)))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -94,13 +93,12 @@
 
 (defun eide-config-init ()
   "Config initialization: save Emacs settings."
-  (if (boundp 'custom-theme-load-path)
+  (when (boundp 'custom-theme-load-path)
     ;; Available only wih Emacs 24
     ;; Not necessary with Emacs 23, because themes are searched in load-path
-    (progn
-      (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
-      (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
-      (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp")))
+    (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
+    (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
+    (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp"))
   (eide-coding-save-emacs-settings)
   (eide-search-save-emacs-settings)
   (eide-keys-save-emacs-settings))

@@ -66,7 +66,7 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (if eide-config-ready
+  (when eide-config-ready
     (eide-vc-update-show-svn-status)))
 
 (defun eide-i-vc-custom-set-show-git-status (param value)
@@ -75,7 +75,7 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (if eide-config-ready
+  (when eide-config-ready
     (eide-vc-update-show-git-status)))
 
 (defun eide-i-vc-custom-set-vc-diff-command (param value)
@@ -84,7 +84,7 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (if eide-config-ready
+  (when eide-config-ready
     (if (string-equal value "")
       (progn
         (setq eide-vc-svn-diff-full-command nil)
@@ -163,28 +163,24 @@ Argument:
 
 (defun eide-vc-update-current-buffer-status ()
   "Update current buffer status (modified or not compared to vc repositories)."
-  (if eide-vc-show-svn-status-flag
-    (progn
-      (make-local-variable 'eide-menu-local-svn-modified-status-flag)
-      (setq eide-menu-local-svn-modified-status-flag nil)))
-  (if eide-vc-show-git-status-flag
-    (progn
-      (make-local-variable 'eide-menu-local-git-modified-status-flag)
-      (setq eide-menu-local-git-modified-status-flag nil)))
-  (if (file-exists-p buffer-file-name)
+  (when eide-vc-show-svn-status-flag
+    (make-local-variable 'eide-menu-local-svn-modified-status-flag)
+    (setq eide-menu-local-svn-modified-status-flag nil))
+  (when eide-vc-show-git-status-flag
+    (make-local-variable 'eide-menu-local-git-modified-status-flag)
+    (setq eide-menu-local-git-modified-status-flag nil))
+  (when (file-exists-p buffer-file-name)
     (let ((l-vc-backend (vc-backend buffer-file-name)))
-      (if (and eide-vc-show-svn-status-flag (vc-svn-registered buffer-file-name))
-        (progn
-          ;; Temporary switch to SVN backend (in case the file is under several version control systems)
-          (vc-switch-backend buffer-file-name 'SVN)
-          ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
-          (setq eide-menu-local-svn-modified-status-flag (not (vc-workfile-unchanged-p buffer-file-name)))))
-      (if (and eide-vc-show-git-status-flag (vc-git-registered buffer-file-name))
-        (progn
-          ;; Temporary switch to Git backend (in case the file is under several version control systems)
-          (vc-switch-backend buffer-file-name 'Git)
-          ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
-          (setq eide-menu-local-git-modified-status-flag (not (vc-workfile-unchanged-p buffer-file-name)))))
+      (when (and eide-vc-show-svn-status-flag (vc-svn-registered buffer-file-name))
+        ;; Temporary switch to SVN backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'SVN)
+        ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
+        (setq eide-menu-local-svn-modified-status-flag (not (vc-workfile-unchanged-p buffer-file-name))))
+      (when (and eide-vc-show-git-status-flag (vc-git-registered buffer-file-name))
+        ;; Temporary switch to Git backend (in case the file is under several version control systems)
+        (vc-switch-backend buffer-file-name 'Git)
+        ;; NB: vc-state doesn't use selected backend, vc-workfile-unchanged-p does!
+        (setq eide-menu-local-git-modified-status-flag (not (vc-workfile-unchanged-p buffer-file-name))))
       ;; Switch back to previous backend
       (vc-switch-backend buffer-file-name l-vc-backend))))
 
@@ -193,7 +189,7 @@ Argument:
 Argument:
 - p-files-list (optional): list of files to update (overrides
   eide-menu-files-list)."
-  (if (or eide-vc-show-svn-status-flag eide-vc-show-git-status-flag)
+  (when (or eide-vc-show-svn-status-flag eide-vc-show-git-status-flag)
     (save-current-buffer
       (let ((l-files-list nil))
         (if p-files-list
@@ -205,7 +201,7 @@ Argument:
 
 (defun eide-vc-svn-diff ()
   "Execute \"svn diff\" on current buffer."
-  (if (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+  (when (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (if eide-vc-svn-diff-full-command
       (start-process-shell-command "svn-diff" nil (concat eide-vc-svn-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'SVN))))
@@ -215,7 +211,7 @@ Argument:
 Arguments:
 - p-directory-name: directory name.
 - p-files-list-string: string containing files list."
-  (if eide-vc-show-svn-status-flag
+  (when eide-vc-show-svn-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
         (setq l-full-directory-name p-directory-name)
@@ -226,17 +222,17 @@ Arguments:
 
 (defun eide-vc-svn-blame ()
   "Execute \"svn blame\" on current buffer."
-  (if eide-vc-show-svn-status-flag
+  (when eide-vc-show-svn-status-flag
     (eide-i-vc-blame 'SVN)))
 
 (defun eide-vc-svn-revert ()
   "Execute \"svn revert\" on current buffer."
-  (if (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
+  (when (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
     (eide-i-vc-revert 'SVN)))
 
 (defun eide-vc-git-diff ()
   "Execute \"git diff\" on current buffer."
-  (if (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
+  (when (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (if eide-vc-git-diff-full-command
       (start-process-shell-command "git-diff" nil (concat eide-vc-git-diff-full-command buffer-file-name))
       (eide-i-vc-diff 'Git))))
@@ -246,7 +242,7 @@ Arguments:
 Arguments:
 - p-directory-name: directory name.
 - p-files-list-string: string containing files list."
-  (if eide-vc-show-git-status-flag
+  (when eide-vc-show-git-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
         (setq l-full-directory-name p-directory-name)
@@ -257,12 +253,12 @@ Arguments:
 
 (defun eide-vc-git-blame ()
   "Execute \"git blame\" on current buffer."
-  (if eide-vc-show-git-status-flag
+  (when eide-vc-show-git-status-flag
     (eide-i-vc-blame 'Git)))
 
 (defun eide-vc-git-checkout ()
   "Execute \"git checkout\" on current buffer."
-  (if (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
+  (when (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
     (eide-i-vc-revert 'Git)))
 
 ;;; eide-vc.el ends here

@@ -102,13 +102,13 @@ Arguments (same as display-buffer function):
       (setq l-buffer-name p-buffer))
     ;;(message (concat "eide-i-windows-display-buffer-function: " l-buffer-name))
     (with-current-buffer l-buffer-name
-      (if (and (not eide-project-is-gdb-session-visible-flag)
-               (or (equal major-mode 'dired-mode)
-                   (equal major-mode 'Buffer-menu-mode)))
+      (when (and (not eide-project-is-gdb-session-visible-flag)
+                 (or (equal major-mode 'dired-mode)
+                     (equal major-mode 'Buffer-menu-mode)))
         (setq l-browsing-mode-flag t)))
     (if l-browsing-mode-flag
       (progn
-        (if (not eide-menu-browsing-mode-flag)
+        (when (not eide-menu-browsing-mode-flag)
           (eide-menu-browsing-mode-start))
         (setq l-window l-selected-window)
         (set-window-buffer l-window p-buffer))
@@ -117,7 +117,7 @@ Arguments (same as display-buffer function):
                  (string-equal l-buffer-name "*Completions*"))
           (progn
             (setq l-window (get-buffer-window l-buffer-name))
-            (if (not l-window)
+            (when (not l-window)
               ;; When clicking on directories, completion buffer is closed,
               ;; but its window is not closed: we must use it
               (if (window-live-p eide-windows-window-completion)
@@ -129,35 +129,33 @@ Arguments (same as display-buffer function):
                   (setq eide-windows-window-completion l-window)))))
           (progn
             (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
-            (if (not l-window)
+            (when (not l-window)
               (setq l-window l-selected-window))))
-        (if (and (equal l-window eide-windows-source-window)
-                 eide-menu-browsing-mode-flag)
+        (when (and (equal l-window eide-windows-source-window)
+                   eide-menu-browsing-mode-flag)
           (eide-menu-browsing-mode-stop))
         (set-window-buffer l-window p-buffer)
         ;; Result buffer name is updated asynchronously
-        (if eide-windows-update-output-buffer-id
-          (progn
-            (if (string-equal eide-windows-update-output-buffer-id "c")
-              (setq eide-compilation-buffer l-buffer-name)
-              (if (string-equal eide-windows-update-output-buffer-id "r")
-                (setq eide-execution-buffer l-buffer-name)
-                (if (string-equal eide-windows-update-output-buffer-id "s")
-                  (setq eide-shell-buffer l-buffer-name))))
-            (setq eide-windows-update-output-buffer-id nil)))
-        (if (equal l-window eide-windows-source-window)
+        (when eide-windows-update-output-buffer-id
+          (if (string-equal eide-windows-update-output-buffer-id "c")
+            (setq eide-compilation-buffer l-buffer-name)
+            (if (string-equal eide-windows-update-output-buffer-id "r")
+              (setq eide-execution-buffer l-buffer-name)
+              (when (string-equal eide-windows-update-output-buffer-id "s")
+                (setq eide-shell-buffer l-buffer-name))))
+          (setq eide-windows-update-output-buffer-id nil))
+        (when (equal l-window eide-windows-source-window)
           ;; Update menu if necessary
           (eide-menu-update nil))
-        (if (string-equal l-buffer-name "*Completions*")
-          (progn
-            (select-window l-window)
-            ;; "Output" window temporarily expands to half or 2/3 of the frame to
-            ;; display completions
-            (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
-              (if (> l-completion-height (/ (frame-height) 2))
-                (setq l-completion-height (/ (* (frame-height) 2) 3)))
-              (enlarge-window (- l-completion-height (window-height))))))
-        (if (string-match "^\*Man .*" l-buffer-name)
+        (when (string-equal l-buffer-name "*Completions*")
+          (select-window l-window)
+          ;; "Output" window temporarily expands to half or 2/3 of the frame to
+          ;; display completions
+          (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
+            (when (> l-completion-height (/ (frame-height) 2))
+              (setq l-completion-height (/ (* (frame-height) 2) 3)))
+            (enlarge-window (- l-completion-height (window-height)))))
+        (when (string-match "^\*Man .*" l-buffer-name)
           (eide-menu-build-files-lists))))
     ;; Restore selected window
     (select-window l-selected-window)
@@ -171,18 +169,17 @@ Arguments (same as select-window function):
 - p-window: window.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
-  (if (not (or (equal p-window eide-windows-source-window)
-               (equal p-window eide-windows-menu-window)
-               (equal p-window eide-windows-output-window)
-               ;; Exclude minibuffer
-               (window-minibuffer-p p-window)
-               ;; Exclude any temporary buffer ("*...")
-               (string-match "^\*.*" (buffer-name (window-buffer p-window)))))
-    (progn
-      (ad-deactivate 'select-window)
-      (setq eide-windows-source-window p-window)
-      (eide-menu-update nil)
-      (ad-activate 'select-window))))
+  (when (not (or (equal p-window eide-windows-source-window)
+                 (equal p-window eide-windows-menu-window)
+                 (equal p-window eide-windows-output-window)
+                 ;; Exclude minibuffer
+                 (window-minibuffer-p p-window)
+                 ;; Exclude any temporary buffer ("*...")
+                 (string-match "^\*.*" (buffer-name (window-buffer p-window)))))
+    (ad-deactivate 'select-window)
+    (setq eide-windows-source-window p-window)
+    (eide-menu-update nil)
+    (ad-activate 'select-window)))
 
 (defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord))
   "Override switch-to-buffer function (advice), to display buffer in appropriate
@@ -198,23 +195,21 @@ ones."
   ;; In particular, if the user has changed IDE windows visibility, is is lost,
   ;; and the internal state is incorrect: we must fix it!
   (if eide-windows-ide-windows-visible-flag
-    (if (not (get-buffer-window eide-menu-buffer-name))
+    (when (not (get-buffer-window eide-menu-buffer-name))
       ;; IDE windows are supposed to be shown, but an old layout has been restored:
       ;; let's clear internal status.
-      (progn
-        (setq eide-windows-ide-windows-visible-flag nil)
-        (setq eide-windows-menu-window nil)
-        (setq eide-windows-output-window nil)))
+      (setq eide-windows-ide-windows-visible-flag nil)
+      (setq eide-windows-menu-window nil)
+      (setq eide-windows-output-window nil))
     (let ((l-menu-window (get-buffer-window eide-menu-buffer-name)))
-      (if l-menu-window
+      (when l-menu-window
         ;; IDE windows are supposed to be hidden, but an old layout has been restored:
         ;; let's update internal status with menu buffer and possible output buffer.
-        (progn
-          (setq eide-windows-ide-windows-visible-flag t)
-          (setq eide-windows-menu-window l-menu-window)
-          (dolist (l-window (window-list))
-            (if (string-match "^\*.*" (buffer-name (window-buffer l-window)))
-              (setq eide-windows-output-window l-window)))))))
+        (setq eide-windows-ide-windows-visible-flag t)
+        (setq eide-windows-menu-window l-menu-window)
+        (dolist (l-window (window-list))
+          (when (string-match "^\*.*" (buffer-name (window-buffer l-window)))
+            (setq eide-windows-output-window l-window))))))
 
   (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
@@ -222,66 +217,63 @@ ones."
       (setq l-buffer-name (buffer-name p-buffer))
       ;; p-buffer is already a buffer name
       (setq l-buffer-name p-buffer))
-    (if l-buffer-name
+    (when l-buffer-name
       ;; l-buffer-name = nil if p-buffer has been killed
       ;; I have to find out how this is possible...
       ;; It happens when opening multiple files with *
-      (progn
-        ;;(message (concat "switch-to-buffer: " l-buffer-name))
-        (if (get-buffer l-buffer-name)
-          (with-current-buffer l-buffer-name
-            (if (and (not eide-project-is-gdb-session-visible-flag)
+      ;;(message (concat "switch-to-buffer: " l-buffer-name))
+      (when (get-buffer l-buffer-name)
+        (with-current-buffer l-buffer-name
+          (when (and (not eide-project-is-gdb-session-visible-flag)
                      (or (equal major-mode 'dired-mode)
                          (equal major-mode 'Buffer-menu-mode)))
-              (setq l-browsing-mode-flag t))))
-        (if l-browsing-mode-flag
-          (progn
-            (if (not eide-menu-browsing-mode-flag)
-              (eide-menu-browsing-mode-start))
-            ad-do-it
-            p-buffer)
-          (progn
-            (if (eide-windows-is-file-special-p l-buffer-name)
-              (progn
-                ;; Do not display special files
-                (if (string-equal l-buffer-name eide-project-notes-file)
-                  ;; Project notes file should not be opened with switch-to-buffer advice
-                  (kill-buffer l-buffer-name))
-                ;; Return the current buffer
-                (current-buffer))
-              (progn
-                (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
-                (if l-window
-                  (select-window l-window)
-                  (setq l-window (selected-window)))
-                (if (and (equal l-window eide-windows-source-window)
-                         eide-menu-browsing-mode-flag)
-                  (eide-menu-browsing-mode-stop))
-                ad-do-it
-                (set-buffer l-buffer-name)
-                (if eide-project-is-gdb-session-visible-flag
-                  (eide-menu-update nil)
-                  (progn
-                    (if eide-search-find-symbol-definition-flag
-                      (progn
-                        (recenter)
-                        (setq eide-search-find-symbol-definition-flag nil)))
-                    (if (equal l-window eide-windows-source-window)
-                      ;; Update menu if necessary
-                      (eide-menu-update nil))))
-                ;; Select buffer window
+            (setq l-browsing-mode-flag t))))
+      (if l-browsing-mode-flag
+        (progn
+          (when (not eide-menu-browsing-mode-flag)
+            (eide-menu-browsing-mode-start))
+          ad-do-it
+          p-buffer)
+        (progn
+          (if (eide-windows-is-file-special-p l-buffer-name)
+            (progn
+              ;; Do not display special files
+              (when (string-equal l-buffer-name eide-project-notes-file)
+                ;; Project notes file should not be opened with switch-to-buffer advice
+                (kill-buffer l-buffer-name))
+              ;; Return the current buffer
+              (current-buffer))
+            (progn
+              (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
+              (if l-window
                 (select-window l-window)
-                ;; Return the buffer that it switched to
-                p-buffer))))))))
+                (setq l-window (selected-window)))
+              (when (and (equal l-window eide-windows-source-window)
+                         eide-menu-browsing-mode-flag)
+                (eide-menu-browsing-mode-stop))
+              ad-do-it
+              (set-buffer l-buffer-name)
+              (if eide-project-is-gdb-session-visible-flag
+                (eide-menu-update nil)
+                (progn
+                  (when eide-search-find-symbol-definition-flag
+                    (recenter)
+                    (setq eide-search-find-symbol-definition-flag nil))
+                  (when (equal l-window eide-windows-source-window)
+                    ;; Update menu if necessary
+                    (eide-menu-update nil))))
+              ;; Select buffer window
+              (select-window l-window)
+              ;; Return the buffer that it switched to
+              p-buffer)))))))
 
 (defun eide-windows-find-file ()
   "Override C-x C-f find-file, to get default directory from buffer in \"source\"
 window."
   (interactive)
-  (if eide-keys-is-editor-configuration-active-flag
-    (progn
-      (eide-windows-select-source-window nil)
-      (call-interactively 'find-file))))
+  (when eide-keys-is-editor-configuration-active-flag
+    (eide-windows-select-source-window nil)
+    (call-interactively 'find-file)))
 
 (defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
   "Override save-buffer function (advice), to save buffer in \"source\" window.
@@ -291,7 +283,7 @@ Argument (same as save-buffer function):
     (eide-windows-select-source-window nil)
     ad-do-it
     (eide-menu-update-current-buffer-modified-status)
-    (if (equal eide-custom-update-cscope-database 'auto)
+    (when (equal eide-custom-update-cscope-database 'auto)
       ;; Current buffer has been modified and saved: we must update cscope database
       (setq eide-search-cscope-update-database-request-pending-flag t))
     (select-window l-window)))
@@ -302,7 +294,7 @@ Arguments (same as revert-buffer function):
 - p-ignore-auto (optional): ignore auto-save file.
 - p-noconfirm (optional): don't ask for confirmation.
 - p-preserve-modes (optional): preserve file modes."
-  (if (equal eide-custom-update-cscope-database 'auto)
+  (when (equal eide-custom-update-cscope-database 'auto)
     ;; Current buffer has been updated: we must update cscope database
     (setq eide-search-cscope-update-database-request-pending-flag t)))
 
@@ -321,8 +313,8 @@ Argument (same as mode-line-unbury-buffer):
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
-        (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-                (string-equal (buffer-name) l-starting-from-buffer-name))
+        (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
+                  (string-equal (buffer-name) l-starting-from-buffer-name))
           (setq l-do-it-flag nil)))
       (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
@@ -342,8 +334,8 @@ Argument (same as mode-line-bury-buffer):
       (ad-deactivate 'switch-to-buffer)
       (while l-do-it-flag
         ad-do-it
-        (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-                (string-equal (buffer-name) l-starting-from-buffer-name))
+        (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
+                  (string-equal (buffer-name) l-starting-from-buffer-name))
           (setq l-do-it-flag nil)))
       (ad-activate 'switch-to-buffer)))
   (eide-menu-update nil))
@@ -357,8 +349,8 @@ according to selected window."
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
-      (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-              (string-equal (buffer-name) l-starting-from-buffer-name))
+      (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
+                (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
     (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
@@ -372,8 +364,8 @@ to selected window."
     (ad-deactivate 'switch-to-buffer)
     (while l-do-it-flag
       ad-do-it
-      (if (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-              (string-equal (buffer-name) l-starting-from-buffer-name))
+      (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
+                (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
     (ad-activate 'switch-to-buffer))
   (eide-menu-update nil))
@@ -395,7 +387,7 @@ before gdb builds its own."
   ;; In case Emacs is launched with several files in arguments:
   ;; 1) Close "*Buffer List*"
   (let ((l-buffer (get-buffer "*Buffer List*")))
-    (if l-buffer
+    (when l-buffer
       (kill-buffer l-buffer)))
   ;; 2) Keep only one source window
   (delete-other-windows)
@@ -407,7 +399,7 @@ before gdb builds its own."
     ;; With split-window (used only with Emacs 24), it seems more appropriate
     ;; to divide by 3, for equivalent result
     (setq eide-windows-menu-window-width (/ (frame-width) 3)))
-  (if window-system
+  (when window-system
     (eide-windows-show-ide-windows))
   (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
@@ -431,7 +423,7 @@ before gdb builds its own."
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t)
 
-  (if (and eide-custom-override-emacs-settings eide-custom-start-maximized)
+  (when (and eide-custom-override-emacs-settings eide-custom-start-maximized)
     (set-frame-parameter nil 'fullscreen 'maximized)))
 
 (defun eide-i-windows-select-window-at-mouse-position ()
@@ -462,177 +454,173 @@ before gdb builds its own."
 
 (defun eide-windows-show-ide-windows ()
   "Show \"menu\" and \"ouput\" windows."
-  (if (not eide-windows-ide-windows-visible-flag)
-    (progn
-      (ad-deactivate 'select-window)
-      ;; If completion buffer is displayed, let's close its current window
-      ;; and display it in new output window.
-      (let ((l-completion-window (get-buffer-window "*Completions*")))
-        (if l-completion-window
+  (when (not eide-windows-ide-windows-visible-flag)
+    (ad-deactivate 'select-window)
+    ;; If completion buffer is displayed, let's close its current window
+    ;; and display it in new output window.
+    (let ((l-completion-window (get-buffer-window "*Completions*")))
+      (when l-completion-window
+        (delete-window l-completion-window)
+        (setq eide-windows-output-window-buffer "*Completions*")))
+    (if (< emacs-major-version 24)
+      ;; Emacs 23 doesn't have internal windows, only live windows.
+      ;; Internal windows are necessary to group several "source" windows
+      ;; before splitting to create "menu" and "output" windows.
+      ;; Therefore, with Emacs 23, it is not possible to keep windows layout
+      ;; unchanged when showing/hiding the "menu" and "output" windows.
+      ;; It is necessary to keep the old behaviour and switch to a single
+      ;; "source" window.
+      (progn
+        (delete-other-windows)
+        ;; Make sure that current window is not dedicated
+        (set-window-dedicated-p (selected-window) nil)
+        ;; Split into 3 windows ("source", "menu", "output")
+        (if (equal eide-custom-menu-window-height 'full)
           (progn
-            (delete-window l-completion-window)
-            (setq eide-windows-output-window-buffer "*Completions*"))))
-      (if (< emacs-major-version 24)
-        ;; Emacs 23 doesn't have internal windows, only live windows.
-        ;; Internal windows are necessary to group several "source" windows
-        ;; before splitting to create "menu" and "output" windows.
-        ;; Therefore, with Emacs 23, it is not possible to keep windows layout
-        ;; unchanged when showing/hiding the "menu" and "output" windows.
-        ;; It is necessary to keep the old behaviour and switch to a single
-        ;; "source" window.
-        (progn
-          (delete-other-windows)
-          ;; Make sure that current window is not dedicated
-          (set-window-dedicated-p (selected-window) nil)
-          ;; Split into 3 windows ("source", "menu", "output")
-          (if (equal eide-custom-menu-window-height 'full)
-            (progn
-              (split-window-horizontally)
-              (if (equal eide-custom-menu-window-position 'left)
-                ;; Menu on left side
-                (progn
-                  (setq eide-windows-menu-window (selected-window))
-                  (select-window (next-window))
-                  (split-window-vertically)
-                  (setq eide-windows-source-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-output-window (selected-window)))
-                ;; Menu on right side
-                (progn
-                  (split-window-vertically)
-                  (setq eide-windows-source-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-output-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-menu-window (selected-window)))))
-            (progn
-              (split-window-vertically)
-              (split-window-horizontally)
-              (if (equal eide-custom-menu-window-position 'left)
-                ;; Menu on left side
-                (progn
-                  (setq eide-windows-menu-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-source-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-output-window (selected-window)))
-                ;; Menu on right side
-                (progn
-                  (setq eide-windows-source-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-menu-window (selected-window))
-                  (select-window (next-window))
-                  (setq eide-windows-output-window (selected-window)))))))
-        ;; Emacs 24 have internal and live windows.
-        ;; When showing/hiding the "menu" and "output" windows, it is now possible
-        ;; to keep the "source" windows layout unchanged.
-        (progn
-          ;; Split to create 2 new windows ("menu" and "output")
-          (if (equal eide-custom-menu-window-height 'full)
-            ;; "Menu" window uses the whole frame height
+            (split-window-horizontally)
             (if (equal eide-custom-menu-window-position 'left)
               ;; Menu on left side
               (progn
-                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
+                (setq eide-windows-menu-window (selected-window))
+                (select-window (next-window))
+                (split-window-vertically)
+                (setq eide-windows-source-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-output-window (selected-window)))
               ;; Menu on right side
               (progn
-                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
-            ;; "Output" window uses the whole frame width
+                (split-window-vertically)
+                (setq eide-windows-source-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-output-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-menu-window (selected-window)))))
+          (progn
+            (split-window-vertically)
+            (split-window-horizontally)
             (if (equal eide-custom-menu-window-position 'left)
               ;; Menu on left side
               (progn
-                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
-                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
+                (setq eide-windows-menu-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-source-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-output-window (selected-window)))
               ;; Menu on right side
               (progn
-                (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
-                (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))))
+                (setq eide-windows-source-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-menu-window (selected-window))
+                (select-window (next-window))
+                (setq eide-windows-output-window (selected-window)))))))
+      ;; Emacs 24 have internal and live windows.
+      ;; When showing/hiding the "menu" and "output" windows, it is now possible
+      ;; to keep the "source" windows layout unchanged.
+      (progn
+        ;; Split to create 2 new windows ("menu" and "output")
+        (if (equal eide-custom-menu-window-height 'full)
+          ;; "Menu" window uses the whole frame height
+          (if (equal eide-custom-menu-window-position 'left)
+            ;; Menu on left side
+            (progn
+              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
+            ;; Menu on right side
+            (progn
+              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
+          ;; "Output" window uses the whole frame width
+          (if (equal eide-custom-menu-window-position 'left)
+            ;; Menu on left side
+            (progn
+              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
+              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
+            ;; Menu on right side
+            (progn
+              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
+              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))))
 
-      ;; Temporarily disable switch-to-buffer advice
-      ;; It is useless and would check IDE windows while they're being created...
-      (ad-deactivate 'switch-to-buffer)
+    ;; Temporarily disable switch-to-buffer advice
+    ;; It is useless and would check IDE windows while they're being created...
+    (ad-deactivate 'switch-to-buffer)
 
-      ;; "Menu" window
-      (select-window eide-windows-menu-window)
-      (switch-to-buffer eide-menu-buffer-name)
-      ;; Make sure the buffer is read-only (in case it has been created again)
-      (setq buffer-read-only t)
-      ;; This window should be used for this buffer only
-      (set-window-dedicated-p eide-windows-menu-window t)
-      (if (< emacs-major-version 24)
-        ;; Restore last window size
-        (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width))))
+    ;; "Menu" window
+    (select-window eide-windows-menu-window)
+    (switch-to-buffer eide-menu-buffer-name)
+    ;; Make sure the buffer is read-only (in case it has been created again)
+    (setq buffer-read-only t)
+    ;; This window should be used for this buffer only
+    (set-window-dedicated-p eide-windows-menu-window t)
+    (when (< emacs-major-version 24)
+      ;; Restore last window size
+      (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width))))
 
-      ;; "Output" window
-      (select-window eide-windows-output-window)
-      (setq window-min-height 2)
-      (if (< emacs-major-version 24)
-        ;; Restore last window size
-        (enlarge-window (- eide-windows-output-window-height (window-height))))
-      (switch-to-buffer (get-buffer-create "*results*"))
-      (if eide-windows-output-window-buffer
-        (switch-to-buffer eide-windows-output-window-buffer)
-        (setq eide-windows-output-window-buffer "*results*"))
+    ;; "Output" window
+    (select-window eide-windows-output-window)
+    (setq window-min-height 2)
+    (when (< emacs-major-version 24)
+      ;; Restore last window size
+      (enlarge-window (- eide-windows-output-window-height (window-height))))
+    (switch-to-buffer (get-buffer-create "*results*"))
+    (if eide-windows-output-window-buffer
+      (switch-to-buffer eide-windows-output-window-buffer)
+      (setq eide-windows-output-window-buffer "*results*"))
 
-      ;; Enable switch-to-buffer advice again
-      (ad-activate 'switch-to-buffer)
+    ;; Enable switch-to-buffer advice again
+    (ad-activate 'switch-to-buffer)
 
-      (select-window eide-windows-source-window)
-      (eide-windows-skip-unwanted-buffers-in-source-window)
-      (setq eide-windows-ide-windows-visible-flag t)
-      ;; Update menu if necessary
-      (if eide-windows-menu-update-request-pending-flag
-        (eide-menu-update nil))
-      (ad-activate 'select-window))))
+    (select-window eide-windows-source-window)
+    (eide-windows-skip-unwanted-buffers-in-source-window)
+    (setq eide-windows-ide-windows-visible-flag t)
+    ;; Update menu if necessary
+    (when eide-windows-menu-update-request-pending-flag
+      (eide-menu-update nil))
+    (ad-activate 'select-window)))
 
 (defun eide-windows-hide-ide-windows ()
   "Hide \"menu\" and \"output\" windows."
-  (if eide-windows-ide-windows-visible-flag
-    (progn
-      (ad-deactivate 'select-window)
-      (if (and (window-live-p eide-windows-menu-window)
+  (when eide-windows-ide-windows-visible-flag
+    (ad-deactivate 'select-window)
+    (when (and (window-live-p eide-windows-menu-window)
                (window-live-p eide-windows-output-window)
                (window-live-p eide-windows-source-window))
-        ;; Remember windows positions only if the layout is complete
-        (progn
-          ;; Remember "menu" window width
-          (eide-windows-select-menu-window)
-          (if (< emacs-major-version 24)
-            (setq eide-windows-menu-window-width (window-width))
-            ;; Testing if window-total-width is available is not necessary
-            ;; (Emacs version is already tested) but avoids a warning when compiling
-            ;; with Emacs 23
-            (if (fboundp 'window-total-width)
-              (setq eide-windows-menu-window-width (window-total-width))
-              (setq eide-windows-menu-window-width (window-width))))
-          ;; Remember "output" window height
-          (eide-windows-select-output-window)
-          (setq eide-windows-output-window-height (window-height))
-          ;; Remember which result buffer is displayed in "output" window
-          (setq eide-windows-output-window-buffer (buffer-name))))
+      ;; Remember windows positions only if the layout is complete
+      ;; Remember "menu" window width
+      (eide-windows-select-menu-window)
       (if (< emacs-major-version 24)
-        (progn
-          ;; Keep only "source" window
-          (if (window-live-p eide-windows-source-window)
-            (eide-windows-select-source-window t))
-          (delete-other-windows)
-          ;; Make sure that current window is not dedicated
-          (set-window-dedicated-p (selected-window) nil))
-        (progn
-          ;; Close "menu" and "output" windows
-          (if (window-live-p eide-windows-menu-window)
-            (delete-window eide-windows-menu-window))
-          (if (window-live-p eide-windows-output-window)
-            (delete-window eide-windows-output-window))))
-      ;; Current window becomes - if not already - "source" window
-      (setq eide-windows-menu-window nil)
-      (setq eide-windows-output-window nil)
-      (setq eide-windows-source-window (selected-window))
-      (setq eide-windows-ide-windows-visible-flag nil)
-      (eide-windows-skip-unwanted-buffers-in-source-window)
-      (ad-activate 'select-window))))
+        (setq eide-windows-menu-window-width (window-width))
+        ;; Testing if window-total-width is available is not necessary
+        ;; (Emacs version is already tested) but avoids a warning when compiling
+        ;; with Emacs 23
+        (if (fboundp 'window-total-width)
+          (setq eide-windows-menu-window-width (window-total-width))
+          (setq eide-windows-menu-window-width (window-width))))
+      ;; Remember "output" window height
+      (eide-windows-select-output-window)
+      (setq eide-windows-output-window-height (window-height))
+      ;; Remember which result buffer is displayed in "output" window
+      (setq eide-windows-output-window-buffer (buffer-name)))
+    (if (< emacs-major-version 24)
+      (progn
+        ;; Keep only "source" window
+        (when (window-live-p eide-windows-source-window)
+          (eide-windows-select-source-window t))
+        (delete-other-windows)
+        ;; Make sure that current window is not dedicated
+        (set-window-dedicated-p (selected-window) nil))
+      (progn
+        ;; Close "menu" and "output" windows
+        (when (window-live-p eide-windows-menu-window)
+          (delete-window eide-windows-menu-window))
+        (when (window-live-p eide-windows-output-window)
+          (delete-window eide-windows-output-window))))
+    ;; Current window becomes - if not already - "source" window
+    (setq eide-windows-menu-window nil)
+    (setq eide-windows-output-window nil)
+    (setq eide-windows-source-window (selected-window))
+    (setq eide-windows-ide-windows-visible-flag nil)
+    (eide-windows-skip-unwanted-buffers-in-source-window)
+    (ad-activate 'select-window)))
 
 (defun eide-windows-show-hide-ide-windows ()
   "Show/hide \"menu\" and \"ouput\" windows."
@@ -641,7 +629,7 @@ before gdb builds its own."
     (eide-windows-hide-ide-windows)
     (progn
       (eide-windows-show-ide-windows)
-      (if (not (listp last-nonmenu-event))
+      (when (not (listp last-nonmenu-event))
         ;; Called from keyboard (see yes-or-no-p): select the "menu" window
         (select-window eide-windows-menu-window)))))
 
@@ -660,21 +648,20 @@ before gdb builds its own."
   "Select \"source\" window.
 Argument:
 - p-force-build-flag: t = build windows layout if not visible."
-  (if (or eide-windows-ide-windows-visible-flag p-force-build-flag)
-    (progn
-      (if (not eide-windows-ide-windows-visible-flag)
-        (eide-windows-show-ide-windows))
-      (select-window eide-windows-source-window))))
+  (when (or eide-windows-ide-windows-visible-flag p-force-build-flag)
+    (when (not eide-windows-ide-windows-visible-flag)
+      (eide-windows-show-ide-windows))
+    (select-window eide-windows-source-window)))
 
 (defun eide-windows-select-menu-window ()
   "Select \"menu\" window (build windows layout if necessary)."
-  (if (not eide-windows-ide-windows-visible-flag)
+  (when (not eide-windows-ide-windows-visible-flag)
     (eide-windows-show-ide-windows))
   (select-window eide-windows-menu-window))
 
 (defun eide-windows-select-output-window ()
   "Select \"output\" window (build windows layout if necessary)."
-  (if (not eide-windows-ide-windows-visible-flag)
+  (when (not eide-windows-ide-windows-visible-flag)
     (eide-windows-show-ide-windows))
   (select-window eide-windows-output-window))
 
@@ -704,20 +691,19 @@ and display it. Current buffer is kept if correct."
         (bury-buffer)
         (if (= l-iteration 0)
           (setq l-first-found-buffer-name (buffer-name))
-          (if (string-equal (buffer-name) l-first-found-buffer-name)
+          (when (string-equal (buffer-name) l-first-found-buffer-name)
             ;; We have parsed the whole buffer list without finding any other
             ;; buffer that fits. Moreover, current buffer cannot be found again
             ;; (because bs-cycle-xxx ignores temporary buffers), which means
             ;; that it is not valid either. Let's display "*scratch*".
             (switch-to-buffer "*scratch*")))
-        (if (string-equal (buffer-name) l-current-buffer-name)
-          (progn
-            ;; We have parsed the whole buffer list without finding any other
-            ;; buffer that fits. If this buffer is valid, let's keep it
-            ;; current. Otherwise, let's display "*scratch*".
-            (setq l-should-we-continue nil)
-            (if (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
-              (switch-to-buffer "*scratch*"))))
+        (when (string-equal (buffer-name) l-current-buffer-name)
+          ;; We have parsed the whole buffer list without finding any other
+          ;; buffer that fits. If this buffer is valid, let's keep it
+          ;; current. Otherwise, let's display "*scratch*".
+          (setq l-should-we-continue nil)
+          (when (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
+            (switch-to-buffer "*scratch*")))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
     ;; Update menu (switch-to-buffer advice was disabled)
@@ -740,10 +726,10 @@ and display it. Current buffer is kept if correct."
       ;; If windows layout is supposed to be visible, but one of
       ;; the three windows is not visible, first unbuild, to
       ;; force rebuild
-      (if (and eide-windows-ide-windows-visible-flag
-               (or (not (window-live-p eide-windows-menu-window))
-                   (not (window-live-p eide-windows-output-window))
-                   (not (window-live-p eide-windows-source-window))))
+      (when (and eide-windows-ide-windows-visible-flag
+                 (or (not (window-live-p eide-windows-menu-window))
+                     (not (window-live-p eide-windows-output-window))
+                     (not (window-live-p eide-windows-source-window))))
         (eide-windows-hide-ide-windows))
       (if (eide-i-windows-is-output-window-selected-p)
         ;; "Output" window: open search results popup menu
@@ -757,7 +743,7 @@ and display it. Current buffer is kept if correct."
             (eide-windows-hide-ide-windows)
             ;; Show
             (progn
-              (if eide-menu-browsing-mode-flag
+              (when eide-menu-browsing-mode-flag
                 (eide-menu-browsing-mode-stop))
               ;; Show IDE windows (if not already restored by eide-menu-browsing-mode-stop)
               (eide-windows-show-ide-windows))))))))
@@ -776,23 +762,21 @@ and display it. Current buffer is kept if correct."
   (interactive)
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
-  (if (eide-i-windows-is-output-window-selected-p)
+  (when (eide-i-windows-is-output-window-selected-p)
     ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)))
 
 (defun eide-windows-switch-to-editor-mode ()
   "Switch to editor mode and build the layout."
   (interactive)
-  (if (string-match "^\*Customize.*" (buffer-name))
-    (progn
-      (ad-activate 'switch-to-buffer)
-      (ad-activate 'save-buffer)
-      (if eide-windows-themes-edited-flag
-        (progn
-          ;; Update color theme for specific faces (in case
-          ;; the color theme for source code has changed)
-          (eide-display-apply-color-theme)
-          (setq eide-windows-themes-edited-flag nil)))))
+  (when (string-match "^\*Customize.*" (buffer-name))
+    (ad-activate 'switch-to-buffer)
+    (ad-activate 'save-buffer)
+    (when eide-windows-themes-edited-flag
+      ;; Update color theme for specific faces (in case
+      ;; the color theme for source code has changed)
+      (eide-display-apply-color-theme)
+      (setq eide-windows-themes-edited-flag nil)))
   (if (or (string-equal (buffer-name) "* Help *")
           (string-match "^\*Customize.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
@@ -805,44 +789,40 @@ and display it. Current buffer is kept if correct."
         (save-buffer)
         (eide-project-rebuild-config-file nil)
         ;; Some options requires some actions if the value has been changed
-        (if (and eide-project-old-project-name
-                 (not (string-equal eide-project-name eide-project-old-project-name)))
+        (when (and eide-project-old-project-name
+                   (not (string-equal eide-project-name eide-project-old-project-name)))
           ;; Project name has changed
-          (progn
-            (eide-menu-update-project-name)
-            (eide-project-update-name)
-            (setq eide-project-old-project-name nil)))
-        (if (and eide-search-tags-exclude-enabled-flag
-                 eide-project-old-tags-exclude-value
-                 (not (string-equal (eide-project-get-config-value "tags_exclude") eide-project-old-tags-exclude-value)))
+          (eide-menu-update-project-name)
+          (eide-project-update-name)
+          (setq eide-project-old-project-name nil))
+        (when (and eide-search-tags-exclude-enabled-flag
+                   eide-project-old-tags-exclude-value
+                   (not (string-equal (eide-project-get-config-value "tags_exclude") eide-project-old-tags-exclude-value)))
           ;; Tags exclude value has changed
-          (progn
-            (if eide-search-tags-creation-in-progress-flag
-              (eide-popup-message "Cannot update tags while they are being created...")
-              (eide-search-create-tags))
-            (setq eide-project-old-tags-exclude-value nil)))
-        (if (and eide-search-cscope-exclude-enabled-flag
-                 (or (and eide-project-old-cscope-exclude-files-value
-                          (not (string-equal (eide-project-get-config-value "cscope_exclude_files") eide-project-old-cscope-exclude-files-value)))
-                     (and eide-project-old-cscope-exclude-dirs-value
-                          (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") eide-project-old-cscope-exclude-dirs-value)))))
+          (if eide-search-tags-creation-in-progress-flag
+            (eide-popup-message "Cannot update tags while they are being created...")
+            (eide-search-create-tags))
+          (setq eide-project-old-tags-exclude-value nil))
+        (when (and eide-search-cscope-exclude-enabled-flag
+                   (or (and eide-project-old-cscope-exclude-files-value
+                            (not (string-equal (eide-project-get-config-value "cscope_exclude_files") eide-project-old-cscope-exclude-files-value)))
+                       (and eide-project-old-cscope-exclude-dirs-value
+                            (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") eide-project-old-cscope-exclude-dirs-value)))))
           ;; Cscope exclude files or dirs value has changed
-          (progn
-            (if eide-search-cscope-creation-in-progress-flag
-              (eide-popup-message "Cannot update cscope list of files while it is being created...")
-              (eide-search-create-cscope-list-of-files))
-            (setq eide-project-old-cscope-exclude-files-value nil)
-            (setq eide-project-old-cscope-exclude-dirs-value nil)))
+          (if eide-search-cscope-creation-in-progress-flag
+            (eide-popup-message "Cannot update cscope list of files while it is being created...")
+            (eide-search-create-cscope-list-of-files))
+          (setq eide-project-old-cscope-exclude-files-value nil)
+          (setq eide-project-old-cscope-exclude-dirs-value nil))
         ;; This buffer must not be closed
         (switch-to-buffer eide-current-buffer))
-      (if (string-equal (buffer-name) eide-project-notes-file)
+      (when (string-equal (buffer-name) eide-project-notes-file)
         ;; Close ".emacs-ide-project.txt"
-        (progn
-          (save-buffer)
-          (kill-buffer eide-project-notes-file)))))
+        (save-buffer)
+        (kill-buffer eide-project-notes-file))))
   (eide-display-set-colors-for-files)
   (eide-keys-configure-for-editor)
-  (if eide-menu-browsing-mode-flag
+  (when eide-menu-browsing-mode-flag
     (eide-menu-browsing-mode-stop))
   (eide-windows-restore-layout)
   (eide-windows-show-ide-windows))

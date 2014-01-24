@@ -254,7 +254,7 @@
 (if (fboundp 'pc-selection-mode)
   (pc-selection-mode)
   ;; Emacs 24: pc-selection-mode is deprecated, use delete-selection-mode instead
-  (if (fboundp 'delete-selection-mode)
+  (when (fboundp 'delete-selection-mode)
     (delete-selection-mode)))
 
 ;; Cut-copy-paste
