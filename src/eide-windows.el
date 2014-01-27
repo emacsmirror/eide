@@ -298,48 +298,6 @@ Arguments (same as revert-buffer function):
     ;; Current buffer has been updated: we must update cscope database
     (setq eide-search-cscope-update-database-request-pending-flag t)))
 
-(defadvice mode-line-unbury-buffer (around eide-previous-buffer-advice-around (p-event))
-  "Override mode-line-unbury-buffer (previous buffer) function (advice), to select
-appropriate buffer according to selected window (for Emacs 21 only).
-Argument (same as mode-line-unbury-buffer):
-- p-event: event."
-  (interactive "e")
-  ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
-  (save-selected-window
-    (select-window (posn-window (event-start p-event)))
-    (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-      ;; in "source" window, until a correct one is found
-      (ad-deactivate 'switch-to-buffer)
-      (while l-do-it-flag
-        ad-do-it
-        (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-                  (string-equal (buffer-name) l-starting-from-buffer-name))
-          (setq l-do-it-flag nil)))
-      (ad-activate 'switch-to-buffer)))
-  (eide-menu-update nil))
-
-(defadvice mode-line-bury-buffer (around eide-previous-buffer-advice-around (p-event))
-  "Override mode-line-bury-buffer (next buffer) function (advice), to select
-appropriate buffer according to selected window (for Emacs 21 only).
-Argument (same as mode-line-bury-buffer):
-- p-event: event."
-  (interactive "e")
-  ;; Temporarily select event's window (code taken from mode-line-bury-buffer)
-  (save-selected-window
-    (select-window (posn-window (event-start p-event)))
-    (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
-      ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
-      ;; in "source" window, until a correct one is found
-      (ad-deactivate 'switch-to-buffer)
-      (while l-do-it-flag
-        ad-do-it
-        (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
-                  (string-equal (buffer-name) l-starting-from-buffer-name))
-          (setq l-do-it-flag nil)))
-      (ad-activate 'switch-to-buffer)))
-  (eide-menu-update nil))
-
 (defadvice previous-buffer (around eide-previous-buffer-advice-around)
   "Override previous-buffer function (advice), to select appropriate buffer
 according to selected window."
@@ -405,17 +363,8 @@ before gdb builds its own."
   (ad-activate 'switch-to-buffer)
   (ad-activate 'save-buffer)
   (ad-activate 'revert-buffer)
-  (if (fboundp 'previous-buffer)
-    (progn
-      ;; New API (Emacs 22)
-      (ad-activate 'previous-buffer)
-      (ad-activate 'next-buffer))
-    (progn
-      ;; Old API (Emacs 21)
-      ;; mode-line-bury-buffer calls bury-buffer, but mode-line-unbury-buffer
-      ;; calls switch-to-buffer => we need to override mode-line functions
-      (ad-activate 'mode-line-unbury-buffer)
-      (ad-activate 'mode-line-bury-buffer)))
+  (ad-activate 'previous-buffer)
+  (ad-activate 'next-buffer)
   (ad-activate 'gdb-setup-windows)
   (ad-activate 'gdb-restore-windows)
   (setq display-buffer-function 'eide-i-windows-display-buffer-function)

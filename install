@@ -39,7 +39,20 @@ if [ $option_local -eq 0 ]; then
 fi
 
 printf "\033[1mCheck dependencies\033[0m\n"
-printf "ctags:      "
+printf "emacs (>= 22): "
+emacs_major_version=`emacs --version | grep -m1 "GNU Emacs" | cut -d" " -f3 | cut -d"." -f1`
+if [ "${emacs_major_version}" != "" ]; then
+  if [ "${emacs_major_version}" -gt "21" ]; then
+    printf "\033[1;32mOK (${emacs_major_version})\033[0m\n"
+  else
+    printf "\033[1;31mFAILED: Your version of Emacs (${emacs_major_version}) is not supported (version >= 22 is required)\033[0m\n"
+    exit 1
+  fi
+else
+  printf "\033[1;31mFAILED: Can't find Emacs version\033[0m\n"
+  exit 1
+fi
+printf "ctags:         "
 if which ctags > /dev/null ; then
   if ctags --version | grep -q Exuberant ; then
     printf "\033[1;32mOK\033[0m\n"
@@ -51,7 +64,7 @@ else
   printf "\033[1;31mFAILED: ctags is not installed\033[0m\n"
   exit 1
 fi
-printf "cscope:     "
+printf "cscope:        "
 if which cscope > /dev/null ; then
   printf "\033[1;32mOK\033[0m\n"
 else
@@ -60,7 +73,7 @@ fi
 
 # Debian provides xcscope.el in a separated package (cscope-el)
 # We must also check if xcscope.el is installed
-printf "xcscope.el: "
+printf "xcscope.el:    "
 if emacs --batch --eval="(require 'xcscope)" 2> /dev/null; then
   printf "\033[1;32mOK\033[0m\n"
 else
