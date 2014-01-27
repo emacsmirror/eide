@@ -68,10 +68,6 @@
   :tag "Emacs settings"
   :group 'eide)
 
-(defgroup eide-emacs-settings-coding-rules nil "Indentation for some languages."
-  :tag "Coding rules"
-  :group 'eide-emacs-settings)
-
 (defgroup eide-search nil "Tags and cscope options."
   :tag "Search"
   :group 'eide-emacs-settings)

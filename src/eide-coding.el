@@ -32,91 +32,19 @@
 (defvar eide-option-select-whole-symbol-flag t)
 
 ;; ----------------------------------------------------------------------------
-;; SYNTAX HIGHLIGHTING
-;; ----------------------------------------------------------------------------
-
-(require 'font-lock)
-
-;; Enable syntax highlighting
-(global-font-lock-mode t)
-
-;; Code
-(make-face-bold 'font-lock-keyword-face)
-(make-face-bold 'font-lock-function-name-face)
-
-;; ----------------------------------------------------------------------------
-;; CUSTOMIZATION VARIABLES
-;; ----------------------------------------------------------------------------
-
-(defcustom eide-custom-c-indent-offset 2 "Indentation offset for C/C++."
-  :tag "Indentation offset for C/C++"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-sh-indent-offset 2 "Indentation offset for shell scripts."
-  :tag "Indentation offset for shell scripts"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-lisp-indent-offset 2 "Indentation offset for Emacs Lisp."
-  :tag "Indentation offset for Emacs Lisp"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-perl-indent-offset 2 "Indentation offset for Perl."
-  :tag "Indentation offset for Perl"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-python-indent-offset 4 "Indentation offset for Python."
-  :tag "Indentation offset for Python"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-(defcustom eide-custom-sgml-indent-offset 2 "Indentation offset for SGML (HTML, XML...)."
-  :tag "Indentation offset for SGML"
-  :type '(choice (const :tag "Don't override" nil)
-                 (integer :tag "Number of spaces"))
-  :set '(lambda (param value) (set-default param value))
-  :group 'eide-emacs-settings-coding-rules)
-
-;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
 (defun eide-coding-init ()
   "Add hooks for major modes."
+
   ;; C major mode
   (add-hook
    'c-mode-hook
    '(lambda()
       (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" c-mode-syntax-table))
-
-      ;; Indentation
-      (c-set-style "K&R") ; Indentation style
-      (when (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (setq tab-width eide-custom-c-indent-offset)
-        (setq c-basic-offset eide-custom-c-indent-offset))
-      (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Turn hide/show mode on
-      (when (not hs-minor-mode)
-        (hs-minor-mode))
-      ;; Do not hide comments when hidding all
-      (setq hs-hide-comments-when-hiding-all nil)
-
-      ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
-      (hide-ifdef-mode 1)
-
-      ;; Pour savoir si du texte est sélectionné ou non
-      (setq mark-even-if-inactive nil)))
+        (modify-syntax-entry ?_ "w" c-mode-syntax-table))))
 
   ;; C++ major mode
   (add-hook
@@ -124,26 +52,7 @@
    '(lambda()
       (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" c-mode-syntax-table))
-
-      ;; Indentation
-      (c-set-style "K&R") ; Indentation style
-      (when (and eide-custom-override-emacs-settings eide-custom-c-indent-offset)
-        (setq tab-width eide-custom-c-indent-offset)
-        (setq c-basic-offset eide-custom-c-indent-offset))
-      (c-set-offset 'case-label '+) ; Case/default in a switch (default value: 0)
-
-      ;; Turn hide/show mode on
-      (when (not hs-minor-mode)
-        (hs-minor-mode))
-      ;; Do not hide comments when hidding all
-      (setq hs-hide-comments-when-hiding-all nil)
-
-      ;; Turn ifdef mode on (does not work very well with ^M turned into empty lines)
-      (hide-ifdef-mode 1)
-
-      ;; Pour savoir si du texte est sélectionné ou non
-      (setq mark-even-if-inactive nil)))
+        (modify-syntax-entry ?_ "w" c-mode-syntax-table))))
 
   ;; Shell Script major mode
 
@@ -164,11 +73,7 @@
    '(lambda()
       (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" sh-mode-syntax-table))
-      ;; Indentation
-      (when (and eide-custom-override-emacs-settings eide-custom-sh-indent-offset)
-        (setq tab-width eide-custom-sh-indent-offset)
-        (setq sh-basic-offset eide-custom-sh-indent-offset))))
+        (modify-syntax-entry ?_ "w" sh-mode-syntax-table))))
 
   ;; Emacs Lisp major mode
   (add-hook
@@ -177,23 +82,10 @@
       (when eide-option-select-whole-symbol-flag
         ;; "-" should not be a word delimiter
         (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table))
-
-      ;; Indentation
-      (when (and eide-custom-override-emacs-settings eide-custom-lisp-indent-offset)
-        (setq tab-width eide-custom-lisp-indent-offset)
-        (setq lisp-body-indent eide-custom-lisp-indent-offset)
+      (when eide-custom-override-emacs-settings
         ;; Indentation after "if" (with default behaviour, the "then" statement is
         ;; more indented than the "else" statement)
         (put 'if 'lisp-indent-function 1))))
-
-  ;; Perl major mode
-  (add-hook
-   'perl-mode-hook
-   '(lambda()
-      ;; Indentation
-      (when (and eide-custom-override-emacs-settings eide-custom-perl-indent-offset)
-        (setq tab-width eide-custom-perl-indent-offset)
-        (setq perl-indent-level eide-custom-perl-indent-offset))))
 
   ;; Python major mode
   (add-hook
@@ -201,20 +93,6 @@
    '(lambda()
       (when eide-option-select-whole-symbol-flag
         ;; "_" should not be a word delimiter
-        (modify-syntax-entry ?_ "w" python-mode-syntax-table))
-
-      ;; Indentation
-      (when (and eide-custom-override-emacs-settings eide-custom-python-indent-offset)
-        (setq tab-width eide-custom-python-indent-offset)
-        (setq python-indent eide-custom-python-indent-offset))))
-
-  ;; SGML (HTML, XML...) major mode
-  (add-hook
-   'sgml-mode-hook
-   '(lambda()
-      ;; Indentation
-      (when (and eide-custom-override-emacs-settings eide-custom-sgml-indent-offset)
-        (setq tab-width eide-custom-sgml-indent-offset)
-        (setq sgml-basic-offset eide-custom-sgml-indent-offset)))))
+        (modify-syntax-entry ?_ "w" python-mode-syntax-table)))))
 
 ;;; eide-coding.el ends here
