@@ -112,7 +112,7 @@
 
 (defun eide-i-init ()
   "Initialization."
-  (when (not (file-directory-p "~/.emacs-ide"))
+  (unless (file-directory-p "~/.emacs-ide")
     (make-directory "~/.emacs-ide"))
   ;; Emacs settings must be saved before the desktop is loaded, because it
   ;; reads some variables that might be overridden by local values in buffers.

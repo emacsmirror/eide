@@ -108,7 +108,7 @@ Arguments (same as display-buffer function):
         (setq l-browsing-mode-flag t)))
     (if l-browsing-mode-flag
       (progn
-        (when (not eide-menu-browsing-mode-flag)
+        (unless eide-menu-browsing-mode-flag
           (eide-menu-browsing-mode-start))
         (setq l-window l-selected-window)
         (set-window-buffer l-window p-buffer))
@@ -117,7 +117,7 @@ Arguments (same as display-buffer function):
                  (string-equal l-buffer-name "*Completions*"))
           (progn
             (setq l-window (get-buffer-window l-buffer-name))
-            (when (not l-window)
+            (unless l-window
               ;; When clicking on directories, completion buffer is closed,
               ;; but its window is not closed: we must use it
               (if (window-live-p eide-windows-window-completion)
@@ -129,7 +129,7 @@ Arguments (same as display-buffer function):
                   (setq eide-windows-window-completion l-window)))))
           (progn
             (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
-            (when (not l-window)
+            (unless l-window
               (setq l-window l-selected-window))))
         (when (and (equal l-window eide-windows-source-window)
                    eide-menu-browsing-mode-flag)
@@ -169,13 +169,13 @@ Arguments (same as select-window function):
 - p-window: window.
 - p-norecord (optional): don't add the buffer to the list of recently selected
 ones."
-  (when (not (or (equal p-window eide-windows-source-window)
-                 (equal p-window eide-windows-menu-window)
-                 (equal p-window eide-windows-output-window)
-                 ;; Exclude minibuffer
-                 (window-minibuffer-p p-window)
-                 ;; Exclude any temporary buffer ("*...")
-                 (string-match "^\*.*" (buffer-name (window-buffer p-window)))))
+  (unless (or (equal p-window eide-windows-source-window)
+              (equal p-window eide-windows-menu-window)
+              (equal p-window eide-windows-output-window)
+              ;; Exclude minibuffer
+              (window-minibuffer-p p-window)
+              ;; Exclude any temporary buffer ("*...")
+              (string-match "^\*.*" (buffer-name (window-buffer p-window))))
     (ad-deactivate 'select-window)
     (setq eide-windows-source-window p-window)
     (eide-menu-update nil)
@@ -195,7 +195,7 @@ ones."
   ;; In particular, if the user has changed IDE windows visibility, is is lost,
   ;; and the internal state is incorrect: we must fix it!
   (if eide-windows-ide-windows-visible-flag
-    (when (not (get-buffer-window eide-menu-buffer-name))
+    (unless (get-buffer-window eide-menu-buffer-name)
       ;; IDE windows are supposed to be shown, but an old layout has been restored:
       ;; let's clear internal status.
       (setq eide-windows-ide-windows-visible-flag nil)
@@ -230,7 +230,7 @@ ones."
             (setq l-browsing-mode-flag t))))
       (if l-browsing-mode-flag
         (progn
-          (when (not eide-menu-browsing-mode-flag)
+          (unless eide-menu-browsing-mode-flag
             (eide-menu-browsing-mode-start))
           ad-do-it
           p-buffer)
@@ -403,7 +403,7 @@ before gdb builds its own."
 
 (defun eide-windows-show-ide-windows ()
   "Show \"menu\" and \"ouput\" windows."
-  (when (not eide-windows-ide-windows-visible-flag)
+  (unless eide-windows-ide-windows-visible-flag
     (ad-deactivate 'select-window)
     ;; If completion buffer is displayed, let's close its current window
     ;; and display it in new output window.
@@ -578,7 +578,7 @@ before gdb builds its own."
     (eide-windows-hide-ide-windows)
     (progn
       (eide-windows-show-ide-windows)
-      (when (not (listp last-nonmenu-event))
+      (unless (listp last-nonmenu-event)
         ;; Called from keyboard (see yes-or-no-p): select the "menu" window
         (select-window eide-windows-menu-window)))))
 
@@ -598,19 +598,19 @@ before gdb builds its own."
 Argument:
 - p-force-build-flag: t = build windows layout if not visible."
   (when (or eide-windows-ide-windows-visible-flag p-force-build-flag)
-    (when (not eide-windows-ide-windows-visible-flag)
+    (unless eide-windows-ide-windows-visible-flag
       (eide-windows-show-ide-windows))
     (select-window eide-windows-source-window)))
 
 (defun eide-windows-select-menu-window ()
   "Select \"menu\" window (build windows layout if necessary)."
-  (when (not eide-windows-ide-windows-visible-flag)
+  (unless eide-windows-ide-windows-visible-flag
     (eide-windows-show-ide-windows))
   (select-window eide-windows-menu-window))
 
 (defun eide-windows-select-output-window ()
   "Select \"output\" window (build windows layout if necessary)."
-  (when (not eide-windows-ide-windows-visible-flag)
+  (unless eide-windows-ide-windows-visible-flag
     (eide-windows-show-ide-windows))
   (select-window eide-windows-output-window))
 
@@ -651,7 +651,7 @@ and display it. Current buffer is kept if correct."
           ;; buffer that fits. If this buffer is valid, let's keep it
           ;; current. Otherwise, let's display "*scratch*".
           (setq l-should-we-continue nil)
-          (when (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
+          (unless (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window)
             (switch-to-buffer "*scratch*")))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)

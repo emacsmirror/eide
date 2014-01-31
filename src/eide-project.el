@@ -267,9 +267,9 @@ Arguments:
         (setq l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number)))
         ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
         (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
-        (when (not (file-directory-p l-workspace-dir))
+        (unless (file-directory-p l-workspace-dir)
           (make-directory l-workspace-dir))
-        (when (not (file-exists-p l-projects-list-file))
+        (unless (file-exists-p l-projects-list-file)
           (shell-command (concat "touch \"" l-projects-list-file "\""))))
       (setq l-workspace-number (+ l-workspace-number 1))))
   (eide-i-project-update-internal-projects-list))
@@ -277,7 +277,7 @@ Arguments:
 (defun eide-i-project-force-desktop-read-hook ()
   "Hook to be called at startup, to force to read the desktop when after-init-hook
 has already been called."
-  (when (not desktop-file-modtime)
+  (unless desktop-file-modtime
     ;; Desktop has not been read: read it now.
     (desktop-read eide-root-directory)))
 
@@ -308,7 +308,7 @@ Argument:
       ;; Clear the project selected for comparison
       (setq eide-compare-other-project-name nil)
       (setq eide-compare-other-project-directory nil)
-      (when (not eide-no-desktop-option)
+      (unless eide-no-desktop-option
         ;; Clear desktop (even if a project is defined)
         (eide-windows-hide-ide-windows)
         (desktop-save-mode -1)
@@ -319,7 +319,7 @@ Argument:
         (eide-windows-show-ide-windows))
       (eide-i-project-update-internal-projects-list)
       ;; Update default directory if current buffer is not visiting a file
-      (when (not buffer-file-name)
+      (unless buffer-file-name
         (setq default-directory eide-root-directory)))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
@@ -366,11 +366,11 @@ Arguments:
       (progn
         (eide-search-update-cscope-status)
         (setq eide-search-cscope-available-flag t)
-        (when (not (file-exists-p (concat eide-root-directory "cscope.out")))
+        (unless (file-exists-p (concat eide-root-directory "cscope.out"))
           (setq eide-search-cscope-update-database-request-pending-flag t)))
       (eide-search-create-cscope-list-of-files)))
 
-  (when (not (file-exists-p (concat eide-root-directory eide-project-notes-file)))
+  (unless (file-exists-p (concat eide-root-directory eide-project-notes-file))
     ;; Create empty project notes file
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
@@ -378,8 +378,8 @@ Arguments:
   (eide-vc-update-show-svn-status)
   (eide-vc-update-show-git-status)
 
-  (when (not eide-no-desktop-option)
-    (when (not p-startup-flag)
+  (unless eide-no-desktop-option
+    (unless p-startup-flag
       ;; No need to update menu for every restored buffer
       (ad-deactivate 'switch-to-buffer))
     (if desktop-dirname
@@ -393,11 +393,11 @@ Arguments:
         (setq desktop-save t)
         ;; Set desktop directory (set to nil when desktop save mode is disabled)
         (setq desktop-dirname eide-root-directory)
-        (when (not (or p-startup-flag p-creation-flag))
+        (unless (or p-startup-flag p-creation-flag)
           ;; It is necessary to close all buffers before loading the new desktop.
           (desktop-clear)
           (desktop-read eide-root-directory))))
-    (when (not p-startup-flag)
+    (unless p-startup-flag
       (ad-activate 'switch-to-buffer)))
 
   ;; Close any existing TAGS file, to make sure we will use the right one
@@ -447,7 +447,7 @@ Arguments:
           ;; Restore editor configuration
           (eide-display-set-colors-for-files)
           (eide-keys-configure-for-editor)
-          (when (not (string-equal l-project-dir eide-root-directory))
+          (unless (string-equal l-project-dir eide-root-directory)
             ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
             ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
             ;; otherwise we get errors for non-existing windows
@@ -500,7 +500,7 @@ Arguments:
   (let ((l-value nil))
     (with-current-buffer eide-project-config-file
       (setq l-value (eide-i-project-get-config-value-if-defined p-parameter)))
-    (when (not l-value)
+    (unless l-value
       (setq l-value p-default-value))
     (insert p-parameter)
     (insert " = ")
@@ -558,7 +558,7 @@ Argument:
   ;; Check that the process was a compilation (not a grep)
   (when (and eide-compilation-buffer
              (equal cur-buffer (get-buffer eide-compilation-buffer)))
-    (when (not (string-equal eide-project-compile-error-old-path-regexp ""))
+    (unless (string-equal eide-project-compile-error-old-path-regexp "")
       ;; Replace all occurrences in compilation buffer
       (with-current-buffer cur-buffer
         (save-excursion
@@ -745,7 +745,7 @@ Argument:
     (progn
       ;; There is no project in this directory
       (setq eide-project-name nil)
-      (when (not eide-no-desktop-option)
+      (unless eide-no-desktop-option
         (desktop-save-mode -1)
         ;; Close all buffers
         (desktop-clear)
@@ -766,7 +766,7 @@ Argument:
         ;; this is a "useless" buffer (.ref or .new)
         (kill-buffer l-buffer-name))))
   ;; Update default directory if current buffer is not visiting a file
-  (when (not buffer-file-name)
+  (unless buffer-file-name
     (setq default-directory eide-root-directory))
   ;; Set current buffer
   (setq eide-current-buffer (buffer-name)))
@@ -863,14 +863,14 @@ Argument:
       (progn
         ;; This project is already in the list
         (forward-line -1)
-        (when (not (string-equal eide-project-name (buffer-substring-no-properties (point) (line-end-position))))
+        (unless (string-equal eide-project-name (buffer-substring-no-properties (point) (line-end-position)))
           ;; Update the project name
           (delete-region (point) (line-end-position))
           (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
-          (when (not p-startup-flag)
+          (unless p-startup-flag
             (ad-deactivate 'save-buffer))
           (save-buffer)
-          (when (not p-startup-flag)
+          (unless p-startup-flag
             (ad-activate 'save-buffer))))
       (progn
         ;; This project is not in the list: let's insert it in the right place
@@ -880,16 +880,16 @@ Argument:
         (while (and (not (eobp))
                     (string-lessp (buffer-substring-no-properties (point) (line-end-position)) eide-root-directory))
           (forward-line 2))
-        (when (not (eobp))
+        (unless (eobp)
           (forward-line -1))
         (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
         (insert "\n")
         (insert eide-root-directory)
         (insert "\n")
-        (when (not p-startup-flag)
+        (unless p-startup-flag
           (ad-deactivate 'save-buffer))
         (save-buffer)
-        (when (not p-startup-flag)
+        (unless p-startup-flag
           (ad-activate 'save-buffer))))
     (kill-this-buffer))
   (push eide-root-directory eide-project-current-projects-list))
@@ -971,7 +971,7 @@ current workspace."
       (eide-compare-select-another-project l-project-name l-project-dir))
     (forward-line -1)
     (let ((l-new-point (point)))
-      (when (not (string-equal l-project-dir eide-root-directory))
+      (unless (string-equal l-project-dir eide-root-directory)
         ;; Highlight selected project
         (put-text-property (point) (line-end-position) 'face 'eide-project-project-comparison-name-face))
       (when eide-project-comparison-project-point
@@ -997,7 +997,7 @@ Argument:
     (setq eide-project-config-target-buffer (concat eide-project-config-file "_temp"))
 
     ;; Open these config files
-    (when (not (get-buffer eide-project-config-file))
+    (unless (get-buffer eide-project-config-file)
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (get-buffer-create eide-project-config-target-buffer)
     (set-buffer eide-project-config-target-buffer)
@@ -1113,14 +1113,14 @@ Argument:
                                         'eide-project-grep-exclude-dirs)
 
     ;; Replace source file by target buffer if different
-    (when (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
+    (unless (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0)
       (set-buffer eide-project-config-file)
       (erase-buffer)
       (insert-buffer-substring eide-project-config-target-buffer)
-      (when (not p-startup-flag)
+      (unless p-startup-flag
         (ad-deactivate 'save-buffer))
       (save-buffer)
-      (when (not p-startup-flag)
+      (unless p-startup-flag
         (ad-activate 'save-buffer)))
     ;; Close temporary buffer
     (kill-buffer eide-project-config-target-buffer)))
@@ -1130,7 +1130,7 @@ Argument:
 Argument:
 - p-parameter: config parameter."
   (save-current-buffer
-    (when (not (get-buffer eide-project-config-file))
+    (unless (get-buffer eide-project-config-file)
       (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (set-buffer eide-project-config-file)
     (let ((l-value (eide-i-project-get-config-value-if-defined p-parameter)))
@@ -1248,7 +1248,7 @@ Argument:
     ;; Show gdb toolbar
     ;; NB: eide-project-debug-mode-start may be called twice: do not overwrite
     ;; eide-project-tool-bar-mode-before-debug on second call
-    (when (not eide-project-is-gdb-session-visible-flag)
+    (unless eide-project-is-gdb-session-visible-flag
       (setq eide-project-tool-bar-mode-before-debug tool-bar-mode))
     (tool-bar-mode 1))
   (setq display-buffer-function nil)

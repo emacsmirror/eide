@@ -66,7 +66,7 @@ Argument:
 
 (defun eide-edit-set-r ()
   "Unset write permission for current file."
-  (when (not buffer-read-only)
+  (unless buffer-read-only
     (shell-command (concat "chmod -w \"" buffer-file-name "\""))
     (revert-buffer)))
 
@@ -125,7 +125,7 @@ Argument:
 
 (defun eide-edit-untabify-and-indent ()
   "Untabify and indent the content of current file."
-  (when (not buffer-read-only)
+  (unless buffer-read-only
     (untabify (point-min) (point-max))
     (indent-region (point-min) (point-max) nil)
     (ad-deactivate 'save-buffer)
@@ -134,19 +134,19 @@ Argument:
 
 (defun eide-edit-dos-to-unix ()
   "Convert current file end of line from DOS to UNIX."
-  (when (not buffer-read-only)
+  (unless buffer-read-only
     (shell-command (concat "fromdos \"" buffer-file-name "\""))
     (revert-buffer)))
 
 (defun eide-edit-unix-to-dos ()
   "Convert current file end of line from UNIX to DOS."
-  (when (not buffer-read-only)
+  (unless buffer-read-only
     (shell-command (concat "todos \"" buffer-file-name "\""))
     (revert-buffer)))
 
 (defun eide-edit-delete-trailing-spaces ()
   "Delete all trailing spaces in current file."
-  (when (not buffer-read-only)
+  (unless buffer-read-only
     (delete-trailing-whitespace)
     (ad-deactivate 'save-buffer)
     (save-buffer)

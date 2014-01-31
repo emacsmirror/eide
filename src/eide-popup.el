@@ -47,7 +47,7 @@
   "Initialize a popup menu."
   (setq eide-popup-menu nil)
   (setq eide-popup-menu-actions-list nil)
-  (when (not eide-option-menu-buffer-popup-groups-flags)
+  (unless eide-option-menu-buffer-popup-groups-flags
     (setq eide-popup-menu-separator-flag nil)))
 
 (defun eide-i-popup-menu-add-action (p-action-name p-action-function p-enabled-flag)
@@ -84,7 +84,7 @@ Argument:
   (when eide-popup-menu
     (setq eide-popup-menu (reverse eide-popup-menu))
 
-    (when (not eide-option-menu-buffer-popup-groups-flags)
+    (unless eide-option-menu-buffer-popup-groups-flags
       (setq eide-popup-menu (list (cons "single group" eide-popup-menu))))
 
     (let ((l-result (x-popup-menu t (cons p-menu-title eide-popup-menu))))
@@ -133,7 +133,7 @@ Argument:
         (when (eide-menu-is-file-in-directory-p l-buffer l-directory-name)
           ;; The buffer is located in the directory
           (with-current-buffer l-buffer
-            (when (not (string-equal eide-menu-local-edit-status "nofile"))
+            (unless (string-equal eide-menu-local-edit-status "nofile")
               ;; Check all properties
               (if buffer-read-only
                 (setq l-buffer-read-only-flag t)
@@ -218,7 +218,7 @@ Argument:
     ;; "Edit" action list
     (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
 
-    (when (not (string-equal l-buffer-status "nofile"))
+    (unless (string-equal l-buffer-status "nofile")
 
       (if l-buffer-rw-flag
         (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
@@ -238,7 +238,7 @@ Argument:
 
     (eide-i-popup-menu-close-action-list "Edit")
 
-    (when (not (string-equal l-buffer-status "nofile"))
+    (unless (string-equal l-buffer-status "nofile")
       ;; "Clean" action list
       (eide-i-popup-menu-add-action "Untabify and indent" (concat "(eide-edit-action-on-file 'eide-edit-untabify-and-indent \"" l-buffer "\" \"untabify and indent this file\")") l-buffer-rw-flag)
       (eide-i-popup-menu-add-action "Delete trailing spaces" (concat "(eide-edit-action-on-file 'eide-edit-delete-trailing-spaces \"" l-buffer "\" \"delete trailing spaces\")") l-buffer-rw-flag)
@@ -257,7 +257,7 @@ Argument:
       (when (and eide-compare-other-project-name (not (string-equal eide-root-directory eide-compare-other-project-directory)))
         (let ((l-directory (file-name-directory (buffer-file-name (get-buffer l-buffer)))))
           ;; Check that the file is not out of project
-          (when (not (string-equal (eide-project-get-short-directory l-directory) l-directory))
+          (unless (string-equal (eide-project-get-short-directory l-directory) l-directory)
             (eide-i-popup-menu-add-action (concat "Compare with project \"" eide-compare-other-project-name "\"") (concat "(eide-compare-with-other-project \"" l-buffer "\")") t))))
 
       (eide-i-popup-menu-close-action-list "Compare")

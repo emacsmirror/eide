@@ -332,7 +332,7 @@ Argument:
       ;; Extract the directory from the buffer file name
       (let ((l-directory (file-name-directory (buffer-file-name (get-buffer l-buffer)))))
         ;; If this is the first buffer from this directory, add the directory to the list
-        (when (not (member l-directory l-directory-list))
+        (unless (member l-directory l-directory-list)
           (setq l-directory-list (cons l-directory l-directory-list)))))
     ;; Sort the list in alphabetical order
     (setq l-directory-list (sort l-directory-list 'string<))
@@ -344,7 +344,7 @@ Argument:
   "Change current file (eide-current-buffer).
 Argument:
 - p-buffer-name: new current buffer name."
-  (when (not (string-equal p-buffer-name eide-current-buffer))
+  (unless (string-equal p-buffer-name eide-current-buffer)
     (save-excursion
       (beginning-of-line)
       ;; Current position might not be on the line of buffer name: in that case
@@ -453,7 +453,7 @@ Argument:
         (eide-menu-build-files-lists)
         ;; Build a list (l-new-files) with new open files
         (dolist (l-file eide-menu-files-list)
-          (when (not (member l-file eide-menu-files-old-list))
+          (unless (member l-file eide-menu-files-old-list)
             (setq l-new-files (cons l-file l-new-files))))
         (when l-new-files
           ;; Retrieve edit status (REF/NEW) of new open files
@@ -484,7 +484,7 @@ Argument:
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line)))
     (eide-i-menu-update-current-buffer l-buffer)
     (switch-to-buffer l-buffer))
-  (when (not (listp last-nonmenu-event))
+  (unless (listp last-nonmenu-event)
     ;; Called from keyboard (see yes-or-no-p): stay in the "menu" window
     (select-window eide-windows-menu-window)))
 
@@ -526,7 +526,7 @@ Arguments:
 - p-list: imenu list."
   (let ((l-marker-found nil))
     (dolist (l-element p-list)
-      (when (not l-marker-found)
+      (unless l-marker-found
         ;; Symbol not found yet
         (if (markerp (cdr l-element))
           ;; Check if this element contains the symbol we are looking for
@@ -570,7 +570,7 @@ Argument:
     (switch-to-buffer l-buffer-name)
     (goto-char (marker-position (eide-i-menu-get-symbol-marker l-symbol-name)))
     (recenter))
-  (when (not (listp last-nonmenu-event))
+  (unless (listp last-nonmenu-event)
     ;; Called from keyboard (see yes-or-no-p): stay in the "menu" window
     (select-window eide-windows-menu-window)))
 
@@ -730,7 +730,7 @@ Arguments:
               (eide-i-menu-rebuild (or p-force-update-status-flag eide-windows-menu-update-request-pending-force-update-status-flag))
               ;; Cancel pending request (force update status)
               (setq eide-windows-menu-update-request-pending-force-update-status-flag nil))
-            (when (not (string-equal eide-current-buffer eide-current-buffer-temp))
+            (unless (string-equal eide-current-buffer eide-current-buffer-temp)
               (eide-windows-select-menu-window)
               (goto-char (point-min))
               ;; Case sensitive search is necessary for buffer name
@@ -747,7 +747,7 @@ Arguments:
     (progn
       (setq eide-windows-menu-update-request-pending-flag t)
       ;; Force rebuild flag must not be changed if already set
-      (when (not eide-windows-menu-update-request-pending-force-rebuild-flag)
+      (unless eide-windows-menu-update-request-pending-force-rebuild-flag
         (if p-force-rebuild-flag
           (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)
           (when (or (not (member eide-current-buffer eide-menu-files-list))
