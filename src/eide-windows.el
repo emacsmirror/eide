@@ -746,7 +746,7 @@ and display it. Current buffer is kept if correct."
           (setq eide-project-old-project-name nil))
         (when (and eide-search-tags-exclude-enabled-flag
                    eide-project-old-tags-exclude-value
-                   (not (string-equal (eide-project-get-config-value "tags_exclude") eide-project-old-tags-exclude-value)))
+                   (not (string-equal eide-project-tags-exclude eide-project-old-tags-exclude-value)))
           ;; Tags exclude value has changed
           (if eide-search-tags-creation-in-progress-flag
             (eide-popup-message "Cannot update tags while they are being created...")
@@ -754,9 +754,9 @@ and display it. Current buffer is kept if correct."
           (setq eide-project-old-tags-exclude-value nil))
         (when (and eide-search-cscope-exclude-enabled-flag
                    (or (and eide-project-old-cscope-exclude-files-value
-                            (not (string-equal (eide-project-get-config-value "cscope_exclude_files") eide-project-old-cscope-exclude-files-value)))
+                            (not (string-equal eide-project-cscope-exclude-files eide-project-old-cscope-exclude-files-value)))
                        (and eide-project-old-cscope-exclude-dirs-value
-                            (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") eide-project-old-cscope-exclude-dirs-value)))))
+                            (not (string-equal eide-project-cscope-exclude-dirs eide-project-old-cscope-exclude-dirs-value)))))
           ;; Cscope exclude files or dirs value has changed
           (if eide-search-cscope-creation-in-progress-flag
             (eide-popup-message "Cannot update cscope list of files while it is being created...")
@@ -820,37 +820,37 @@ on previous state)."
               :visible (not eide-project-name)))
 
 (define-key-after eide-menu-keymap [eide-project-compile-1]
-  '(menu-item (concat "Compile (1): " (eide-project-get-full-command "compile_command_1"))
+  '(menu-item (concat "Compile (1): " (eide-project-get-full-command eide-project-compile-command-1))
               eide-project-compile-1
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_1") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-compile-command-1 "")))))
 (define-key-after eide-menu-keymap [eide-project-compile-2]
-  '(menu-item (concat "Compile (2): " (eide-project-get-full-command "compile_command_2"))
+  '(menu-item (concat "Compile (2): " (eide-project-get-full-command eide-project-compile-command-2))
               eide-project-compile-2
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_2") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-compile-command-2 "")))))
 (define-key-after eide-menu-keymap [eide-project-compile-3]
-  '(menu-item (concat "Compile (3): " (eide-project-get-full-command "compile_command_3"))
+  '(menu-item (concat "Compile (3): " (eide-project-get-full-command eide-project-compile-command-3))
               eide-project-compile-3
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_3") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-compile-command-3 "")))))
 (define-key-after eide-menu-keymap [eide-project-compile-4]
-  '(menu-item (concat "Compile (4): " (eide-project-get-full-command "compile_command_4"))
+  '(menu-item (concat "Compile (4): " (eide-project-get-full-command eide-project-compile-command-4))
               eide-project-compile-4
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "compile_command_4") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-compile-command-4 "")))))
 (define-key-after eide-menu-keymap [eide-project-run-1]
-  '(menu-item (concat "Run (1): " (eide-project-get-full-command "run_command_1"))
+  '(menu-item (concat "Run (1): " (eide-project-get-full-command eide-project-run-command-1))
               eide-project-run-1
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "run_command_1") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-run-command-1 "")))))
 (define-key-after eide-menu-keymap [eide-project-run-2]
-  '(menu-item (concat "Run (2): " (eide-project-get-full-command "run_command_2"))
+  '(menu-item (concat "Run (2): " (eide-project-get-full-command eide-project-run-command-2))
               eide-project-run-2
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "run_command_2") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-run-command-2 "")))))
 (define-key-after eide-menu-keymap [eide-project-debug-1]
-  '(menu-item (concat "Debug (1): " (eide-project-get-full-command "debug_command_1"))
+  '(menu-item (concat "Debug (1): " (eide-project-get-full-gdb-command eide-project-debug-program-1))
               eide-project-debug-1
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "debug_command_1") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-debug-program-1 "")))))
 (define-key-after eide-menu-keymap [eide-project-debug-2]
-  '(menu-item (concat "Debug (2): " (eide-project-get-full-command "debug_command_2"))
+  '(menu-item (concat "Debug (2): " (eide-project-get-full-gdb-command eide-project-debug-program-2))
               eide-project-debug-2
-              :visible (and eide-project-name (not (string-equal (eide-project-get-config-value "debug_command_2") "")))))
+              :visible (and eide-project-name (not (string-equal eide-project-debug-program-2 "")))))
 
 (define-key-after eide-menu-keymap [sep-project-commands] '(menu-item "--" nil))
 
@@ -870,19 +870,22 @@ on previous state)."
   '(menu-item "Toggle activation of tags exclude filters"
               eide-search-toggle-tags-exclude-state
               :button (:toggle . eide-search-tags-exclude-enabled-flag)
-              :visible (not (string-equal (eide-project-get-config-value "tags_exclude") ""))))
+              :visible (and eide-project-name
+                            (not (string-equal eide-project-tags-exclude "")))))
 (define-key-after eide-menu-keymap [eide-search-toggle-cscope-exclude-state]
   '(menu-item "Toggle activation of cscope exclude filters"
               eide-search-toggle-cscope-exclude-state
               :button (:toggle . eide-search-cscope-exclude-enabled-flag)
-              :visible (or (not (string-equal (eide-project-get-config-value "cscope_exclude_files") ""))
-                           (not (string-equal (eide-project-get-config-value "cscope_exclude_dirs") "")))))
+              :visible (and eide-project-name
+                            (or (not (string-equal eide-project-cscope-exclude-files ""))
+                                (not (string-equal eide-project-cscope-exclude-dirs ""))))))
 (define-key-after eide-menu-keymap [eide-search-toggle-grep-exclude-state]
   '(menu-item "Toggle activation of grep exclude filters"
               eide-search-toggle-grep-exclude-state
               :button (:toggle . eide-search-grep-exclude-enabled-flag)
-              :visible (or (not (string-equal (eide-project-get-config-value "grep_exclude_files") ""))
-                           (not (string-equal (eide-project-get-config-value "grep_exclude_dirs") "")))))
+              :visible (and eide-project-name
+                            (or (not (string-equal eide-project-grep-exclude-files ""))
+                                (not (string-equal eide-project-grep-exclude-dirs ""))))))
 
 (define-key-after eide-menu-keymap [sep-project-search] '(menu-item "--" nil :visible eide-project-name))
 

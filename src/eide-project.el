@@ -80,6 +80,26 @@
 (defvar eide-project-old-cscope-exclude-files-value nil)
 (defvar eide-project-old-cscope-exclude-dirs-value nil)
 
+;; Variables to store the project configuration
+;; (to avoid parsing the config file)
+(defvar eide-project-init-command nil)
+(defvar eide-project-compile-command-1 nil)
+(defvar eide-project-compile-command-2 nil)
+(defvar eide-project-compile-command-3 nil)
+(defvar eide-project-compile-command-4 nil)
+(defvar eide-project-run-command-1 nil)
+(defvar eide-project-run-command-2 nil)
+(defvar eide-project-debug-command nil)
+(defvar eide-project-debug-program-1 nil)
+(defvar eide-project-debug-program-2 nil)
+(defvar eide-project-compile-error-old-path-regexp nil)
+(defvar eide-project-compile-error-new-path-string nil)
+(defvar eide-project-tags-exclude nil)
+(defvar eide-project-cscope-exclude-files nil)
+(defvar eide-project-cscope-exclude-dirs nil)
+(defvar eide-project-grep-exclude-files nil)
+(defvar eide-project-grep-exclude-dirs nil)
+
 ;; Config files
 (make-face 'eide-project-config-comment-face)
 (make-face 'eide-project-config-parameter-face)
@@ -116,6 +136,13 @@
   :tag "Number of workspaces"
   :type '(choice (const 1) (const 2) (const 3) (const 4) (const 5) (const 6) (const 7) (const 8))
   :set 'eide-i-project-custom-set-number-of-workspaces
+  :initialize 'custom-initialize-default
+  :group 'eide-project)
+(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer (requires Emacs 24)."
+  :tag "Support ANSI escape code in compilation buffer"
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :set 'eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer
   :initialize 'custom-initialize-default
   :group 'eide-project)
 (defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
@@ -167,13 +194,6 @@
   :tag "Default debug program (2)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
-  :group 'eide-project)
-(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer (requires Emacs 24)."
-  :tag "Support ANSI escape code in compilation buffer"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set 'eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer
-  :initialize 'custom-initialize-default
   :group 'eide-project)
 (defcustom eide-custom-project-default-compile-error-old-path-regexp "" "Default compile error old path regexp (used to modify the path of filenames in the compilation buffer)."
   :tag "Default compile error old path regexp"
@@ -470,12 +490,13 @@ Argument:
     (buffer-substring-no-properties (point) (line-end-position))
     nil))
 
-(defun eide-i-project-rebuild-config-line (p-parameter p-default-value)
+(defun eide-i-project-rebuild-config-line (p-parameter p-default-value p-var)
   "Update a line with a parameter and its value (use default value if not
 found).
 Arguments:
 - p-parameter: config parameter.
-- p-default-value: config default value."
+- p-default-value: config default value.
+- p-var: variable in which the value should be saved."
   (let ((l-value nil))
     (with-current-buffer eide-project-config-file
       (setq l-value (eide-i-project-get-config-value-if-defined p-parameter)))
@@ -484,28 +505,29 @@ Arguments:
     (insert p-parameter)
     (insert " = ")
     (insert l-value)
-    (insert "\n")))
+    (insert "\n")
+    (set p-var l-value)))
 
-(defun eide-i-project-compile (p-parameter)
+(defun eide-i-project-compile (p-command)
   "Compile project.
 Argument:
-- p-parameter: option parameter in project configuration for compile command."
+- p-command: compile command string."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
   (switch-to-buffer "*results*")
   ;; Change current directory (of unused buffer "*results*")
   (setq default-directory eide-root-directory)
-  (let ((l-compile-command (eide-project-get-full-command p-parameter)))
+  (let ((l-compile-command (eide-project-get-full-command p-command)))
     ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
     (setq eide-windows-update-output-buffer-id "c")
     (compile l-compile-command))
   (eide-windows-select-source-window t))
 
-(defun eide-i-project-run (p-parameter)
+(defun eide-i-project-run (p-command)
   "Run project.
 Argument:
-- p-parameter: option parameter in project configuration for run command."
+- p-command: run command string."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
@@ -513,7 +535,7 @@ Argument:
   ;; Changing current directory has no effect with shell-command
   ;; Instead, we must change current directory in the command itself
   ;; Command ends with "&" otherwise emacs gets frozen until gdb is closed
-  (let ((l-run-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-parameter) " &")))
+  (let ((l-run-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-command) " &")))
     ;; Run buffer name will be updated in eide-i-windows-display-buffer-function
     (setq eide-windows-update-output-buffer-id "r")
     (shell-command l-run-command)))
@@ -521,7 +543,7 @@ Argument:
 (defun eide-i-project-debug (p-program)
   "Debug project.
 Argument:
-- p-program: option parameter in project configuration for gdb program."
+- p-program: program string."
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
@@ -536,14 +558,12 @@ Argument:
   ;; Check that the process was a compilation (not a grep)
   (when (and eide-compilation-buffer
              (equal cur-buffer (get-buffer eide-compilation-buffer)))
-    (let ((l-old-regexp (eide-project-get-config-value "compile_error_old_path_regexp"))
-          (l-new-string (eide-project-get-config-value "compile_error_new_path_string")))
-      (when (not (string-equal l-old-regexp ""))
-        ;; Replace all occurrences in compilation buffer
-        (with-current-buffer cur-buffer
-          (save-excursion
-            (goto-char (point-min))
-            (perform-replace l-old-regexp l-new-string nil t nil)))))))
+    (when (not (string-equal eide-project-compile-error-old-path-regexp ""))
+      ;; Replace all occurrences in compilation buffer
+      (with-current-buffer cur-buffer
+        (save-excursion
+          (goto-char (point-min))
+          (perform-replace eide-project-compile-error-old-path-regexp eide-project-compile-error-new-path-string nil t nil))))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -1002,16 +1022,36 @@ Argument:
     (insert "\n\n")
 
     (insert "# Init command is called before all 'compile' and 'run' commands.\n")
-    (eide-i-project-rebuild-config-line "init_command"      eide-custom-project-default-init-command)
-    (eide-i-project-rebuild-config-line "compile_command_1" eide-custom-project-default-compile-command-1)
-    (eide-i-project-rebuild-config-line "compile_command_2" eide-custom-project-default-compile-command-2)
-    (eide-i-project-rebuild-config-line "compile_command_3" eide-custom-project-default-compile-command-3)
-    (eide-i-project-rebuild-config-line "compile_command_4" eide-custom-project-default-compile-command-4)
-    (eide-i-project-rebuild-config-line "run_command_1"     eide-custom-project-default-run-command-1)
-    (eide-i-project-rebuild-config-line "run_command_2"     eide-custom-project-default-run-command-1)
-    (eide-i-project-rebuild-config-line "debug_command"     eide-custom-project-default-debug-command)
-    (eide-i-project-rebuild-config-line "debug_program_1"   eide-custom-project-default-debug-program-1)
-    (eide-i-project-rebuild-config-line "debug_program_2"   eide-custom-project-default-debug-program-2)
+    (eide-i-project-rebuild-config-line "init_command"
+                                        eide-custom-project-default-init-command
+                                        'eide-project-init-command)
+    (eide-i-project-rebuild-config-line "compile_command_1"
+                                        eide-custom-project-default-compile-command-1
+                                        'eide-project-compile-command-1)
+    (eide-i-project-rebuild-config-line "compile_command_2"
+                                        eide-custom-project-default-compile-command-2
+                                        'eide-project-compile-command-2)
+    (eide-i-project-rebuild-config-line "compile_command_3"
+                                        eide-custom-project-default-compile-command-3
+                                        'eide-project-compile-command-3)
+    (eide-i-project-rebuild-config-line "compile_command_4"
+                                        eide-custom-project-default-compile-command-4
+                                        'eide-project-compile-command-4)
+    (eide-i-project-rebuild-config-line "run_command_1"
+                                        eide-custom-project-default-run-command-1
+                                        'eide-project-run-command-1)
+    (eide-i-project-rebuild-config-line "run_command_2"
+                                        eide-custom-project-default-run-command-2
+                                        'eide-project-run-command-2)
+    (eide-i-project-rebuild-config-line "debug_command"
+                                        eide-custom-project-default-debug-command
+                                        'eide-project-debug-command)
+    (eide-i-project-rebuild-config-line "debug_program_1"
+                                        eide-custom-project-default-debug-program-1
+                                        'eide-project-debug-program-1)
+    (eide-i-project-rebuild-config-line "debug_program_2"
+                                        eide-custom-project-default-debug-program-2
+                                        'eide-project-debug-program-2)
 
     (insert "# In the compilation buffer, in the clickable filenames displayed when warnings or errors occur,\n")
     (insert "# you can replace all occurrences of 'compile_error_old_path_regexp' (a regular expression)\n")
@@ -1019,8 +1059,12 @@ Argument:
     (insert "# It can be useful if the sources are copied to another place before being compiled,\n")
     (insert "# or if you need to modify a relative path.\n")
     (insert "# In both cases, you want to be able to open the right file when selecting an error.\n")
-    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp" eide-custom-project-default-compile-error-old-path-regexp)
-    (eide-i-project-rebuild-config-line "compile_error_new_path_string" eide-custom-project-default-compile-error-new-path-string)
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp"
+                                        eide-custom-project-default-compile-error-old-path-regexp
+                                        'eide-project-compile-error-old-path-regexp)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string"
+                                        eide-custom-project-default-compile-error-new-path-string
+                                        'eide-project-compile-error-new-path-string)
 
     (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
     (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
@@ -1028,35 +1072,45 @@ Argument:
     (insert "# - Use foo pattern to exclude all directories and files named foo.\n")
     (insert "# - Use *foo* pattern to exclude all directories and files containing foo.\n")
     (insert "# - Use some/path/foo pattern to exclude only some/path/foo directory or file.\n")
-    (eide-i-project-rebuild-config-line "tags_exclude" eide-custom-project-default-tags-exclude)
+    (eide-i-project-rebuild-config-line "tags_exclude"
+                                        eide-custom-project-default-tags-exclude
+                                        'eide-project-tags-exclude)
 
     (insert "# Space separated list of files patterns to exclude when creating cscope list of files.\n")
     (insert "# Each <pattern> adds an option ! -name \"<pattern>\" to find command.\n")
     (insert "# Examples:\n")
     (insert "# - Use foo pattern to exclude all files named foo.\n")
     (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
-    (eide-i-project-rebuild-config-line "cscope_exclude_files" eide-custom-project-default-cscope-exclude-files)
+    (eide-i-project-rebuild-config-line "cscope_exclude_files"
+                                        eide-custom-project-default-cscope-exclude-files
+                                        'eide-project-cscope-exclude-files)
 
     (insert "# Space separated list of directories patterns to exclude when creating cscope list of files.\n")
     (insert "# Each <pattern> adds an option ! -path \"*/<pattern>/*\" to find command.\n")
     (insert "# Examples:\n")
     (insert "# - Use foo pattern to exclude all directories named foo.\n")
     (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
-    (eide-i-project-rebuild-config-line "cscope_exclude_dirs" eide-custom-project-default-cscope-exclude-dirs)
+    (eide-i-project-rebuild-config-line "cscope_exclude_dirs"
+                                        eide-custom-project-default-cscope-exclude-dirs
+                                        'eide-project-cscope-exclude-dirs)
 
     (insert "# Space separated list of files patterns to exclude when searching with grep.\n")
     (insert "# Each <pattern> adds an option --exclude=<pattern> to grep command.\n")
     (insert "# Examples:\n")
     (insert "# - Use foo pattern to exclude all files named foo.\n")
     (insert "# - Use *foo* pattern to exclude all files containing foo.\n")
-    (eide-i-project-rebuild-config-line "grep_exclude_files" eide-custom-project-default-grep-exclude-files)
+    (eide-i-project-rebuild-config-line "grep_exclude_files"
+                                        eide-custom-project-default-grep-exclude-files
+                                        'eide-project-grep-exclude-files)
 
     (insert "# Space separated list of directories patterns to exclude when searching with grep.\n")
     (insert "# Each <pattern> adds an option --exclude-dir=<pattern> to grep command.\n")
     (insert "# Examples:\n")
     (insert "# - Use foo pattern to exclude all directories named foo.\n")
     (insert "# - Use *foo* pattern to exclude all directories containing foo.\n")
-    (eide-i-project-rebuild-config-line "grep_exclude_dirs" eide-custom-project-default-grep-exclude-dirs)
+    (eide-i-project-rebuild-config-line "grep_exclude_dirs"
+                                        eide-custom-project-default-grep-exclude-dirs
+                                        'eide-project-grep-exclude-dirs)
 
     ;; Replace source file by target buffer if different
     (when (not (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0))
@@ -1090,15 +1144,18 @@ Argument:
 
   ;; Save some config values (actions are required if they are modified)
   (setq eide-project-old-project-name eide-project-name)
-  (setq eide-project-old-tags-exclude-value (eide-project-get-config-value "tags_exclude"))
-  (setq eide-project-old-cscope-exclude-files-value (eide-project-get-config-value "cscope_exclude_files"))
-  (setq eide-project-old-cscope-exclude-dirs-value (eide-project-get-config-value "cscope_exclude_dirs"))
+  (setq eide-project-old-tags-exclude-value eide-project-tags-exclude)
+  (setq eide-project-old-cscope-exclude-files-value eide-project-cscope-exclude-files)
+  (setq eide-project-old-cscope-exclude-dirs-value eide-project-cscope-exclude-dirs)
 
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-i-project-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
+  ;; Don't show trailing whitespace in this buffer
+  ;; (there is a space at the end of line when the value is empty)
+  (setq show-trailing-whitespace nil)
   (goto-char (point-min)))
 
 (defun eide-project-open-notes-file ()
@@ -1110,31 +1167,30 @@ Argument:
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
 
-(defun eide-project-get-full-command (p-parameter)
+(defun eide-project-get-full-command (p-command)
   "Get full command (init command + compile/run command).
 Argument:
-- p-parameter: option parameter in project configuration."
-  (let ((l-init-command (eide-project-get-config-value "init_command")))
-    (if (string-equal l-init-command "")
-      (eide-project-get-config-value p-parameter)
-      (concat l-init-command " ; " (eide-project-get-config-value p-parameter)))))
+- p-command: command string."
+  (if (string-equal eide-project-init-command "")
+    p-command
+    (concat eide-project-init-command " ; " p-command)))
 
 (defun eide-project-get-full-gdb-command (p-program)
   "Get full gdb command (gdb command + gdb option + program name).
 Argument:
-- p-program: option parameter in project configuration for gdb program."
-  (concat (eide-project-get-config-value "debug_command") eide-project-gdb-option (eide-project-get-config-value p-program)))
+- p-program: program string."
+  (concat eide-project-debug-command eide-project-gdb-option p-program))
 
 (defun eide-project-get-short-gdb-command (p-program)
   "Get short gdb command (short gdb command + gdb option + program name) for popup
 menu (hide gdb command path).
 Argument:
-- p-program: option parameter in project configuration for gdb program."
-  (let ((l-gdb-command (eide-project-get-config-value "debug_command")) (l-short-gdb-command nil))
-    (if (string-match "/" l-gdb-command)
-      (setq l-short-gdb-command (concat "[...]/" (car (last (split-string l-gdb-command "/")))))
-      (setq l-short-gdb-command l-gdb-command))
-    (concat l-short-gdb-command eide-project-gdb-option (eide-project-get-config-value p-program))))
+- p-program: program string."
+  (let ((l-short-gdb-command nil))
+    (if (string-match "/" eide-project-debug-command)
+      (setq l-short-gdb-command (concat "[...]/" (car (last (split-string eide-project-debug-command "/")))))
+      (setq l-short-gdb-command eide-project-debug-command))
+    (concat l-short-gdb-command eide-project-gdb-option p-program)))
 
 (defun eide-project-get-short-directory (p-directory)
   "Get the path relative to project root directory from absolute path if it is
@@ -1150,37 +1206,37 @@ Argument:
   "Compile project (1st compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-compile "compile_command_1")))
+    (eide-i-project-compile eide-project-compile-command-1)))
 
 (defun eide-project-compile-2 ()
   "Compile project (2nd compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-compile "compile_command_2")))
+    (eide-i-project-compile eide-project-compile-command-2)))
 
 (defun eide-project-compile-3 ()
   "Compile project (3rd compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-compile "compile_command_3")))
+    (eide-i-project-compile eide-project-compile-command-3)))
 
 (defun eide-project-compile-4 ()
   "Compile project (4th compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-compile "compile_command_4")))
+    (eide-i-project-compile eide-project-compile-command-4)))
 
 (defun eide-project-run-1 ()
   "Run project (1st run command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-run "run_command_1")))
+    (eide-i-project-run eide-project-run-command-1)))
 
 (defun eide-project-run-2 ()
   "Run project (2nd run command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-run "run_command_2")))
+    (eide-i-project-run eide-project-run-command-2)))
 
 (defun eide-project-debug-mode-start ()
   "Start debug mode."
@@ -1214,13 +1270,13 @@ Argument:
   "Debug project (1st debug command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-debug "debug_program_1")))
+    (eide-i-project-debug eide-project-debug-program-1)))
 
 (defun eide-project-debug-2 ()
   "Debug project (2nd debug command)."
   (interactive)
   (when eide-project-commands-enabled-flag
-    (eide-i-project-debug "debug_program_2")))
+    (eide-i-project-debug eide-project-debug-program-2)))
 
 ;; ----------------------------------------------------------------------------
 ;; KEYMAPS
