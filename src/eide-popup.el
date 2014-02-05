@@ -100,7 +100,7 @@ Argument:
   "Prompt for a confirmation.
 Argument:
 - p-string: question to be answered yes or no."
-  ;;(yes-or-no-p p-string))
+  ;;(y-or-n-p p-string))
   (string-equal (x-popup-dialog t (cons p-string eide-confirm-dialog)) "y"))
 
 (defun eide-popup-message (p-string)

@@ -803,7 +803,7 @@ Argument:
   (let ((l-do-it t) (l-current-project-marker nil))
     (when (and (not eide-project-name)
                eide-menu-files-list
-               (not (yes-or-no-p "The list of open files will be lost if you select a project. Do you want to continue?")))
+               (not (y-or-n-p "The list of open files will be lost if you select a project. Do you want to continue?")))
       (setq l-do-it nil))
     (when l-do-it
       ;; The internal projects list will also be rebuilt
@@ -942,7 +942,7 @@ current workspace."
 (defun eide-project-remove-selected-project ()
   "Remove the project on current line from current workspace."
   (interactive)
-  (when (yes-or-no-p "Do you really want to remove this project? ")
+  (when (y-or-n-p "Do you really want to remove this project? ")
     (let ((buffer-read-only nil))
       (forward-line)
       (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
