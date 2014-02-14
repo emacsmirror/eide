@@ -341,7 +341,7 @@ Argument:
           (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
         (eide-windows-select-output-window)
         (when (get-buffer l-result-buffer-name)
-          (if (eide-popup-question-yes-or-no-p "This symbol has already been found... Find again (or use available result)?")
+          (if (y-or-n-p "This symbol has already been found... Find again (or use available result)?")
             ;; Delete existing find-symbol buffer
             (kill-buffer l-result-buffer-name)
             (setq l-do-it-flag nil)))
@@ -395,7 +395,7 @@ Argument:
     (unless eide-search-grep-exclude-enabled-flag
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (when (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
+      (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
         (kill-buffer l-result-buffer-name)
         (setq l-do-it-flag nil)))
@@ -446,7 +446,7 @@ Argument:
     (unless eide-search-grep-exclude-enabled-flag
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (when (get-buffer l-result-buffer-name)
-      (if (eide-popup-question-yes-or-no-p "This string has already been searched... Search again (or use available search result)?")
+      (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
         (kill-buffer l-result-buffer-name)
         (setq l-do-it-flag nil)))

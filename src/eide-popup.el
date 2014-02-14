@@ -26,10 +26,6 @@
 (defvar eide-popup-menu-actions-list nil)
 (defvar eide-popup-menu-separator-flag nil)
 
-(defvar eide-confirm-dialog
-  '(("yes" . "y")
-    ("no"  . "n")))
-
 (defvar eide-message-dialog
   '(("continue" . "c")))
 
@@ -95,13 +91,6 @@ Argument:
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
-
-(defun eide-popup-question-yes-or-no-p (p-string)
-  "Prompt for a confirmation.
-Argument:
-- p-string: question to be answered yes or no."
-  ;;(y-or-n-p p-string))
-  (string-equal (x-popup-dialog t (cons p-string eide-confirm-dialog)) "y"))
 
 (defun eide-popup-message (p-string)
   "Display a message.

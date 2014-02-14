@@ -838,7 +838,7 @@ Argument:
 - p-buffer-name: buffer name."
   (let ((l-do-it-flag t))
     (when (eide-i-menu-is-file-edited-p p-buffer-name)
-      (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
+      (setq l-do-it-flag (y-or-n-p (concat p-buffer-name " has been edited. Do you really want to close it?"))))
     (when l-do-it-flag
       (kill-buffer p-buffer-name)
       (setq eide-menu-files-list (remove p-buffer-name eide-menu-files-list))
@@ -877,7 +877,7 @@ Argument:
         (when (eide-i-menu-is-file-edited-p l-buffer)
           (setq l-ask-flag t))))
     (when l-ask-flag
-      (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files in " p-directory-name " have been edited. Do you really want to close them?"))))
+      (setq l-do-it-flag (y-or-n-p (concat "Some files in " p-directory-name " have been edited. Do you really want to close them?"))))
     (when l-do-it-flag
       (dolist (l-buffer eide-menu-files-list)
         (when (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
@@ -895,14 +895,14 @@ Argument:
 (defun eide-menu-close-all-files ()
   "Close all files."
   (interactive)
-  (when (eide-popup-question-yes-or-no-p (concat "Do you really want to close all files?"))
+  (when (y-or-n-p (concat "Do you really want to close all files?"))
     (let ((l-ask-flag nil) (l-do-it-flag t))
       ;; Check if at least one file has been edited
       (dolist (l-buffer eide-menu-files-list)
         (when (eide-i-menu-is-file-edited-p l-buffer)
           (setq l-ask-flag t)))
       (when l-ask-flag
-        (setq l-do-it-flag (eide-popup-question-yes-or-no-p (concat "Some files have been edited. Do you really want to close them?"))))
+        (setq l-do-it-flag (y-or-n-p (concat "Some files have been edited. Do you really want to close them?"))))
       (when l-do-it-flag
         (dolist (l-buffer eide-menu-files-list)
           (kill-buffer l-buffer)

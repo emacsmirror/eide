@@ -160,7 +160,7 @@ Arguments:
 - p-confirmation-message (optional): string for confirmation message, nil if
   confirmation is not required."
   (when (or (not p-confirmation-message)
-            (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
+            (y-or-n-p (concat "Do you really want to " p-confirmation-message "?")))
     (eide-menu-buffer-update-start p-buffer-name)
     (with-current-buffer p-buffer-name
       (funcall p-function))
@@ -174,7 +174,7 @@ Arguments:
 - p-confirmation-message (optional): string for confirmation message, nil if
   confirmation is not required."
   (when (or (not p-confirmation-message)
-            (eide-popup-question-yes-or-no-p (concat "Do you really want to " p-confirmation-message "?")))
+            (y-or-n-p (concat "Do you really want to " p-confirmation-message "?")))
     (eide-menu-directory-update-start p-directory-name)
     (dolist (l-buffer-name eide-menu-files-list)
       (when (eide-menu-is-file-in-directory-p l-buffer-name p-directory-name)

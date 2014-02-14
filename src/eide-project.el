@@ -457,7 +457,7 @@ Arguments:
             (eide-project-load-root-directory-content nil)
             (eide-menu-update t))
           (eide-windows-show-ide-windows))
-        (when (eide-popup-question-yes-or-no-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
+        (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
           (let ((buffer-read-only nil))
             (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
             (when (string-equal l-project-dir eide-compare-other-project-directory)
@@ -665,7 +665,7 @@ Argument:
 (defun eide-project-create ()
   "Create a project in root directory, and add it in projects list."
   (interactive)
-  (when (eide-popup-question-yes-or-no-p (concat "Create a project in " eide-root-directory " ?"))
+  (when (y-or-n-p (concat "Create a project in " eide-root-directory " ?"))
     (eide-windows-select-source-window t)
     ;; Create empty project file
     (shell-command (concat "touch " eide-root-directory eide-project-config-file))
@@ -680,7 +680,7 @@ Argument:
 (defun eide-project-delete ()
   "Delete current project."
   (interactive)
-  (when (eide-popup-question-yes-or-no-p (concat "Delete project in " eide-root-directory " ?"))
+  (when (y-or-n-p (concat "Delete project in " eide-root-directory " ?"))
     ;; Stop creation of tags and cscope list of files (in case it is not finished yet)
     (when eide-search-tags-creation-in-progress-flag
       (delete-process "create-tags"))
@@ -778,7 +778,7 @@ Argument:
     (let ((l-do-it t))
       (when (and (not eide-project-name)
                  eide-menu-files-list
-                 (not (eide-popup-question-yes-or-no-p "The list of open files will be lost. Do you want to continue?")))
+                 (not (y-or-n-p "The list of open files will be lost. Do you want to continue?")))
         (setq l-do-it nil))
       (when l-do-it
         (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
