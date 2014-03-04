@@ -128,7 +128,9 @@ Arguments:
       (when (equal value 'auto)
         ;; In "auto" mode, update database for the first search
         (setq eide-search-cscope-update-database-request-pending-flag t))
-      (setq cscope-do-not-update-database eide-search-user-cscope-do-not-update-database))))
+      (if (boundp 'cscope-option-do-not-update-database)
+        (setq cscope-option-do-not-update-database eide-search-user-cscope-do-not-update-database)
+        (setq cscope-do-not-update-database eide-search-user-cscope-do-not-update-database)))))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -169,7 +171,9 @@ Arguments:
   "Save Emacs settings (for search)."
   (setq eide-search-user-tags-case-fold-search tags-case-fold-search)
   (when eide-search-use-cscope-flag
-    (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database)))
+    (if (boundp 'cscope-option-do-not-update-database)
+      (setq eide-search-user-cscope-do-not-update-database cscope-option-do-not-update-database)
+      (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database))))
 
 (defun eide-search-set-tags-and-cscope-state (p-state-flag)
   "Disable/enable tags and cscope functions."
@@ -351,9 +355,13 @@ Argument:
                        (not (equal eide-custom-update-cscope-database 'ignore)))
               (if (or (equal eide-custom-update-cscope-database 't) eide-search-cscope-update-database-request-pending-flag)
                 (progn
-                  (setq cscope-do-not-update-database nil)
+                  (if (boundp 'cscope-option-do-not-update-database)
+                    (setq cscope-option-do-not-update-database nil)
+                    (setq cscope-do-not-update-database nil))
                   (setq eide-search-cscope-update-database-request-pending-flag nil))
-                (setq cscope-do-not-update-database t)))
+                (if (boundp 'cscope-option-do-not-update-database)
+                  (setq cscope-option-do-not-update-database t)
+                  (setq cscope-do-not-update-database t))))
             (cscope-find-this-symbol p-symbol)
             (with-current-buffer "*cscope*"
               (rename-buffer l-result-buffer-name t))
