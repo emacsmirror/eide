@@ -181,14 +181,16 @@ ones."
     (eide-menu-update nil)
     (ad-activate 'select-window)))
 
-(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord))
+(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord p-force-same-window))
   "Override switch-to-buffer function (advice), to display buffer in appropriate
 window.
 Returns the buffer.
 Arguments (same as switch-to-buffer function):
 - p-buffer: buffer.
 - p-norecord (optional): don't add the buffer to the list of recently selected
-ones."
+ones.
+- p-force-same-window (optional): force to display the buffer in the selected
+window."
   ;; C-x C-f saves the windows layout before displaying completion buffer,
   ;; and restores it when the file is selected - just before calling switch-to-buffer.
   ;; If the user has changed the windows layout in between, it is lost.
