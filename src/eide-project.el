@@ -138,7 +138,7 @@
   :set 'eide-i-project-custom-set-number-of-workspaces
   :initialize 'custom-initialize-default
   :group 'eide-project)
-(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer (requires Emacs 24)."
+(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer."
   :tag "Support ANSI escape code in compilation buffer"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))

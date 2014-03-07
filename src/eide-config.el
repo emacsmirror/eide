@@ -88,12 +88,10 @@
 
 (defun eide-config-init ()
   "Config initialization: save Emacs settings."
-  (when (boundp 'custom-theme-load-path)
-    ;; Available only wih Emacs 24
-    ;; Not necessary with Emacs 23, because themes are searched in load-path
-    (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
-    (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
-    (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp"))
+  ;; custom-theme-load-path requires Emacs 24
+  (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
+  (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp")
   (eide-search-save-emacs-settings)
   (eide-keys-save-emacs-settings))
 

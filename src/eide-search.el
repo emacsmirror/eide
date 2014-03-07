@@ -446,7 +446,7 @@ Argument:
   "Grep a string in the whole project.
 Argument:
 - p-string: string."
-  ;; On Emacs 22 GTK: it is necessary to select "source" window, otherwise
+  ;; With Emacs 22: it is necessary to select "source" window, otherwise
   ;; current output buffer will be reused if "output" window is selected.
   (eide-windows-select-source-window t)
   (let ((l-result-buffer-name (concat "*grep (global)*: " p-string))

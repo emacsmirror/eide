@@ -39,13 +39,13 @@ if [ $option_local -eq 0 ]; then
 fi
 
 printf "\033[1mCheck dependencies\033[0m\n"
-printf "emacs (>= 22): "
+printf "emacs (>= 24): "
 emacs_major_version=`emacs --version | grep -m1 "GNU Emacs" | cut -d" " -f3 | cut -d"." -f1`
 if [ "${emacs_major_version}" != "" ]; then
-  if [ "${emacs_major_version}" -gt "21" ]; then
+  if [ "${emacs_major_version}" -gt "23" ]; then
     printf "\033[1;32mOK (${emacs_major_version})\033[0m\n"
   else
-    printf "\033[1;31mFAILED: Your version of Emacs (${emacs_major_version}) is not supported (version >= 22 is required)\033[0m\n"
+    printf "\033[1;31mFAILED: Your version of Emacs (${emacs_major_version}) is not supported (version >= 24 is required)\033[0m\n"
     exit 1
   fi
 else

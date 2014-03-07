@@ -354,11 +354,7 @@ before gdb builds its own."
 
   (setq eide-windows-source-window (selected-window))
   (setq eide-windows-output-window-height (/ (frame-height) 5))
-  (if (< emacs-major-version 24)
-    (setq eide-windows-menu-window-width (/ (frame-width) 5))
-    ;; With split-window (used only with Emacs 24), it seems more appropriate
-    ;; to divide by 3, for equivalent result
-    (setq eide-windows-menu-window-width (/ (frame-width) 3)))
+  (setq eide-windows-menu-window-width (/ (frame-width) 3))
   (when window-system
     (eide-windows-show-ide-windows))
   (ad-activate 'select-window)
@@ -413,83 +409,31 @@ before gdb builds its own."
       (when l-completion-window
         (delete-window l-completion-window)
         (setq eide-windows-output-window-buffer "*Completions*")))
-    (if (< emacs-major-version 24)
-      ;; Emacs 23 doesn't have internal windows, only live windows.
-      ;; Internal windows are necessary to group several "source" windows
-      ;; before splitting to create "menu" and "output" windows.
-      ;; Therefore, with Emacs 23, it is not possible to keep windows layout
-      ;; unchanged when showing/hiding the "menu" and "output" windows.
-      ;; It is necessary to keep the old behaviour and switch to a single
-      ;; "source" window.
-      (progn
-        (delete-other-windows)
-        ;; Make sure that current window is not dedicated
-        (set-window-dedicated-p (selected-window) nil)
-        ;; Split into 3 windows ("source", "menu", "output")
-        (if (equal eide-custom-menu-window-height 'full)
-          (progn
-            (split-window-horizontally)
-            (if (equal eide-custom-menu-window-position 'left)
-              ;; Menu on left side
-              (progn
-                (setq eide-windows-menu-window (selected-window))
-                (select-window (next-window))
-                (split-window-vertically)
-                (setq eide-windows-source-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-output-window (selected-window)))
-              ;; Menu on right side
-              (progn
-                (split-window-vertically)
-                (setq eide-windows-source-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-output-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-menu-window (selected-window)))))
-          (progn
-            (split-window-vertically)
-            (split-window-horizontally)
-            (if (equal eide-custom-menu-window-position 'left)
-              ;; Menu on left side
-              (progn
-                (setq eide-windows-menu-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-source-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-output-window (selected-window)))
-              ;; Menu on right side
-              (progn
-                (setq eide-windows-source-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-menu-window (selected-window))
-                (select-window (next-window))
-                (setq eide-windows-output-window (selected-window)))))))
-      ;; Emacs 24 have internal and live windows.
-      ;; When showing/hiding the "menu" and "output" windows, it is now possible
-      ;; to keep the "source" windows layout unchanged.
-      (progn
-        ;; Split to create 2 new windows ("menu" and "output")
-        (if (equal eide-custom-menu-window-height 'full)
-          ;; "Menu" window uses the whole frame height
-          (if (equal eide-custom-menu-window-position 'left)
-            ;; Menu on left side
-            (progn
-              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
-            ;; Menu on right side
-            (progn
-              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
-          ;; "Output" window uses the whole frame width
-          (if (equal eide-custom-menu-window-position 'left)
-            ;; Menu on left side
-            (progn
-              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
-              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
-            ;; Menu on right side
-            (progn
-              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
-              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))))
+    ;; Emacs 24 have internal and live windows.
+    ;; When showing/hiding the "menu" and "output" windows, it is now possible
+    ;; to keep the "source" windows layout unchanged.
+    ;; Split to create 2 new windows ("menu" and "output")
+    (if (equal eide-custom-menu-window-height 'full)
+      ;; "Menu" window uses the whole frame height
+      (if (equal eide-custom-menu-window-position 'left)
+        ;; Menu on left side
+        (progn
+          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
+        ;; Menu on right side
+        (progn
+          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
+      ;; "Output" window uses the whole frame width
+      (if (equal eide-custom-menu-window-position 'left)
+        ;; Menu on left side
+        (progn
+          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
+          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
+        ;; Menu on right side
+        (progn
+          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
+          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))
 
     ;; Temporarily disable switch-to-buffer advice
     ;; It is useless and would check IDE windows while they're being created...
@@ -502,16 +446,9 @@ before gdb builds its own."
     (setq buffer-read-only t)
     ;; This window should be used for this buffer only
     (set-window-dedicated-p eide-windows-menu-window t)
-    (when (< emacs-major-version 24)
-      ;; Restore last window size
-      (enlarge-window-horizontally (- eide-windows-menu-window-width (window-width))))
-
     ;; "Output" window
     (select-window eide-windows-output-window)
     (setq window-min-height 2)
-    (when (< emacs-major-version 24)
-      ;; Restore last window size
-      (enlarge-window (- eide-windows-output-window-height (window-height))))
     (switch-to-buffer (get-buffer-create "*results*"))
     (if eide-windows-output-window-buffer
       (switch-to-buffer eide-windows-output-window-buffer)
@@ -538,33 +475,17 @@ before gdb builds its own."
       ;; Remember windows positions only if the layout is complete
       ;; Remember "menu" window width
       (eide-windows-select-menu-window)
-      (if (< emacs-major-version 24)
-        (setq eide-windows-menu-window-width (window-width))
-        ;; Testing if window-total-width is available is not necessary
-        ;; (Emacs version is already tested) but avoids a warning when compiling
-        ;; with Emacs 23
-        (if (fboundp 'window-total-width)
-          (setq eide-windows-menu-window-width (window-total-width))
-          (setq eide-windows-menu-window-width (window-width))))
+      (setq eide-windows-menu-window-width (window-total-width))
       ;; Remember "output" window height
       (eide-windows-select-output-window)
       (setq eide-windows-output-window-height (window-height))
       ;; Remember which result buffer is displayed in "output" window
       (setq eide-windows-output-window-buffer (buffer-name)))
-    (if (< emacs-major-version 24)
-      (progn
-        ;; Keep only "source" window
-        (when (window-live-p eide-windows-source-window)
-          (eide-windows-select-source-window t))
-        (delete-other-windows)
-        ;; Make sure that current window is not dedicated
-        (set-window-dedicated-p (selected-window) nil))
-      (progn
-        ;; Close "menu" and "output" windows
-        (when (window-live-p eide-windows-menu-window)
-          (delete-window eide-windows-menu-window))
-        (when (window-live-p eide-windows-output-window)
-          (delete-window eide-windows-output-window))))
+    ;; Close "menu" and "output" windows
+    (when (window-live-p eide-windows-menu-window)
+      (delete-window eide-windows-menu-window))
+    (when (window-live-p eide-windows-output-window)
+      (delete-window eide-windows-output-window))
     ;; Current window becomes - if not already - "source" window
     (setq eide-windows-menu-window nil)
     (setq eide-windows-output-window nil)

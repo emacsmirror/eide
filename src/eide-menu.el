@@ -717,7 +717,7 @@ Arguments:
       ;; Save window to go back to, once menu has been updated
       (let ((l-window (selected-window)))
         (eide-windows-select-source-window t)
-        ;; On Emacs 22 GTK: buffer-name does not return current but previous
+        ;; With Emacs 22: buffer-name does not return current but previous
         ;; buffer!... The bug is fixed if window-buffer is used.
         ;;(setq eide-current-buffer-temp (buffer-name))
         (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
@@ -1014,8 +1014,7 @@ Argument:
 Arguments:
 - p-buffer-name: buffer name.
 - p-directory-name: directory name."
-  ;; NB: Emacs 24 provides the same function (file-in-directory-p), but it is
-  ;; still necessary for older versions of Emacs.
+  ;; TODO: Use file-in-directory-p instead (requires Emacs 24)
   ;; Extract the "short" directory from the buffer file name
   (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
 

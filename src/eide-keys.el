@@ -251,11 +251,8 @@
 ;; ----------------------------------------------------------------------------
 
 ;; To delete selected text
-(if (fboundp 'pc-selection-mode)
-  (pc-selection-mode)
-  ;; Emacs 24: pc-selection-mode is deprecated, use delete-selection-mode instead
-  (when (fboundp 'delete-selection-mode)
-    (delete-selection-mode)))
+;; delete-selection-mode requires Emacs 24
+(delete-selection-mode)
 
 ;; Cut-copy-paste
 ;; (impossible to use Windows shortcuts, because Control-c and Control-x have
