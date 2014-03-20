@@ -400,7 +400,7 @@ Argument:
   (let ((l-buffer-directory (file-name-directory (buffer-file-name)))
         (l-result-buffer-name (concat "*grep (local)*: " p-string " (in " (eide-project-get-short-directory default-directory) ")"))
         (l-do-it-flag t))
-    (unless eide-search-grep-exclude-enabled-flag
+    (when (and eide-project-name (not eide-search-grep-exclude-enabled-flag))
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (when (get-buffer l-result-buffer-name)
       (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
@@ -410,7 +410,7 @@ Argument:
     (if l-do-it-flag
       (progn
         (let ((l-grep-exclude-files-options ""))
-          (when eide-search-grep-exclude-enabled-flag
+          (when (and eide-project-name eide-search-grep-exclude-enabled-flag)
             ;; Create a string with --exclude options if "grep_exclude_files" list is not
             ;; empty in project configuration
             (unless (string-equal eide-project-grep-exclude-files "")
@@ -451,7 +451,7 @@ Argument:
   (eide-windows-select-source-window t)
   (let ((l-result-buffer-name (concat "*grep (global)*: " p-string))
         (l-do-it-flag t))
-    (unless eide-search-grep-exclude-enabled-flag
+    (when (and eide-project-name (not eide-search-grep-exclude-enabled-flag))
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
     (when (get-buffer l-result-buffer-name)
       (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
@@ -462,7 +462,7 @@ Argument:
       (progn
         (let ((l-grep-exclude-files-options "")
               (l-grep-exclude-dirs-options ""))
-          (when eide-search-grep-exclude-enabled-flag
+          (when (and eide-project-name eide-search-grep-exclude-enabled-flag)
             ;; Create a string with --exclude options if "grep_exclude_files" list is not
             ;; empty in project configuration
             (unless (string-equal eide-project-grep-exclude-files "")
