@@ -1,0 +1,103 @@
+=========
+Emacs-IDE
+=========
+
+:Version: 1.12+ (2014-03)
+:Homepage: http://emacs-ide.tuxfamily.org/
+
+License
+=======
+
+Copyright (C) 2008-2014 Cédric Marie <cedric.marie@yahoo.fr>
+
+This program is free software: you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+Description
+===========
+
+Emacs-IDE is an Integrated Development Environment (IDE) interface for Emacs
+(code browsing, compilation, debug...).
+
+The purpose is to provide a user-friendly interface, with dedicated windows
+(source, menu and output) and convenient shortcuts.
+
+It is suitable for almost all languages (as long as they are supported by
+Ctags). Cscope provides additional browsing facility for C/C++ files.
+
+Information
+===========
+
+:Programming language: Emacs Lisp
+:License: GPLv3 or later
+:Dependencies: Emacs, Ctags, Cscope.
+:Supported OS: GNU/Linux
+
+Instructions
+============
+
+When you launch Emacs, it should look like this:
+
++-----------------------------------------+---------------+
+|                                         |               |
+|                                         |               |
+|       "source" window                   | "menu" window |
+|                                         |               |
+|                                         |               |
+|                                         |               |
+|                                         |               |
+|                                         |               |
+|                                         |               |
+|                                         |               |
+|                                         |               |
++-----------------------------------------+---------------+
+|                                                         |
+|               "output" window                           |
+|                                                         |
++---------------------------------------------------------+
+
+If you click on right button over "source" window, all other windows are
+closed. Click again to get them back.
+
+Instructions are available in "Help" page: click on right button over "menu"
+window, and select "Help" in popup menu.
+
+Configuration
+=============
+
+Default configuration overrides some Emacs settings (including your own
+settings in ~/.emacs), in order to take advantage of all user-friendly
+features.
+
+If you don't want to override these settings, you can disable "Override Emacs
+settings" option in customization: click on right button over "menu" window,
+select "Configuration" in popup menu, disable "Override Emacs settings" option,
+click on "Save for future sessions", and click on right button to exit
+customization.
+
+You can also disable only the settings that you don't want to override (in
+"Emacs settings" group).
+
+Quick start
+===========
+
+The directory from which Emacs is launched stands as the root directory. You
+can change it during the session: click on right button over "menu" window, and
+select "Change root directory" in popup menu.
+
+To create a project, select the directory of the source code tree as the root
+directory. Click on right button over "menu" window, and select "Create a
+project in this directory". The project is added to your workspace.
+
+To open your project in future sessions, click on right button over "menu"
+window, select "Display projects list", and select your project.
