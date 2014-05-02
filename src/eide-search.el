@@ -69,7 +69,6 @@
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
 (defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
 
-(defvar eide-search-user-tags-case-fold-search nil)
 (defvar eide-search-user-cscope-do-not-update-database nil)
 
 (defvar eide-search-tags-and-cscope-enabled-flag nil)
@@ -83,14 +82,6 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-tags-case-sensitive t "Case sensitivity of tag search."
-  :tag "Case sensitivity of tag search"
-  :type '(choice (const :tag "Don't override" ignore)
-                 (const :tag "Case sensitive" t)
-                 (const :tag "Case insensitive" nil))
-  :set 'eide-i-search-custom-set-tags-case-sensitivity
-  :initialize 'custom-initialize-default
-  :group 'eide-search)
 (defcustom eide-custom-update-cscope-database 'auto "Update of cscope database. Update is necessary when the code has changed. You can update on every search (cscope default behaviour), only on user request, or automatically when a buffer has been edited or refreshed."
   :tag "Update of cscope database"
   :type '(choice (const :tag "Don't override" ignore)
@@ -104,17 +95,6 @@
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
-(defun eide-i-search-custom-set-tags-case-sensitivity (param value)
-  "Set tags case sensitivity.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (when eide-config-ready
-    (if (and eide-custom-override-emacs-settings
-             (not (equal value 'ignore)))
-      (setq tags-case-fold-search (not eide-custom-tags-case-sensitive))
-      (setq tags-case-fold-search eide-search-user-tags-case-fold-search))))
 
 (defun eide-i-search-custom-set-cscope-update (param value)
   "Set cscope update.
@@ -163,13 +143,11 @@ Arguments:
 
 (defun eide-search-apply-customization ()
   "Apply search customization."
-  (eide-i-search-custom-set-tags-case-sensitivity 'eide-custom-tags-case-sensitive eide-custom-tags-case-sensitive)
   (when eide-search-use-cscope-flag
     (eide-i-search-custom-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))
 
 (defun eide-search-save-emacs-settings ()
   "Save Emacs settings (for search)."
-  (setq eide-search-user-tags-case-fold-search tags-case-fold-search)
   (when eide-search-use-cscope-flag
     (if (boundp 'cscope-option-do-not-update-database)
       (setq eide-search-user-cscope-do-not-update-database cscope-option-do-not-update-database)

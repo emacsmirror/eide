@@ -75,18 +75,45 @@ window, and select "Help" in popup menu.
 Configuration
 =============
 
-Default configuration overrides some Emacs settings (including your own
-settings in ~/.emacs), in order to take advantage of all user-friendly
-features.
+Options provided in customization
+---------------------------------
 
-If you don't want to override these settings, you can disable "Override Emacs
-settings" option in customization: click on right button over "menu" window,
-select "Customize" in popup menu, disable "Override Emacs settings" option,
-click on "Save for future sessions", and click on right button to exit
-customization.
+Emacs-IDE provides some options in customization. To edit them, click on right
+button over "menu" window, and select "Customize" in popup menu.
+At top level, you will find categories, and one specific option - called
+"Override Emacs settings" - that can globally disable all options in "Emacs
+settings" category, if disabled.
 
-You can also disable only the settings that you don't want to override (in
-"Emacs settings" group).
+While other categories provide Emacs-IDE related options, "Emacs settings"
+category provide options that override standard Emacs behaviour:
+
+- F1-F12 key bindings, in order to provide easy access to basic IDE features
+  (tags, cscope, grep, compilation...).
+- Cscope update policy, in order to add an automatic mode that will update the
+  database only when a file is modified in Emacs.
+
+To save your settings, click on "Save for future sessions", and click on right
+button to exit customization.
+
+Options provided by themes
+--------------------------
+
+Two kind of themes are provided by Emacs-IDE:
+
+- Color themes (eide-dark and eide-light)
+- Themes to override standard Emacs behaviour
+
+The settings provided by these themes used to be enabled by default in previous
+Emacs-IDE releases (in "Emacs settings" category).
+Now you have to enable these themes: click on right button over "menu" window,
+and select "Customize themes" in popup menu.
+You can add one of the color themes (eide-dark or eide-light), and any of
+the following themes:
+
+- eide-browsing
+- eide-coding
+- eide-display
+- eide-settings
 
 Quick start
 ===========
