@@ -31,5 +31,7 @@ if ! /home/g093316/emacs/emacs-24.3/src/emacs-24.3.1 --batch --execute "(package
   exit 1
 fi
 printf "\n\033[1mInstructions for enabling Emacs-IDE\033[0m\n"
-printf "You must add the following line in your ~/.emacs:\n\n"
-printf "(eide-start)\n"
+printf "You must add the following lines in your ~/.emacs:\n\n"
+printf "(package-initialize)\n"
+printf "(eide-start)\n\n"
+printf "NB: (package-initialize) might already be present and should not be added in that case.\n"
