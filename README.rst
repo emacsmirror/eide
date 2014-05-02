@@ -2,13 +2,13 @@
 Emacs-IDE
 =========
 
-:Version: 1.12+ (2014-03)
+:Version: 1.12+ (2014-05)
 :Homepage: http://emacs-ide.tuxfamily.org/
 
 License
 =======
 
-Copyright (C) 2008-2014 Cédric Marie <cedric.marie@yahoo.fr>
+Copyright (C) 2008-2014 Cédric Marie <cedric.marie@openmailbox.org>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -81,7 +81,7 @@ features.
 
 If you don't want to override these settings, you can disable "Override Emacs
 settings" option in customization: click on right button over "menu" window,
-select "Configuration" in popup menu, disable "Override Emacs settings" option,
+select "Customize" in popup menu, disable "Override Emacs settings" option,
 click on "Save for future sessions", and click on right button to exit
 customization.
 

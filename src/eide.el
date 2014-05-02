@@ -2,6 +2,11 @@
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 
+;; Author: Cédric Marie <cedric.marie@openmailbox.org>
+;; Version: 1.12.1
+
+;; This file is not part of GNU Emacs.
+
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation, either version 3 of
@@ -59,6 +64,7 @@
   (setq eide-windows-update-output-buffer-id "s")
   (shell))
 
+;;;###autoload
 (defun eide-start ()
   "Start Emacs-IDE."
   (unless (file-directory-p "~/.emacs-ide")
