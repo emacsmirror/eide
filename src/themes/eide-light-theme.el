@@ -3,7 +3,7 @@
 
 (custom-theme-set-faces
  'eide-light
- '(default ((t (:background "old lace" :foreground "black" :height 140))))
+ '(default ((t (:background "old lace" :foreground "black"))))
  '(region ((t (:background "bisque"))))
  '(font-lock-builtin-face ((t (:background "yellow" :foreground "red"))))
  '(font-lock-comment-face ((t (:foreground "light slate blue"))))

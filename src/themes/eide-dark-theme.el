@@ -3,7 +3,7 @@
 
 (custom-theme-set-faces
  'eide-dark
- '(default ((t (:background "black" :foreground "gray90" :height 140))))
+ '(default ((t (:background "black" :foreground "gray90"))))
  '(region ((t (:background "gray50"))))
  '(font-lock-builtin-face ((t (:background "brown" :foreground "yellow"))))
  '(font-lock-comment-face ((t (:foreground "deep sky blue"))))
