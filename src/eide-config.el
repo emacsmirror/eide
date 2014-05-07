@@ -21,7 +21,6 @@
 
 (require 'custom)
 
-(require 'eide-coding)
 (require 'eide-display)
 (require 'eide-menu)
 (require 'eide-search)

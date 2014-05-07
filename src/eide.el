@@ -36,7 +36,6 @@
 (require 'ediff)
 
 ;; Emacs-IDE modules
-(require 'eide-coding)
 (require 'eide-compare)
 (require 'eide-config)
 (require 'eide-edit)
@@ -72,9 +71,6 @@
   ;; Emacs settings must be saved before the desktop is loaded, because it
   ;; reads some variables that might be overridden by local values in buffers.
   (eide-config-init)
-  ;; Coding must be initialized before the desktop is loaded, because it adds
-  ;; hooks for major modes.
-  (eide-coding-init)
   (eide-project-init)
   (eide-project-load-root-directory-content t)
   (eide-menu-init)
