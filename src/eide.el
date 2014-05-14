@@ -24,10 +24,6 @@
 
 (provide 'eide)
 
-(when (featurep 'xemacs)
-  (read-string "Sorry, XEmacs is not supported by Emacs-IDE, press <ENTER> to exit...")
-  (kill-emacs))
-
 ;; Emacs modules
 (require 'desktop)
 (require 'hideshow)
@@ -66,14 +62,17 @@
 ;;;###autoload
 (defun eide-start ()
   "Start Emacs-IDE."
-  (unless (file-directory-p "~/.emacs-ide")
-    (make-directory "~/.emacs-ide"))
-  ;; Emacs settings must be saved before the desktop is loaded, because it
-  ;; reads some variables that might be overridden by local values in buffers.
-  (eide-config-init)
-  (eide-project-init)
-  (eide-project-load-root-directory-content t)
-  (eide-menu-init)
-  (eide-windows-init))
+  (if (>= emacs-major-version 24)
+    (progn
+      (unless (file-directory-p "~/.emacs-ide")
+        (make-directory "~/.emacs-ide"))
+      ;; Emacs settings must be saved before the desktop is loaded, because it
+      ;; reads some variables that might be overridden by local values in buffers.
+      (eide-config-init)
+      (eide-project-init)
+      (eide-project-load-root-directory-content t)
+      (eide-menu-init)
+      (eide-windows-init))
+    (message "Failed to start Emacs-IDE (requires Emacs version >= 24)")))
 
 ;;; eide.el ends here
