@@ -107,8 +107,8 @@ The settings provided by these themes used to be enabled by default in previous
 Emacs-IDE releases (in "Emacs settings" category).
 Now you have to enable these themes: click on right button over "menu" window,
 and select "Customize themes" in popup menu.
-You can add one of the color themes (eide-dark or eide-light), and any of
-the following themes:
+You can add one of the color themes (eide-dark or eide-light), and any of the
+following themes:
 
 - eide-browsing
 - eide-coding

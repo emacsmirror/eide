@@ -286,8 +286,6 @@
 ;; Override find-file, to get default directory from "source" window
 (global-set-key "\C-x\C-f" 'eide-windows-find-file)
 
-(global-set-key [f11] 'eide-windows-toggle-frame-fullscreen-mode)
-
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
