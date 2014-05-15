@@ -2,7 +2,7 @@
 Emacs-IDE
 =========
 
-:Version: 1.12+ (2014-05)
+:Version: 2.0.0 (2014-05-15)
 :Homepage: http://emacs-ide.tuxfamily.org/
 
 License

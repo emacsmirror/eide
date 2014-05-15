@@ -22,8 +22,8 @@
 (require 'eide-keys)
 (require 'eide-windows)
 
-(defvar eide-version "1.12+")
-(defvar eide-release-date "2014-05")
+(defvar eide-version "2.0.0")
+(defvar eide-release-date "2014-05-15")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
