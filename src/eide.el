@@ -4,6 +4,7 @@
 
 ;; Author: Cédric Marie <cedric.marie@openmailbox.org>
 ;; Version: 1.12.1
+;; URL: http://emacs-ide.tuxfamily.org/
 
 ;; This file is not part of GNU Emacs.
 
