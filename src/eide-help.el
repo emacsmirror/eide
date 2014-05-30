@@ -22,8 +22,7 @@
 (require 'eide-keys)
 (require 'eide-windows)
 
-(defvar eide-version "2.0.0")
-(defvar eide-release-date "2014-05-15")
+(defvar eide-version "2.0.0+")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)
@@ -108,7 +107,7 @@ Argument:
   (insert "\n")
 
   (insert "(click right to exit this page)\n\n")
-  (insert (concat "Emacs-IDE - version " eide-version " - " eide-release-date "\n"))
+  (insert (concat "Emacs-IDE - version " eide-version "\n"))
 
   (eide-i-help-insert-header-1 "Windows layout")
 

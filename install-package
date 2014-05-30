@@ -26,12 +26,9 @@ fi
 printf "\033[1mInstall package eide-$VERSION.tar\033[0m\n"
 # --batch: don't use interactive display (implies -q: don't load ~/.emacs)
 # --execute: execute package-install-file command
-if ! /home/g093316/emacs/emacs-24.3/src/emacs-24.3.1 --batch --execute "(package-install-file \"$PWD/eide-$VERSION.tar\")" ; then
+if emacs --batch --execute "(package-install-file \"$PWD/eide-$VERSION.tar\")" ; then
+  printf "\n\033[1;32mInstallation successful (version $VERSION)\033[0m\n"
+else
   printf "\n\033[1;31mInstallation failed\033[0m\n"
   exit 1
 fi
-printf "\n\033[1mInstructions for enabling Emacs-IDE\033[0m\n"
-printf "You must add the following lines in your ~/.emacs:\n\n"
-printf "(package-initialize)\n"
-printf "(eide-start)\n\n"
-printf "NB: (package-initialize) might already be present and should not be added in that case.\n"

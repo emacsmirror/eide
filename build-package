@@ -26,3 +26,4 @@ cp -v package/eide-pkg.el src/*.el src/themes/*.el eide-$VERSION
 printf "\n\033[1mCreate package archive\033[0m\n"
 tar -cvf eide-$VERSION.tar eide-$VERSION
 rm -rf eide-$VERSION
+printf "\n\033[1;32mPackage: eide-$VERSION.tar\033[0m\n"
