@@ -23,7 +23,21 @@ if [ ! -f eide-$VERSION.tar ]; then
   exit 1
 fi
 
-printf "\033[1mInstall package eide-$VERSION.tar\033[0m\n"
+printf "\033[1mCheck Emacs version >= 24: "
+emacs_major_version=`emacs --version | grep -m1 "GNU Emacs" | cut -d" " -f3 | cut -d"." -f1`
+if [ "${emacs_major_version}" != "" ]; then
+  if [ "${emacs_major_version}" -gt "23" ]; then
+    printf "\033[1;32mOK (${emacs_major_version})\033[0m\n"
+  else
+    printf "\033[1;31mFAILED: Your version of Emacs (${emacs_major_version}) is not supported (version >= 24 is required)\033[0m\n"
+    exit 1
+  fi
+else
+  printf "\033[1;31mFAILED: Can't find Emacs version\033[0m\n"
+  exit 1
+fi
+
+printf "\n\033[1mInstall package eide-$VERSION.tar\033[0m\n"
 # --batch: don't use interactive display (implies -q: don't load ~/.emacs)
 # --execute: execute package-install-file command
 if emacs --batch --execute "(package-install-file \"$PWD/eide-$VERSION.tar\")" ; then
