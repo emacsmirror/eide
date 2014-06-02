@@ -22,7 +22,7 @@ rm -rf eide-$VERSION eide-$VERSION.tar
 
 printf "\033[1mCopy source files to package directory\033[0m\n"
 mkdir eide-$VERSION
-cp -v package/eide-pkg.el src/*.el src/themes/*.el eide-$VERSION
+cp -v src/*.el src/themes/*.el eide-$VERSION
 printf "\n\033[1mCreate package archive\033[0m\n"
 tar -cvf eide-$VERSION.tar eide-$VERSION
 rm -rf eide-$VERSION
