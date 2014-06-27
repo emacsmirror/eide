@@ -413,16 +413,16 @@ NB: F1-F12 key bindings can be customized. The default bindings are shown below.
           F2 .......... Go to symbol definition (at cursor position, or selected text if any)
   Shift - F2 .......... Go to symbol definition (prompt for symbol)
   Shift - F1 .......... Go to alternative definition (after F2 or Shift - F2)
-          F3 .......... Search symbol in whole project (at cursor position, or selected text if any)
+          F3 .......... Search symbol in whole project at cursor position
   Shift - F3 .......... Search symbol in whole project (prompt for symbol)
 ")
 
   (eide-i-help-insert-header-2 "Grep search")
 
   (insert "
-          F4 .......... Search string in whole project (at cursor position, or selected text if any)
+          F4 .......... Search string in whole project at cursor position
   Shift - F4 .......... Search string in whole project (prompt for string)
-          F6 .......... Search string in current directory (at cursor position, or selected text if any)
+          F6 .......... Search string in current directory at cursor position
   Shift - F6 .......... Search string in current directory (prompt for string)
 ")
 
