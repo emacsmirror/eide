@@ -26,11 +26,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 Description
 ===========
 
-Emacs-IDE is an Integrated Development Environment (IDE) interface for Emacs
-(code browsing, compilation, debug...).
+Emacs-IDE (eide) is a package for Emacs that provides IDE features
+(Integrated Development Environment).
 
-The purpose is to provide a user-friendly interface, with dedicated windows
-(source, menu and output) and convenient shortcuts.
+Although most of these features are already available in Emacs,
+the purpose of this package is to integrate them into a user-friendly
+interface, with dedicated windows (source files, menu, and ouput),
+convenient keyboard shortcuts, and project management.
 
 It is suitable for almost all languages (as long as they are supported by
 Ctags). Cscope provides additional browsing facility for C/C++ files.
