@@ -277,13 +277,12 @@ window."
     (eide-windows-select-source-window nil)
     (call-interactively 'find-file)))
 
-(defadvice save-buffer (around eide-save-buffer-advice-around (&optional p-backup-option))
-  "Override save-buffer function (advice), to save buffer in \"source\" window.
-Argument (same as save-buffer function):
-- p-backup-option (optional): backup method."
+(defun eide-windows-save-buffer ()
+  "Override C-x C-s save-buffer function, to save buffer in \"source\" window."
+  (interactive)
   (let ((l-window (selected-window)))
     (eide-windows-select-source-window nil)
-    ad-do-it
+    (save-buffer)
     (eide-menu-update-current-buffer-modified-status)
     (when (equal eide-custom-update-cscope-database 'auto)
       ;; Current buffer has been modified and saved: we must update cscope database
@@ -359,7 +358,6 @@ before gdb builds its own."
     (eide-windows-show-ide-windows))
   (ad-activate 'select-window)
   (ad-activate 'switch-to-buffer)
-  (ad-activate 'save-buffer)
   (ad-activate 'revert-buffer)
   (ad-activate 'previous-buffer)
   (ad-activate 'next-buffer)
@@ -643,7 +641,6 @@ and display it. Current buffer is kept if correct."
   (interactive)
   (when (string-match "^\*Customize.*" (buffer-name))
     (ad-activate 'switch-to-buffer)
-    (ad-activate 'save-buffer)
     (when eide-windows-themes-edited-flag
       ;; Update color theme for specific faces (in case
       ;; the color theme for source code has changed)
@@ -659,7 +656,7 @@ and display it. Current buffer is kept if correct."
       ;; Display another buffer (other than ".emacs-ide-project.cfg")
       (progn
         (save-buffer)
-        (eide-project-rebuild-config-file nil)
+        (eide-project-rebuild-config-file)
         ;; Some options requires some actions if the value has been changed
         (when (and eide-project-old-project-name
                    (not (string-equal eide-project-name eide-project-old-project-name)))

@@ -128,9 +128,7 @@ Argument:
   (unless buffer-read-only
     (untabify (point-min) (point-max))
     (indent-region (point-min) (point-max) nil)
-    (ad-deactivate 'save-buffer)
-    (save-buffer)
-    (ad-activate 'save-buffer)))
+    (save-buffer)))
 
 (defun eide-edit-dos-to-unix ()
   "Convert current file end of line from DOS to UNIX."
@@ -148,9 +146,7 @@ Argument:
   "Delete all trailing spaces in current file."
   (unless buffer-read-only
     (delete-trailing-whitespace)
-    (ad-deactivate 'save-buffer)
-    (save-buffer)
-    (ad-activate 'save-buffer)))
+    (save-buffer)))
 
 (defun eide-edit-action-on-file (p-function p-buffer-name &optional p-confirmation-message)
   "Do an action on a file.

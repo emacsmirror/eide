@@ -347,7 +347,7 @@ Arguments:
   (when (get-buffer eide-project-config-file)
     (kill-buffer eide-project-config-file))
   ;; Rebuild or create project file
-  (eide-project-rebuild-config-file p-startup-flag)
+  (eide-project-rebuild-config-file)
 
   ;; Tags and cscope list of files creation is started as soon as possible,
   ;; because it is executed in another process, in parallel with the loading of
@@ -420,7 +420,7 @@ Arguments:
   ;; Open config file (already rebuilt at the beginning)
   (find-file-noselect (concat eide-root-directory eide-project-config-file))
   ;; Add the project to current workspace
-  (eide-project-add-in-list p-startup-flag))
+  (eide-project-add-in-list))
 
 (defun eide-i-project-update-internal-projects-list ()
   ;; Create internal projects list
@@ -466,9 +466,7 @@ Arguments:
               (setq eide-compare-other-project-directory nil))
             (forward-line -1)
             (delete-region (point) (progn (forward-line 2) (point)))
-            (ad-deactivate 'save-buffer)
-            (save-buffer)
-            (ad-activate 'save-buffer)))))
+            (save-buffer)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-i-project-set-colors-for-config ()
@@ -847,10 +845,8 @@ Argument:
       (goto-char (if l-current-project-marker (marker-position l-current-project-marker) (point-min)))
       (ad-activate 'switch-to-buffer))))
 
-(defun eide-project-add-in-list (p-startup-flag)
-  "Add current project to the projects list of current workspace.
-Argument:
-- p-startup-flag: t when called from the init."
+(defun eide-project-add-in-list ()
+  "Add current project to the projects list of current workspace."
   (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
@@ -867,11 +863,7 @@ Argument:
           ;; Update the project name
           (delete-region (point) (line-end-position))
           (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
-          (unless p-startup-flag
-            (ad-deactivate 'save-buffer))
-          (save-buffer)
-          (unless p-startup-flag
-            (ad-activate 'save-buffer))))
+          (save-buffer)))
       (progn
         ;; This project is not in the list: let's insert it in the right place
         ;; (root directories in alphabetical order)
@@ -886,11 +878,7 @@ Argument:
         (insert "\n")
         (insert eide-root-directory)
         (insert "\n")
-        (unless p-startup-flag
-          (ad-deactivate 'save-buffer))
-        (save-buffer)
-        (unless p-startup-flag
-          (ad-activate 'save-buffer))))
+        (save-buffer)))
     (kill-this-buffer))
   (push eide-root-directory eide-project-current-projects-list))
 
@@ -907,9 +895,7 @@ Argument:
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
       (forward-line -1)
       (delete-region (point) (progn (forward-line 2) (point)))
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer))
+      (save-buffer))
     (kill-this-buffer))
   (setq eide-project-current-projects-list (remove eide-root-directory eide-project-current-projects-list))
   (when (string-equal eide-root-directory eide-compare-other-project-directory)
@@ -934,9 +920,7 @@ current workspace."
       (forward-line -1)
       (delete-region (point) (line-end-position))
       (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer))
+      (save-buffer))
     (kill-this-buffer)))
 
 (defun eide-project-remove-selected-project ()
@@ -953,9 +937,7 @@ current workspace."
           (setq eide-compare-other-project-directory nil)))
       (forward-line -1)
       (delete-region (point) (progn (forward-line 2) (point)))
-      (ad-deactivate 'save-buffer)
-      (save-buffer)
-      (ad-activate 'save-buffer))))
+      (save-buffer))))
 
 (defun eide-project-select-unselect-for-comparison ()
   "Select/unselect the project on current line for comparison."
@@ -988,10 +970,8 @@ current workspace."
     ;; Clear modified status (text properties don't need to be saved)
     (set-buffer-modified-p nil)))
 
-(defun eide-project-rebuild-config-file (p-startup-flag)
-  "Update project file.
-Argument:
-- p-startup-flag: t when called from the init."
+(defun eide-project-rebuild-config-file ()
+  "Update project file."
   (save-current-buffer
     ;; Define target config file
     (setq eide-project-config-target-buffer (concat eide-project-config-file "_temp"))
@@ -1117,11 +1097,7 @@ Argument:
       (set-buffer eide-project-config-file)
       (erase-buffer)
       (insert-buffer-substring eide-project-config-target-buffer)
-      (unless p-startup-flag
-        (ad-deactivate 'save-buffer))
-      (save-buffer)
-      (unless p-startup-flag
-        (ad-activate 'save-buffer)))
+      (save-buffer))
     ;; Close temporary buffer
     (kill-buffer eide-project-config-target-buffer)))
 

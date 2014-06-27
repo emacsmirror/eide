@@ -285,6 +285,8 @@
 
 ;; Override find-file, to get default directory from "source" window
 (global-set-key "\C-x\C-f" 'eide-windows-find-file)
+;; Override save-buffer, to save buffer in "source" window
+(global-set-key "\C-x\C-s" 'eide-windows-save-buffer)
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
