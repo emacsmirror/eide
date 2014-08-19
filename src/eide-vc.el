@@ -124,8 +124,6 @@ Arguments:
   "Update current buffer status (modified or not compared to vc repositories)."
   (when eide-vc-show-status-flag
     (make-local-variable 'eide-menu-local-vc-modified-status-flag)
-    (setq eide-menu-local-vc-modified-status-flag nil))
-  (when (and (file-exists-p buffer-file-name) (vc-registered buffer-file-name))
     (setq eide-menu-local-vc-modified-status-flag (equal (vc-state buffer-file-name) 'edited))))
 
 (defun eide-vc-update-files-status (&optional p-files-list)
