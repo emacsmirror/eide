@@ -375,8 +375,7 @@ Arguments:
     (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
 
   ;; Update version control show status
-  (eide-vc-update-show-svn-status)
-  (eide-vc-update-show-git-status)
+  (eide-vc-update-show-vc-status)
 
   (unless eide-no-desktop-option
     (unless p-startup-flag

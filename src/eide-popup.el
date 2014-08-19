@@ -21,6 +21,7 @@
 
 (require 'eide-compare)
 (require 'eide-config)
+(require 'eide-vc)
 
 (defvar eide-popup-menu nil)
 (defvar eide-popup-menu-actions-list nil)
@@ -68,7 +69,6 @@ Argument:
       (progn
         (if eide-popup-menu-separator-flag
           (setq eide-popup-menu (append (list (cons "-" "-")) eide-popup-menu))
-          ;;(setq eide-popup-menu (append (append (list (cons "-" "-")) eide-popup-menu-actions-list) eide-popup-menu))
           (setq eide-popup-menu-separator-flag t))
         (setq eide-popup-menu (append eide-popup-menu-actions-list eide-popup-menu)))))
   (setq eide-popup-menu-actions-list nil))
@@ -113,8 +113,7 @@ Argument:
 
     (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil)
           (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil)
-          (l-buffer-svn-modified-flag nil) (l-svn-modified-files-list-string "")
-          (l-buffer-git-modified-flag nil) (l-git-modified-files-list-string ""))
+          (l-vc-backend nil) (l-buffer-vc-modified-flag nil) (l-vc-modified-files-list ""))
       ;; Parse list of open files, and find the ones located in this
       ;; directory, to check, for every possible property (read only, REF file,
       ;; ...) if at least one of them matches.
@@ -133,22 +132,19 @@ Argument:
                   (setq l-buffer-status-new-flag t)
                   (when (string-equal eide-menu-local-edit-status "ref")
                     (setq l-buffer-status-ref-flag t))))
-              (when (and eide-vc-show-svn-status-flag eide-menu-local-svn-modified-status-flag)
-                (setq l-buffer-svn-modified-flag t)
-                ;; Get file name from buffer name (remove <n> if present)
-                (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
-                  (if l-index
-                    (setq l-file-name (substring l-buffer 0 l-index))
-                    (setq l-file-name l-buffer))
-                  (setq l-svn-modified-files-list-string (concat l-svn-modified-files-list-string " " l-file-name))))
-              (when (and eide-vc-show-git-status-flag eide-menu-local-git-modified-status-flag)
-                (setq l-buffer-git-modified-flag t)
-                ;; Get file name from buffer name (remove <n> if present)
-                (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
-                  (if l-index
-                    (setq l-file-name (substring l-buffer 0 l-index))
-                    (setq l-file-name l-buffer))
-                  (setq l-git-modified-files-list-string (concat l-git-modified-files-list-string " " l-file-name))))))))
+              (when eide-vc-show-status-flag
+                ;; Get VC backend (if not already set)
+                (if (not l-vc-backend)
+                  (setq l-vc-backend (vc-backend buffer-file-name)))
+                (when eide-menu-local-vc-modified-status-flag
+                  ;; At least one buffer is modified
+                  (setq l-buffer-vc-modified-flag t)
+                  ;; Get file name from buffer name (remove <n> if present)
+                  (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
+                    (if l-index
+                      (setq l-file-name (substring l-buffer 0 l-index))
+                      (setq l-file-name l-buffer))
+                    (setq l-vc-modified-files-list (concat l-vc-modified-files-list " " l-file-name)))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       ;; "Edit" action list
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
@@ -168,17 +164,17 @@ Argument:
       (eide-i-popup-menu-add-action "Convert end of line in all read/write files: UNIX to DOS" (concat "(eide-edit-action-on-directory 'eide-edit-unix-to-dos \"" l-directory-name "\" \"convert end of line (UNIX to DOS) in all read/write files\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-close-action-list "Clean")
 
-      ;; "svn" action list
-      (when eide-vc-show-svn-status-flag
-        (eide-i-popup-menu-add-action "svn diff" (concat "(eide-vc-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-svn-modified-files-list-string "\")") l-buffer-svn-modified-flag)
-        (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-svn-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-svn-modified-flag)
-        (eide-i-popup-menu-close-action-list "svn"))
-
-      ;; "git" action list
-      (when eide-vc-show-git-status-flag
-        (eide-i-popup-menu-add-action "git diff" (concat "(eide-vc-git-diff-files-in-directory \"" l-directory-name "\" \"" l-git-modified-files-list-string "\")") l-buffer-git-modified-flag)
-        (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-git-checkout \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-git-modified-flag)
-        (eide-i-popup-menu-close-action-list "git")))
+      ;; VC action list
+      (when (and eide-vc-show-status-flag l-vc-backend)
+        (if (equal l-vc-backend 'SVN)
+          (progn
+            (eide-i-popup-menu-add-action "svn diff" (concat "(eide-vc-svn-diff-files-in-directory \"" l-directory-name "\" \"" l-vc-modified-files-list "\")") l-buffer-vc-modified-flag)
+            (eide-i-popup-menu-add-action "svn revert (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-revert \"" l-directory-name "\" \"revert all modified files\")") l-buffer-vc-modified-flag))
+          (if (equal l-vc-backend 'Git)
+            (progn
+              (eide-i-popup-menu-add-action "git diff" (concat "(eide-vc-git-diff-files-in-directory \"" l-directory-name "\" \"" l-vc-modified-files-list "\")") l-buffer-vc-modified-flag)
+              (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-revert \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-vc-modified-flag))))
+        (eide-i-popup-menu-close-action-list "VC")))
 
     (eide-i-popup-menu-open l-directory-name-in-title)))
 
@@ -189,7 +185,8 @@ Argument:
   (move-to-window-line (cdr (last (mouse-position))))
 
   (let ((l-buffer (eide-menu-get-buffer-name-on-current-line))
-        (l-buffer-status nil) (l-buffer-rw-flag t) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
+        (l-buffer-status nil) (l-buffer-rw-flag t)
+        (l-buffer-vc-backend nil) (l-buffer-vc-modified-flag nil))
     (eide-i-popup-menu-init)
 
     (with-current-buffer l-buffer
@@ -199,10 +196,9 @@ Argument:
       (when buffer-read-only
         (setq l-buffer-rw-flag nil))
       ;; Check version control status
-      (when eide-vc-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (when eide-vc-show-git-status-flag
-        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
+      (when eide-vc-show-status-flag
+        (setq l-buffer-vc-backend (vc-backend buffer-file-name))
+        (setq l-buffer-vc-modified-flag eide-menu-local-vc-modified-status-flag)))
 
     ;; "Edit" action list
     (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
@@ -251,21 +247,22 @@ Argument:
 
       (eide-i-popup-menu-close-action-list "Compare")
 
-      ;; "svn" action list
-      (when l-buffer-svn-modified-flag
-        (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-vc-svn-diff \"" l-buffer "\")") t)
-        (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-vc-svn-revert \"" l-buffer "\" \"revert this file\")") t))
-      (when eide-vc-show-svn-status-flag
-        (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-vc-svn-blame \"" l-buffer "\")") t))
-      (eide-i-popup-menu-close-action-list "svn")
-
-      ;; "git" action list
-      (when l-buffer-git-modified-flag
-        (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-vc-git-diff \"" l-buffer "\")") t)
-        (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-vc-git-checkout \"" l-buffer "\" \"checkout this file\")") t))
-      (when eide-vc-show-git-status-flag
-        (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-vc-git-blame \"" l-buffer "\")") t))
-      (eide-i-popup-menu-close-action-list "git"))
+      ;; VC action list
+      (when (and eide-vc-show-status-flag l-buffer-vc-backend)
+        (when l-buffer-vc-modified-flag
+          (if (equal l-buffer-vc-backend 'SVN)
+            (progn
+              (eide-i-popup-menu-add-action "svn diff" (concat "(eide-edit-action-on-file 'eide-vc-svn-diff \"" l-buffer "\")") t)
+              (eide-i-popup-menu-add-action "svn revert" (concat "(eide-edit-action-on-file 'eide-vc-revert \"" l-buffer "\" \"revert this file\")") t))
+            (if (equal l-buffer-vc-backend 'Git)
+              (progn
+                (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-vc-git-diff \"" l-buffer "\")") t)
+                (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-vc-revert \"" l-buffer "\" \"checkout this file\")") t)))))
+        (if (equal l-buffer-vc-backend 'SVN)
+          (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-vc-blame \"" l-buffer "\")") t)
+          (if (equal l-buffer-vc-backend 'Git)
+            (eide-i-popup-menu-add-action "git blame" (concat "(eide-edit-action-on-file 'eide-vc-blame \"" l-buffer "\")") t)))
+        (eide-i-popup-menu-close-action-list "VC")))
 
     (eide-i-popup-menu-open l-buffer)))
 

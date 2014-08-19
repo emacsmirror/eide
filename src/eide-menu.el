@@ -30,8 +30,7 @@
 (setq eide-menu-local-functions-unfolded-flag nil)
 (setq eide-menu-local-highlighted-symbols-list nil)
 (setq eide-menu-local-unfolded-symbols-folders-list nil)
-(setq eide-menu-local-svn-modified-status-flag nil)
-(setq eide-menu-local-git-modified-status-flag nil)
+(setq eide-menu-local-vc-modified-status-flag nil)
 (setq eide-menu-local-edit-status nil)
 
 (defvar eide-current-buffer nil)
@@ -184,7 +183,7 @@ Arguments:
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
-        (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil)
+        (l-buffer-vc-modified-flag nil)
         (l-buffer-status nil) (l-is-current nil) (l-functions-unfolded-flag nil))
     (with-current-buffer p-buffer-name
       (setq l-buffer-status eide-menu-local-edit-status)
@@ -194,10 +193,8 @@ Arguments:
         (setq l-buffer-rw-flag nil))
       (when (buffer-modified-p)
         (setq l-buffer-modified-flag t))
-      (when eide-vc-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (when eide-vc-show-git-status-flag
-        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag))
+      (when eide-vc-show-status-flag
+        (setq l-buffer-vc-modified-flag eide-menu-local-vc-modified-status-flag))
       ;; If the buffer is unfolded, get functions list
       (when (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
         (save-excursion
@@ -248,7 +245,7 @@ Arguments:
             (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ref-face)
             (if (string-equal l-buffer-status "new")
               (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-new-face)
-              (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
+              (if l-buffer-vc-modified-flag
                 (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-vc-modified-face)
                 (if l-buffer-rw-flag
                   (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-rw-face)
@@ -260,7 +257,7 @@ Arguments:
             (put-text-property l-begin-point (point) 'face 'eide-menu-file-ref-face)
             (if (string-equal l-buffer-status "new")
               (put-text-property l-begin-point (point) 'face 'eide-menu-file-new-face)
-              (if (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
+              (if l-buffer-vc-modified-flag
                 (put-text-property l-begin-point (point) 'face 'eide-menu-file-vc-modified-face)
                 (if l-buffer-rw-flag
                   (put-text-property l-begin-point (point) 'face 'eide-menu-file-rw-face)
@@ -271,7 +268,7 @@ Arguments:
     ;; Emacs, property applies on whole line ("\n")
     (eide-i-menu-insert-text " ")
 
-    (when (or l-buffer-svn-modified-flag l-buffer-git-modified-flag)
+    (when l-buffer-vc-modified-flag
       (eide-i-menu-insert-text "(M) "))
     (when l-buffer-modified-flag
       (eide-i-menu-insert-text "*"))
@@ -578,17 +575,14 @@ Argument:
   "Check if a file has been edited (REF/NEW or version control).
 Argument:
 - p-buffer-name: buffer name."
-  (let ((l-buffer-edit-status nil) (l-buffer-svn-modified-flag nil) (l-buffer-git-modified-flag nil))
+  (let ((l-buffer-edit-status nil) (l-buffer-vc-modified-flag nil))
     (with-current-buffer p-buffer-name
       (setq l-buffer-edit-status eide-menu-local-edit-status)
-      (when eide-vc-show-svn-status-flag
-        (setq l-buffer-svn-modified-flag eide-menu-local-svn-modified-status-flag))
-      (when eide-vc-show-git-status-flag
-        (setq l-buffer-git-modified-flag eide-menu-local-git-modified-status-flag)))
+      (when eide-vc-show-status-flag
+        (setq l-buffer-vc-modified-flag eide-menu-local-vc-modified-status-flag)))
     (or (string-equal l-buffer-edit-status "new")
         (string-equal l-buffer-edit-status "ref")
-        l-buffer-svn-modified-flag
-        l-buffer-git-modified-flag)))
+        l-buffer-vc-modified-flag)))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
