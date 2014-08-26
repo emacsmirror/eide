@@ -1016,6 +1016,7 @@ Arguments:
   "Reload all open files from disk."
   (interactive)
   (when eide-menu-update-enabled-flag
+    (message "Updating all files...")
     (eide-windows-select-source-window nil)
     (save-current-buffer
       (dolist (l-buffer-name eide-menu-files-list)
@@ -1042,7 +1043,8 @@ Arguments:
           (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
           (eide-vc-update-current-buffer-status))))
     ;; Update menu (complete refresh, in case a file has changed (read/write status...)
-    (eide-menu-update t t)))
+    (eide-menu-update t t)
+    (message "Updating all files... done")))
 
 (defun eide-menu-kill-buffer ()
   "Close current file."
