@@ -130,18 +130,6 @@ Argument:
     (indent-region (point-min) (point-max) nil)
     (save-buffer)))
 
-(defun eide-edit-dos-to-unix ()
-  "Convert current file end of line from DOS to UNIX."
-  (unless buffer-read-only
-    (shell-command (concat "fromdos \"" buffer-file-name "\""))
-    (revert-buffer)))
-
-(defun eide-edit-unix-to-dos ()
-  "Convert current file end of line from UNIX to DOS."
-  (unless buffer-read-only
-    (shell-command (concat "todos \"" buffer-file-name "\""))
-    (revert-buffer)))
-
 (defun eide-edit-delete-trailing-spaces ()
   "Delete all trailing spaces in current file."
   (unless buffer-read-only
