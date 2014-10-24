@@ -789,14 +789,17 @@ pages)."
         (delete-region (point) (line-end-position))
         (eide-i-menu-insert-project-name)))))
 
-(defun eide-menu-update-current-buffer-modified-status ()
-  "Update current buffer \"modified\" status (in menu)."
+(defun eide-menu-update-current-buffer ()
+  "Update the \"modified\" status and the list of symbols of the current buffer, in \"menu\" buffer."
   (save-current-buffer
     (let ((l-buffer (buffer-name)))
       ;; eide-menu-local-edit-status update is useful when a new buffer is saved
       ;; in file system for the first time (status changes from "nofile" to "")
       (make-local-variable 'eide-menu-local-edit-status)
       (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+      ;; Update imenu symbols
+      (let ((imenu-auto-rescan t))
+        (imenu--make-index-alist))
       (eide-vc-update-current-buffer-status)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
@@ -808,7 +811,7 @@ pages)."
                     (search-forward (concat " " l-buffer " (M) \n") nil t)
                     (search-forward (concat " " l-buffer " (M) *\n") nil t)))
           (forward-line -1)
-          (eide-i-menu-insert-file l-buffer t nil))))))
+          (eide-i-menu-insert-file l-buffer t t))))))
 
 (defun eide-menu-get-directory-name-on-current-line ()
   "Get directory name on current line in \"menu\" buffer."
@@ -930,6 +933,9 @@ Argument:
     (setq eide-menu-local-highlighted-symbols-list eide-menu-local-highlighted-symbols-list-backup)
     (make-local-variable 'eide-menu-local-edit-status)
     (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+    ;; Update imenu symbols
+    (let ((imenu-auto-rescan t))
+      (imenu--make-index-alist))
     (eide-vc-update-current-buffer-status))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
@@ -982,6 +988,9 @@ Argument:
         (setq eide-menu-local-highlighted-symbols-list (pop eide-menu-local-highlighted-symbols-lists-list))
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+        ;; Update imenu symbols
+        (let ((imenu-auto-rescan t))
+          (imenu--make-index-alist))
         (eide-vc-update-current-buffer-status))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by

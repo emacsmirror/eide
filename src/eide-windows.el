@@ -283,7 +283,7 @@ window."
   (let ((l-window (selected-window)))
     (eide-windows-select-source-window nil)
     (save-buffer)
-    (eide-menu-update-current-buffer-modified-status)
+    (eide-menu-update-current-buffer)
     (when (equal eide-custom-update-cscope-database 'auto)
       ;; Current buffer has been modified and saved: we must update cscope database
       (setq eide-search-cscope-update-database-request-pending-flag t))
