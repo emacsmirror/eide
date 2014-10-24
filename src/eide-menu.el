@@ -19,7 +19,7 @@
 
 (provide 'eide-menu)
 
-(require 'imenu) ; for imenu--generic-function and imenu-generic-expression
+(require 'imenu)
 
 (require 'eide-config)
 (require 'eide-edit)
@@ -198,7 +198,7 @@ Arguments:
       ;; If the buffer is unfolded, get functions list
       (when (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
         (save-excursion
-          (setq l-imenu-elements-list (imenu--generic-function imenu-generic-expression))
+          (setq l-imenu-elements-list imenu--index-alist)
           (setq l-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list)
           (setq l-highlighted-symbols-list eide-menu-local-highlighted-symbols-list))))
 
@@ -537,7 +537,7 @@ Arguments:
   "Get symbol marker in current buffer.
 Argument:
 - p-symbol: symbol."
-  (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol (imenu--generic-function imenu-generic-expression)))
+  (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol imenu--index-alist))
 
 (defun eide-i-menu-file-highlight-function ()
   "Enable / disable highlight on selected function."
