@@ -799,7 +799,7 @@ pages)."
       (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
       ;; Update imenu symbols
       (let ((imenu-auto-rescan t))
-        (imenu--make-index-alist))
+        (imenu--make-index-alist t))
       (eide-vc-update-current-buffer-status)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
@@ -935,7 +935,7 @@ Argument:
     (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
     ;; Update imenu symbols
     (let ((imenu-auto-rescan t))
-      (imenu--make-index-alist))
+      (imenu--make-index-alist t))
     (eide-vc-update-current-buffer-status))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
@@ -990,7 +990,7 @@ Argument:
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
         ;; Update imenu symbols
         (let ((imenu-auto-rescan t))
-          (imenu--make-index-alist))
+          (imenu--make-index-alist t))
         (eide-vc-update-current-buffer-status))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
