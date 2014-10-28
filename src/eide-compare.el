@@ -1,4 +1,4 @@
-;;; eide-compare.el --- Emacs-IDE, compare
+;;; eide-compare.el --- Emacs-IDE: Comparison of files with ediff
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

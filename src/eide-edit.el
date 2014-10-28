@@ -1,4 +1,4 @@
-;;; eide-edit.el --- Emacs-IDE, edit
+;;; eide-edit.el --- Emacs-IDE: Clean and edit files (REF/NEW)
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

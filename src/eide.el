@@ -1,4 +1,4 @@
-;;; eide.el --- Emacs-IDE
+;;; eide.el --- Emacs-IDE: Main file
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

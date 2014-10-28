@@ -1,4 +1,4 @@
-;;; eide-keys.el --- Emacs-IDE, keys
+;;; eide-keys.el --- Emacs-IDE: Keys
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

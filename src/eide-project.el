@@ -1,4 +1,4 @@
-;;; eide-project.el --- Emacs-IDE, project
+;;; eide-project.el --- Emacs-IDE: Project management
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

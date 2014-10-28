@@ -1,4 +1,4 @@
-;;; eide-popup.el --- Emacs-IDE, popup
+;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

@@ -1,4 +1,4 @@
-;;; eide-windows.el --- Emacs-IDE, windows
+;;; eide-windows.el --- Emacs-IDE: Windows management
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

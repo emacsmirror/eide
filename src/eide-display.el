@@ -1,6 +1,6 @@
-;;; eide-display.el --- Emacs-IDE, display
+;;; eide-display.el --- Emacs-IDE: Display (color themes)
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2013-2014 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

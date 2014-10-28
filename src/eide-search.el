@@ -1,4 +1,4 @@
-;;; eide-search.el --- Emacs-IDE, search
+;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

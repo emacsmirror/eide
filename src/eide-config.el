@@ -1,4 +1,4 @@
-;;; eide-config.el --- Emacs-IDE, config
+;;; eide-config.el --- Emacs-IDE: Customization
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 

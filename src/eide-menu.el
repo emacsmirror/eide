@@ -1,4 +1,4 @@
-;;; eide-menu.el --- Emacs-IDE, menu
+;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
 ;; Copyright (C) 2008-2014 Cédric Marie
 
