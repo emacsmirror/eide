@@ -798,8 +798,12 @@ pages)."
       (make-local-variable 'eide-menu-local-edit-status)
       (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
       ;; Update imenu symbols
-      (let ((imenu-auto-rescan t))
-        (imenu--make-index-alist t))
+      ;; NB: imenu--make-index-alist will fail if there is no method for the major
+      ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
+      ;; nor imenu-generic-expression is defined).
+      (if (or imenu-extract-index-name-function imenu-generic-expression)
+        (let ((imenu-auto-rescan t))
+          (imenu--make-index-alist t)))
       (eide-vc-update-current-buffer-status)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
@@ -934,8 +938,12 @@ Argument:
     (make-local-variable 'eide-menu-local-edit-status)
     (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
     ;; Update imenu symbols
-    (let ((imenu-auto-rescan t))
-      (imenu--make-index-alist t))
+    ;; NB: imenu--make-index-alist will fail if there is no method for the major
+    ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
+    ;; nor imenu-generic-expression is defined).
+    (if (or imenu-extract-index-name-function imenu-generic-expression)
+      (let ((imenu-auto-rescan t))
+        (imenu--make-index-alist t)))
     (eide-vc-update-current-buffer-status))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
@@ -989,8 +997,12 @@ Argument:
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
         ;; Update imenu symbols
-        (let ((imenu-auto-rescan t))
-          (imenu--make-index-alist t))
+        ;; NB: imenu--make-index-alist will fail if there is no method for the major
+        ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
+        ;; nor imenu-generic-expression is defined).
+        (if (or imenu-extract-index-name-function imenu-generic-expression)
+          (let ((imenu-auto-rescan t))
+            (imenu--make-index-alist t)))
         (eide-vc-update-current-buffer-status))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
