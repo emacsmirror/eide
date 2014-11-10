@@ -584,6 +584,20 @@ Argument:
         (string-equal l-buffer-edit-status "ref")
         l-buffer-vc-modified-flag)))
 
+(defun eide-i-menu-update-status-and-symbols ()
+  "Update the status (REF/NEW), the VC status, and the list of symbols of the
+current buffer."
+  (make-local-variable 'eide-menu-local-edit-status)
+  (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
+  ;; Update imenu symbols
+  ;; NB: imenu--make-index-alist will fail if there is no method for the major
+  ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
+  ;; nor imenu-generic-expression is defined).
+  (when (or imenu-extract-index-name-function imenu-generic-expression)
+    (let ((imenu-auto-rescan t))
+      (imenu--make-index-alist t)))
+  (eide-vc-update-current-buffer-status))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -795,16 +809,7 @@ pages)."
     (let ((l-buffer (buffer-name)))
       ;; eide-menu-local-edit-status update is useful when a new buffer is saved
       ;; in file system for the first time (status changes from "nofile" to "")
-      (make-local-variable 'eide-menu-local-edit-status)
-      (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-      ;; Update imenu symbols
-      ;; NB: imenu--make-index-alist will fail if there is no method for the major
-      ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
-      ;; nor imenu-generic-expression is defined).
-      (if (or imenu-extract-index-name-function imenu-generic-expression)
-        (let ((imenu-auto-rescan t))
-          (imenu--make-index-alist t)))
-      (eide-vc-update-current-buffer-status)
+      (eide-i-menu-update-status-and-symbols)
       (set-buffer eide-menu-buffer-name)
       (save-excursion
         (goto-char (point-min))
@@ -935,16 +940,7 @@ Argument:
     (setq eide-menu-local-unfolded-symbols-folders-list eide-menu-local-unfolded-symbols-folders-list-backup)
     (make-local-variable 'eide-menu-local-highlighted-symbols-list)
     (setq eide-menu-local-highlighted-symbols-list eide-menu-local-highlighted-symbols-list-backup)
-    (make-local-variable 'eide-menu-local-edit-status)
-    (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-    ;; Update imenu symbols
-    ;; NB: imenu--make-index-alist will fail if there is no method for the major
-    ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
-    ;; nor imenu-generic-expression is defined).
-    (if (or imenu-extract-index-name-function imenu-generic-expression)
-      (let ((imenu-auto-rescan t))
-        (imenu--make-index-alist t)))
-    (eide-vc-update-current-buffer-status))
+    (eide-i-menu-update-status-and-symbols))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
@@ -994,16 +990,7 @@ Argument:
         (setq eide-menu-local-unfolded-symbols-folders-list (pop eide-menu-local-unfolded-symbols-folders-lists-list))
         (make-local-variable 'eide-menu-local-highlighted-symbols-list)
         (setq eide-menu-local-highlighted-symbols-list (pop eide-menu-local-highlighted-symbols-lists-list))
-        (make-local-variable 'eide-menu-local-edit-status)
-        (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))
-        ;; Update imenu symbols
-        ;; NB: imenu--make-index-alist will fail if there is no method for the major
-        ;; mode of the current buffer (i.e. neither imenu-extract-index-name-function
-        ;; nor imenu-generic-expression is defined).
-        (if (or imenu-extract-index-name-function imenu-generic-expression)
-          (let ((imenu-auto-rescan t))
-            (imenu--make-index-alist t)))
-        (eide-vc-update-current-buffer-status))))
+        (eide-i-menu-update-status-and-symbols))))
   (eide-windows-select-menu-window)
   ;; Move one line backward, because current position might be changed by
   ;; deletion/insertion of text
