@@ -33,6 +33,11 @@
 (when (member "--no-desktop" command-line-args)
   (setq eide-no-desktop-option t))
 
+;; desktop-restore-frames is a new option in Emacs 24.4. It conflicts with the
+;; management of windows layout in eide. Although it would be a good idea to
+;; take advantage of this new feature in the future, it is disabled for now.
+(setq desktop-restore-frames nil)
+
 ;; Preserve "menu" buffer from desktop-clear
 (setq desktop-clear-preserve-buffers (cons "\\* Menu \\*" desktop-clear-preserve-buffers))
 
