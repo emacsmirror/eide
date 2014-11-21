@@ -66,6 +66,7 @@
 (defvar eide-search-cscope-creation-in-progress-flag nil)
 
 (defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
+(defvar eide-search-cscope-missing-string "Cannot use cscope: xcscope.el is missing")
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
 (defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
 
@@ -353,22 +354,26 @@ Argument:
   "Find symbol at cursor position with cscope."
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
-    (let ((l-string (find-tag-default)))
-      (when l-string
-        (eide-search-find-symbol l-string)))))
+    (if eide-search-use-cscope-flag
+      (let ((l-string (find-tag-default)))
+        (when l-string
+          (eide-search-find-symbol l-string)))
+      (message eide-search-cscope-missing-string))))
 
 (defun eide-search-find-symbol-with-prompt ()
   "Find a symbol with cscope (prompt for it)."
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
-    (if eide-search-cscope-available-flag
-      (if eide-search-cscope-files-flag
-        (let ((l-string (read-string "Find symbol with cscope: ")))
-          (if (string-equal l-string "")
-            (message "Cannot find empty symbol...")
-            (eide-search-find-symbol l-string)))
-        (message eide-search-cscope-no-file-string))
-      (message eide-search-cscope-not-ready-string))))
+    (if eide-search-use-cscope-flag
+      (if eide-search-cscope-available-flag
+        (if eide-search-cscope-files-flag
+          (let ((l-string (read-string "Find symbol with cscope: ")))
+            (if (string-equal l-string "")
+              (message "Cannot find empty symbol...")
+              (eide-search-find-symbol l-string)))
+          (message eide-search-cscope-no-file-string))
+        (message eide-search-cscope-not-ready-string))
+      (message eide-search-cscope-missing-string))))
 
 (defun eide-search-grep-local (p-string)
   "Grep a string in current directory.
