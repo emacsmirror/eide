@@ -1,12 +1,10 @@
-=========
-Emacs-IDE
-=========
+= Emacs-IDE
 
-:Version: 2.0.0+
-:Homepage: http://emacs-ide.tuxfamily.org/
+[horizontal]
+Version:: 2.0.0+
+Homepage:: http://emacs-ide.tuxfamily.org/
 
-License
-=======
+== License
 
 Copyright (C) 2008-2014 Cédric Marie <cedric.marie@openmailbox.org>
 
@@ -23,50 +21,48 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-Description
-===========
+== Description
 
-Emacs-IDE (eide) is a package for Emacs that provides IDE features
-(Integrated Development Environment).
+Emacs-IDE (eide) is a package for Emacs that provides IDE features (Integrated
+Development Environment).
 
-Although most of these features are already available in Emacs,
-the purpose of this package is to integrate them into a user-friendly
-interface, with dedicated windows (source files, menu, and ouput),
-convenient keyboard shortcuts, and project management.
+Although most of these features are already available in Emacs, the purpose of
+this package is to integrate them into a user-friendly interface, with
+dedicated windows (source files, menu, and ouput), convenient keyboard
+shortcuts, and project management.
 
 It is suitable for almost all languages (as long as they are supported by
 Ctags). Cscope provides additional browsing facility for C/C++ files.
 
-Information
-===========
+== Information
 
-:Programming language: Emacs Lisp
-:License: GPLv3 or later
-:Dependencies: Emacs, Ctags, Cscope.
-:Supported OS: GNU/Linux
+[horizontal]
+Programming language:: Emacs Lisp
+License:: GPLv3 or later
+Dependencies:: Emacs, Ctags, Cscope.
+Supported OS:: GNU/Linux
 
-Instructions
-============
+== Instructions
 
 When you launch Emacs, it should look like this:
 
-+-----------------------------------------+---------------+
-|                                         |               |
-|                                         |               |
-|       "source" window                   | "menu" window |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-|                                         |               |
-+-----------------------------------------+---------------+
-|                                                         |
-|               "output" window                           |
-|                                                         |
-+---------------------------------------------------------+
+ +-----------------------------------------+---------------+
+ |                                         |               |
+ |                                         |               |
+ |       "source" window                   | "menu" window |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ |                                         |               |
+ +-----------------------------------------+---------------+
+ |                                                         |
+ |               "output" window                           |
+ |                                                         |
+ +---------------------------------------------------------+
 
 If you click on right button over "source" window, all other windows are
 closed. Click again to get them back.
@@ -74,11 +70,9 @@ closed. Click again to get them back.
 Instructions are available in "Help" page: click on right button over "menu"
 window, and select "Help" in popup menu.
 
-Configuration
-=============
+== Configuration
 
-Options provided in customization
----------------------------------
+=== Options provided in customization
 
 Emacs-IDE provides some options in customization. To edit them, click on right
 button over "menu" window, and select "Customize" in popup menu.
@@ -89,21 +83,20 @@ settings" category, if disabled.
 While other categories provide Emacs-IDE related options, "Emacs settings"
 category provide options that override standard Emacs behaviour:
 
-- F1-F12 key bindings, in order to provide easy access to basic IDE features
+* F1-F12 key bindings, in order to provide easy access to basic IDE features
   (tags, cscope, grep, compilation...).
-- Cscope update policy, in order to add an automatic mode that will update the
+* Cscope update policy, in order to add an automatic mode that will update the
   database only when a file is modified in Emacs.
 
 To save your settings, click on "Save for future sessions", and click on right
 button to exit customization.
 
-Options provided by themes
---------------------------
+=== Options provided by themes
 
 Two kind of themes are provided by Emacs-IDE:
 
-- Color themes (eide-dark and eide-light)
-- Themes to override standard Emacs behaviour
+* Color themes (eide-dark and eide-light)
+* Themes to override standard Emacs behaviour
 
 The settings provided by these themes used to be enabled by default in previous
 Emacs-IDE releases (in "Emacs settings" category).
@@ -112,13 +105,12 @@ and select "Customize themes" in popup menu.
 You can add one of the color themes (eide-dark or eide-light), and any of the
 following themes:
 
-- eide-browsing
-- eide-coding
-- eide-display
-- eide-settings
+* eide-browsing
+* eide-coding
+* eide-display
+* eide-settings
 
-Quick start
-===========
+== Quick start
 
 The directory from which Emacs is launched stands as the root directory. You
 can change it during the session: click on right button over "menu" window, and
