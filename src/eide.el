@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; Author: Cédric Marie <cedric.marie@openmailbox.org>
 ;; Version: 2.0.0
@@ -86,9 +86,10 @@
       ;; reads some variables that might be overridden by local values in buffers.
       (eide-config-init)
       (eide-project-init)
-      (eide-project-load-root-directory-content t)
       (eide-menu-init)
-      (eide-windows-init))
+      (eide-windows-init)
+      ;; Start with "editor" mode
+      (eide-keys-configure-for-editor))
     (message "Failed to start Emacs-IDE (requires Emacs version >= 24)")))
 
 ;;; eide.el ends here

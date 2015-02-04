@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -737,7 +737,12 @@ on previous state)."
 (define-key-after eide-menu-keymap [eide-project-create]
   '(menu-item "Create a project in this directory"
               eide-project-create
-              :visible (not eide-project-name)))
+              :visible (and (not eide-project-name) (not (file-exists-p (concat eide-root-directory eide-project-config-file))))))
+
+(define-key-after eide-menu-keymap [eide-project-load]
+  '(menu-item "Load the project present in this directory"
+              eide-project-load
+              :visible (and (not eide-project-name) (file-exists-p (concat eide-root-directory eide-project-config-file)))))
 
 (define-key-after eide-menu-keymap [eide-project-compile-1]
   '(menu-item (concat "Compile (1): " (eide-project-get-full-command eide-project-compile-command-1))

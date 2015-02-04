@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,6 +32,11 @@
 (defvar eide-no-desktop-option nil)
 (when (member "--no-desktop" command-line-args)
   (setq eide-no-desktop-option t))
+
+(defvar eide-open-project-at-startup nil)
+(when (member "--eide-op" command-line-args)
+  (setq eide-open-project-at-startup t)
+  (delete "--eide-op" command-line-args))
 
 ;; desktop-restore-frames is a new option in Emacs 24.4. It conflicts with the
 ;; management of windows layout in eide. Although it would be a good idea to
@@ -333,7 +338,9 @@ Argument:
 - close all files,
 - load the project desktop,
 - check project information (tags, cscope, configuration),
-- add the project (or update its name) in projects list.
+- add the project (or update its name) in projects list,
+- update frame title,
+- close some temporary buffers.
 Arguments:
 - p-startup-flag: t when called from the init.
 - p-creation-flag: t when the project is created."
@@ -424,7 +431,27 @@ Arguments:
   ;; Open config file (already rebuilt at the beginning)
   (find-file-noselect (concat eide-root-directory eide-project-config-file))
   ;; Add the project to current workspace
-  (eide-project-add-in-list))
+  (eide-project-add-in-list)
+  ;; Update frame title
+  (eide-i-project-update-frame-title)
+
+  (unless p-creation-flag
+    ;; Kill projects list in case it is present in desktop
+    (when (get-buffer eide-project-projects-buffer-name)
+      (kill-buffer eide-project-projects-buffer-name))
+    ;; Close temporary buffers from ediff sessions (if emacs has been closed during
+    ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
+    ;; files) and they have been loaded in this new emacs session).
+    (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
+      (dolist (l-buffer-name l-buffer-name-list)
+        (when (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
+          ;; this is a "useless" buffer (.ref or .new)
+          (kill-buffer l-buffer-name))))
+    ;; Update default directory if current buffer is not visiting a file
+    (unless buffer-file-name
+      (setq default-directory eide-root-directory))
+    ;; Set current buffer
+    (setq eide-current-buffer (buffer-name))))
 
 (defun eide-i-project-update-internal-projects-list ()
   ;; Create internal projects list
@@ -449,17 +476,32 @@ Arguments:
           ;; Close projects list (so that it can be modified by another Emacs session)
           (kill-this-buffer)
           ;; Restore editor configuration
+          ;; NB: Keys are restored later, because we need to know if a project
+          ;; is defined or not.
           (eide-display-set-colors-for-files)
-          (eide-keys-configure-for-editor)
-          (unless (string-equal l-project-dir eide-root-directory)
+          (unless (and eide-project-name (string-equal l-project-dir eide-root-directory))
+            ;; This project is not already loaded
             ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
             ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
             ;; otherwise we get errors for non-existing windows
             (eide-windows-hide-ide-windows)
             ;; Set root directory
             (setq eide-root-directory l-project-dir)
-            (eide-project-load-root-directory-content nil)
+            ;; Check if a project is defined, and start it.
+            (if (file-exists-p (concat eide-root-directory eide-project-config-file))
+              ;; A project is defined in this directory
+              (eide-i-project-load nil nil)
+              (progn
+                ;; There is no project in this directory
+                (setq eide-project-name nil)
+                (unless eide-no-desktop-option
+                  (desktop-save-mode -1)
+                  ;; Close all buffers
+                  (desktop-clear)
+                  (setq desktop-dirname nil))))
             (eide-menu-update t))
+          ;; Restore keys, now that eide-project-name is set.
+          (eide-keys-configure-for-editor)
           (eide-windows-show-ide-windows))
         (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
           (let ((buffer-read-only nil))
@@ -574,7 +616,20 @@ Argument:
 (defun eide-project-init ()
   "Initialize project."
   (setq compilation-scroll-output 'first-error)
-  (add-hook 'compilation-finish-functions 'eide-i-compilation-finished-hook))
+  (add-hook 'compilation-finish-functions 'eide-i-compilation-finished-hook)
+  (when (and eide-open-project-at-startup
+             (file-exists-p (concat eide-root-directory eide-project-config-file)))
+    (eide-i-project-load t nil)
+    ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
+    ;; the desktop is not read, because after-init-hook has already been called.
+    ;; In that case, we need to force to read it (except if --no-desktop option is set).
+    ;; The solution is to register a hook on emacs-startup-hook, which is
+    ;; called after the loading of file.el.
+    ;; Drawback: a file in argument ("emacs -l file.el main.c") will be loaded
+    ;; but not displayed, because desktop is read after the loading of main.c
+    ;; and selects its own current buffer.
+    (when (not eide-no-desktop-option)
+      (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook))))
 
 (defun eide-project-set-commands-state (p-state-flag)
   "Disable/enable project commands."
@@ -668,16 +723,34 @@ Argument:
   "Create a project in root directory, and add it in projects list."
   (interactive)
   (when (y-or-n-p (concat "Create a project in " eide-root-directory " ?"))
-    (eide-windows-select-source-window t)
     ;; Create empty project file
     (shell-command (concat "touch " eide-root-directory eide-project-config-file))
     (eide-i-project-load nil t)
-    ;; Update frame title
-    (eide-i-project-update-frame-title)
     ;; Update project name in menu
     (eide-menu-update-project-name)
     ;; Update key bindings for project
     (eide-keys-configure-for-editor)))
+
+(defun eide-project-load ()
+  "Load the project present in root directory."
+  (interactive)
+  (when (and (not eide-project-name) (file-exists-p (concat eide-root-directory eide-project-config-file)))
+    (let ((l-do-it t))
+      (when (and eide-menu-files-list
+                 (not (y-or-n-p "The list of open files will be lost if you load the project. Do you want to continue?")))
+        (setq l-do-it nil))
+      (when l-do-it
+        (eide-windows-select-source-window nil)
+        ;; Hide IDE windows in order to save their sizes
+        ;; before desktop-clear closes them
+        (eide-windows-hide-ide-windows)
+        (eide-i-project-load nil nil)
+        ;; Restore IDE windows
+        (eide-windows-show-ide-windows)
+        ;; Update project name in menu
+        (eide-menu-update-project-name)
+        ;; Update key bindings for project
+        (eide-keys-configure-for-editor)))))
 
 (defun eide-project-delete ()
   "Delete current project."
@@ -713,90 +786,33 @@ Argument:
     ;; Remove from projects list
     (eide-project-remove-from-list)))
 
-(defun eide-project-load-root-directory-content (p-startup-flag)
-  "Update environment according to root directory content.
-If a project is defined:
-- close all files,
-- load the project desktop,
-- check project information (tags, cscope, configuration),
-- add the project (or update its name) in projects list,
-- update the display.
-Otherwise:
-- close all files,
-- disable the desktop,
-- update the display.
-Argument:
-- p-startup-flag: t when called from the init."
-  ;; Check if a project is defined, and start it.
-  ;; NB: It is important to read desktop after mode-hooks have been defined,
-  ;; otherwise mode-hooks may not apply.
-  (if (file-exists-p (concat eide-root-directory eide-project-config-file))
-    (progn
-      ;; A project is defined in this directory
-      (eide-i-project-load p-startup-flag nil)
-      ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
-      ;; the desktop is not read, because after-init-hook has already been called.
-      ;; In that case, we need to force to read it (except if --no-desktop option is set).
-      ;; The solution is to register a hook on emacs-startup-hook, which is
-      ;; called after the loading of file.el.
-      ;; Drawback: a file in argument ("emacs -l file.el main.c") will be loaded
-      ;; but not displayed, because desktop is read after the loading of main.c
-      ;; and selects its own current buffer.
-      (when (and p-startup-flag (not eide-no-desktop-option))
-        (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook)))
-    (progn
-      ;; There is no project in this directory
-      (setq eide-project-name nil)
-      (unless eide-no-desktop-option
-        (desktop-save-mode -1)
-        ;; Close all buffers
-        (desktop-clear)
-        (setq desktop-dirname nil))))
-  ;; Update frame title
-  (eide-i-project-update-frame-title)
-  ;; Start with "editor" mode
-  (eide-keys-configure-for-editor)
-  ;; Kill projects list in case it is present in desktop
-  (when (get-buffer eide-project-projects-buffer-name)
-    (kill-buffer eide-project-projects-buffer-name))
-  ;; Close temporary buffers from ediff sessions (if emacs has been closed during
-  ;; an ediff session, .emacs.desktop contains temporary buffers (.ref or .new
-  ;; files) and they have been loaded in this new emacs session).
-  (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
-    (dolist (l-buffer-name l-buffer-name-list)
-      (when (or (string-match "^\* (REF)" l-buffer-name) (string-match "^\* (NEW)" l-buffer-name))
-        ;; this is a "useless" buffer (.ref or .new)
-        (kill-buffer l-buffer-name))))
-  ;; Update default directory if current buffer is not visiting a file
-  (unless buffer-file-name
-    (setq default-directory eide-root-directory))
-  ;; Set current buffer
-  (setq eide-current-buffer (buffer-name)))
-
 (defun eide-project-change-root ()
   "Change root directory."
   (interactive)
   (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
-    (let ((l-do-it t))
-      (when (and (not eide-project-name)
-                 eide-menu-files-list
-                 (not (y-or-n-p "The list of open files will be lost. Do you want to continue?")))
-        (setq l-do-it nil))
-      (when l-do-it
-        (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
-          ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-          ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-          ;; otherwise we get errors for non-existing windows
-          (eide-windows-hide-ide-windows)
-          (call-interactively 'dired)
-          ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-          (setq eide-root-directory (expand-file-name default-directory))
-          ;; Exit browsing mode (kill dired buffer)
-          (eide-menu-browsing-mode-stop)
-          (eide-project-load-root-directory-content nil)
-          (eide-menu-update t)
-          (when l-ide-windows-visible-flag
-            (eide-windows-show-ide-windows)))))
+    (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
+      ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+      ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+      ;; otherwise we get errors for non-existing windows
+      (eide-windows-hide-ide-windows)
+      (let ((l-old-root-directory eide-root-directory))
+        (call-interactively 'dired)
+        ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+        (setq eide-root-directory (expand-file-name default-directory))
+        ;; Exit browsing mode (kill dired buffer)
+        (eide-menu-browsing-mode-stop)
+        (when eide-project-name
+          ;; Exit project mode: clear project name and disable desktop
+          (setq eide-project-name nil)
+          (unless eide-no-desktop-option
+            (desktop-save l-old-root-directory t)
+            (desktop-save-mode -1)
+            (setq desktop-dirname nil))
+          ;; Update key bindings (no more project)
+          (eide-keys-configure-for-editor)))
+      (eide-menu-update t)
+      (when l-ide-windows-visible-flag
+        (eide-windows-show-ide-windows)))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-open-list ()
@@ -826,7 +842,7 @@ Argument:
       (while (not (eobp))
         (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
           (forward-line -1)
-          (if (string-equal l-project-dir eide-root-directory)
+          (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
             (progn
               ;; Current project (can't be selected)
               (put-text-property (point) (line-end-position) 'face 'eide-project-project-current-name-face)

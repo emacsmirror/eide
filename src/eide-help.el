@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE: Help page
 
-;; Copyright (C) 2009-2014 Cédric Marie
+;; Copyright (C) 2009-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -251,7 +251,8 @@ Information and configuration files will be stored in this directory.
 Either launch Emacs from your project root directory, or launch Emacs and open
 project popup menu to change root directory.
 Then open project popup menu and select 'Create a project in this directory'.
-The project is automatically added to the projects list of current workspace.
+The project is automatically added to the projects list of the current
+workspace.
 
 In your project root directory, several files are created:
 
@@ -285,10 +286,16 @@ select 'Project notes'.
   (eide-i-help-insert-header-2 "Open an existing project")
 
   (insert "
-Either launch Emacs from your project root directory, or launch Emacs, open
-project popup menu, and select 'Display projects list'.
-NB: If your project is not in the list, use 'Change root directory' to open it.
-It will be automatically added to the projects list of current workspace.
+To open an existing project, you can:
+- either launch Emacs from your project root directory, with --eide-op option
+  (op = open project)
+- or launch Emacs, open project popup menu, select 'Change root directory' if
+  necessary, then select 'Load the project present in this directory'.
+- or launch Emacs, open project popup menu, and select 'Display projects list'
+  in order to choose the project.
+  NB: If your project is not in the list, use one the the previous methods. The
+  project will be automatically added to the projects list of the current
+  workspace.
 ")
 
   (eide-i-help-insert-header-2 "Tags and cscope update")
