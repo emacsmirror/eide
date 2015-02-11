@@ -74,7 +74,7 @@
     (require 'gdb-ui) ; deprecated
     (setq eide-project-gdb-option " --annotate=3 ")))
 
-(defvar eide-project-projects-file "~/.emacs-ide/workspace1/projects-list")
+(defvar eide-project-projects-file "~/.emacs.d/eide/workspace1/projects-list")
 (defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
 
 (defvar eide-project-comparison-project-point nil)
@@ -274,7 +274,7 @@ Arguments:
   (let ((l-workspace-number 1))
     (while (<= l-workspace-number eide-custom-number-of-workspaces)
       (let ((l-workspace-dir nil) (l-projects-list-file nil))
-        (setq l-workspace-dir (concat "~/.emacs-ide/workspace" (number-to-string l-workspace-number)))
+        (setq l-workspace-dir (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number)))
         ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
         (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
         (unless (file-directory-p l-workspace-dir)
@@ -311,7 +311,7 @@ Argument:
     (when (<= p-workspace-number eide-custom-number-of-workspaces)
       (setq eide-project-current-workspace p-workspace-number)
       ;; Change projects list file
-      (setq eide-project-projects-file (concat "~/.emacs-ide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+      (setq eide-project-projects-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
       ;; Restore initial root directory
       (setq eide-project-name nil)
       (setq eide-root-directory eide-root-directory-at-startup)
