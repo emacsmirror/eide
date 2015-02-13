@@ -80,13 +80,12 @@
   "Start Emacs-IDE."
   (if (>= emacs-major-version 24)
     (progn
-      (if (and (file-directory-p "~/.emacs-ide")
-               (not (file-directory-p "~/.emacs.d/eide")))
-        ;; Upgrade from version 2.0.0:
-        ;; Store the environment in ~/.emacs.d/eide instead of ~/.emacs-ide
-        (shell-command "mv ~/.emacs-ide ~/.emacs.d/eide")
-        ;; Create ~/.emacs.d/eide if it does not exist
-        (unless (file-directory-p "~/.emacs.d/eide")
+      (unless (file-directory-p "~/.emacs.d/eide")
+        (if (file-directory-p "~/.emacs-ide")
+          ;; Upgrade from version 2.0.0:
+          ;; Store the environment in ~/.emacs.d/eide instead of ~/.emacs-ide
+          (shell-command "mv ~/.emacs-ide ~/.emacs.d/eide")
+          ;; Create ~/.emacs.d/eide if it does not exist
           (make-directory "~/.emacs.d/eide")))
       ;; Emacs settings must be saved before the desktop is loaded, because it
       ;; reads some variables that might be overridden by local values in buffers.
