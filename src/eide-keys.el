@@ -1,6 +1,6 @@
 ;;; eide-keys.el --- Emacs-IDE: Keys
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -18,6 +18,8 @@
 ;;; Code:
 
 (provide 'eide-keys)
+
+(require 'eide-project)
 
 (defvar eide-keys-is-editor-configuration-active-flag nil)
 
@@ -491,7 +493,7 @@
   (setq eide-keys-is-editor-configuration-active-flag t)
   (if eide-project-name
     (progn
-      (eide-search-set-tags-and-cscope-state t)
+      (eide-search-set-tags-and-cscope-state eide-project-symbols-flag)
       (eide-project-set-commands-state t))
     (progn
       (eide-search-set-tags-and-cscope-state nil)

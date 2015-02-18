@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -478,7 +478,7 @@ Argument:
   "Grep a string in the whole project (prompt for it)."
   (interactive)
   (when eide-search-grep-enabled-flag
-    (let ((l-string (read-string "Grep (in whole project): ")))
+    (let ((l-string (read-string "Grep (recursively from root directory): ")))
       (if (string-equal l-string "")
         (message "Cannot grep empty string...")
         (eide-search-grep-global l-string)))))

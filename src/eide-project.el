@@ -86,12 +86,15 @@
 ;; Some config values are saved before editing, so that actions
 ;; can be performed in case they have been modified
 (defvar eide-project-old-project-name nil)
+(defvar eide-project-old-symbols-flag nil)
 (defvar eide-project-old-tags-exclude-value nil)
 (defvar eide-project-old-cscope-exclude-files-value nil)
 (defvar eide-project-old-cscope-exclude-dirs-value nil)
 
 ;; Variables to store the project configuration
 ;; (to avoid parsing the config file)
+(defvar eide-project-symbols nil)
+(defvar eide-project-symbols-flag nil)
 (defvar eide-project-init-command nil)
 (defvar eide-project-compile-command-1 nil)
 (defvar eide-project-compile-command-2 nil)
@@ -307,7 +310,10 @@ has already been called."
   "Set current workspace.
 Argument:
 - p-workspace-number: new workspace number."
-  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+  (if (or (not eide-project-name)
+          (not eide-project-symbols-flag)
+          (and eide-search-tags-available-flag
+               (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
     (when (<= p-workspace-number eide-custom-number-of-workspaces)
       (setq eide-project-current-workspace p-workspace-number)
       ;; Change projects list file
@@ -364,23 +370,23 @@ Arguments:
   ;; Tags and cscope list of files creation is started as soon as possible,
   ;; because it is executed in another process, in parallel with the loading of
   ;; the desktop.
+  (when eide-project-symbols-flag
+    ;; Create tags if necessary
+    (if (file-exists-p (concat eide-root-directory "TAGS"))
+      (setq eide-search-tags-available-flag t)
+      (eide-search-create-tags))
+    ;; Load tags now, otherwise first tag search will take some time...
+    ;;(find-file-noselect (concat eide-root-directory "TAGS"))
 
-  ;; Create tags if necessary
-  (if (file-exists-p (concat eide-root-directory "TAGS"))
-    (setq eide-search-tags-available-flag t)
-    (eide-search-create-tags))
-  ;; Load tags now, otherwise first tag search will take some time...
-  ;;(find-file-noselect (concat eide-root-directory "TAGS"))
-
-  (when eide-search-use-cscope-flag
-    ;; Create cscope database if necessary
-    (if (file-exists-p (concat eide-root-directory "cscope.files"))
-      (progn
-        (eide-search-update-cscope-status)
-        (setq eide-search-cscope-available-flag t)
-        (unless (file-exists-p (concat eide-root-directory "cscope.out"))
-          (setq eide-search-cscope-update-database-request-pending-flag t)))
-      (eide-search-create-cscope-list-of-files)))
+    (when eide-search-use-cscope-flag
+      ;; Create cscope database if necessary
+      (if (file-exists-p (concat eide-root-directory "cscope.files"))
+        (progn
+          (eide-search-update-cscope-status)
+          (setq eide-search-cscope-available-flag t)
+          (unless (file-exists-p (concat eide-root-directory "cscope.out"))
+            (setq eide-search-cscope-update-database-request-pending-flag t)))
+        (eide-search-create-cscope-list-of-files))))
 
   (unless (file-exists-p (concat eide-root-directory eide-project-notes-file))
     ;; Create empty project notes file
@@ -468,6 +474,7 @@ Arguments:
   "Open project on current line."
   (interactive)
   (if (or (not eide-project-name)
+          (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
     (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
@@ -731,6 +738,18 @@ Argument:
     ;; Update key bindings for project
     (eide-keys-configure-for-editor)))
 
+(defun eide-project-create-without-symbols ()
+  "Create a project without symbols in root directory, and add it in projects list."
+  (interactive)
+  (when (y-or-n-p (concat "Create a project without symbols in " eide-root-directory " ?"))
+    ;; Create empty project file
+    (shell-command (concat "echo \"symbols = no\" > " eide-root-directory eide-project-config-file))
+    (eide-i-project-load nil t)
+    ;; Update project name in menu
+    (eide-menu-update-project-name)
+    ;; Update key bindings for project
+    (eide-keys-configure-for-editor)))
+
 (defun eide-project-load ()
   "Load the project present in root directory."
   (interactive)
@@ -756,20 +775,12 @@ Argument:
   "Delete current project."
   (interactive)
   (when (y-or-n-p (concat "Delete project in " eide-root-directory " ?"))
-    ;; Stop creation of tags and cscope list of files (in case it is not finished yet)
-    (when eide-search-tags-creation-in-progress-flag
-      (delete-process "create-tags"))
-    (when eide-search-cscope-creation-in-progress-flag
-      (delete-process "create-cscope"))
-    (setq eide-search-tags-available-flag nil)
-    (setq eide-search-cscope-available-flag nil)
-    (setq eide-search-tags-creation-in-progress-flag nil)
-    (setq eide-search-cscope-creation-in-progress-flag nil)
+    ;; Stop the creation of tags and cscope list of files and remove these files
+    (eide-project-stop-and-remove-tags-and-cscope)
     (setq eide-project-name nil)
     (kill-buffer eide-project-config-file)
-    (when (get-buffer "TAGS")
-      (kill-buffer "TAGS"))
-    (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out .emacs-ide-project.*"))
+    ;; Remove project files
+    (shell-command (concat "cd " eide-root-directory " ; rm -f .emacs-ide-project.*"))
     ;; Delete desktop file and disable automatic saving
     (when eide-no-desktop-option
       ;; desktop-remove needs desktop-save-mode to be enabled
@@ -789,7 +800,10 @@ Argument:
 (defun eide-project-change-root ()
   "Change root directory."
   (interactive)
-  (if (or (not eide-project-name) (and eide-search-tags-available-flag eide-search-cscope-available-flag))
+  (if (or (not eide-project-name)
+          (not eide-project-symbols-flag)
+          (and eide-search-tags-available-flag
+               (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
     (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
       ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
       ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
@@ -814,6 +828,21 @@ Argument:
       (when l-ide-windows-visible-flag
         (eide-windows-show-ide-windows)))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
+
+(defun eide-project-stop-and-remove-tags-and-cscope ()
+  "Cancel the creation of tags and cscope list of files (in case it is not
+finished yet), and delete these files."
+  (when eide-search-tags-creation-in-progress-flag
+    (delete-process "create-tags"))
+  (when eide-search-cscope-creation-in-progress-flag
+    (delete-process "create-cscope"))
+  (setq eide-search-tags-available-flag nil)
+  (setq eide-search-cscope-available-flag nil)
+  (setq eide-search-tags-creation-in-progress-flag nil)
+  (setq eide-search-cscope-creation-in-progress-flag nil)
+  (when (get-buffer "TAGS")
+    (kill-buffer "TAGS"))
+  (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out")))
 
 (defun eide-project-open-list ()
   "Display projects list (full frame), and rebuild internal projects list."
@@ -1021,6 +1050,17 @@ current workspace."
     (insert eide-project-name)
     (insert "\n\n")
 
+    (insert "# Set 'yes' (default) to create and use databases of symbols (tags/cscope).\n")
+    (insert "# It can be useful to disable symbols, if the source tree is a build system containing\n")
+    (insert "# several source trees (packages), for which you don't need symbols, and which would\n")
+    (insert "# result in huge and useless databases.\n")
+    (eide-i-project-rebuild-config-line "symbols"
+                                        "yes"
+                                        'eide-project-symbols)
+    (if (string-equal eide-project-symbols "yes")
+      (setq eide-project-symbols-flag t)
+      (setq eide-project-symbols-flag nil))
+
     (insert "# Init command is called before all 'compile' and 'run' commands.\n")
     (eide-i-project-rebuild-config-line "init_command"
                                         eide-custom-project-default-init-command
@@ -1121,25 +1161,13 @@ current workspace."
     ;; Close temporary buffer
     (kill-buffer eide-project-config-target-buffer)))
 
-(defun eide-project-get-config-value (p-parameter)
-  "Get the value of a parameter in project config (empty string if not defined).
-Argument:
-- p-parameter: config parameter."
-  (save-current-buffer
-    (unless (get-buffer eide-project-config-file)
-      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
-    (set-buffer eide-project-config-file)
-    (let ((l-value (eide-i-project-get-config-value-if-defined p-parameter)))
-      (if l-value
-        l-value
-        ""))))
-
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
   (interactive)
 
   ;; Save some config values (actions are required if they are modified)
   (setq eide-project-old-project-name eide-project-name)
+  (setq eide-project-old-symbols-flag eide-project-symbols-flag)
   (setq eide-project-old-tags-exclude-value eide-project-tags-exclude)
   (setq eide-project-old-cscope-exclude-files-value eide-project-cscope-exclude-files)
   (setq eide-project-old-cscope-exclude-dirs-value eide-project-cscope-exclude-dirs)

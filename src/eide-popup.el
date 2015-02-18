@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,6 +21,7 @@
 
 (require 'eide-compare)
 (require 'eide-config)
+(require 'eide-project)
 (require 'eide-vc)
 
 (defvar eide-popup-menu nil)
@@ -307,10 +308,10 @@ Argument:
   "Open a popup menu to search for selected text."
   (eide-i-popup-menu-init)
   (let ((l-string (buffer-substring-no-properties (region-beginning) (region-end))))
-    (when eide-project-name
+    (when (and eide-project-name eide-project-symbols-flag)
       (eide-i-popup-menu-add-action "Go to definition (tag)" (concat "(eide-search-find-tag \"" l-string "\")") t)
-      (eide-i-popup-menu-add-action "Find symbol (cscope)" (concat "(eide-search-find-symbol \"" l-string "\")") t)
-      (eide-i-popup-menu-add-action "Grep in whole project" (concat "(eide-search-grep-global \"" l-string "\")") t))
+      (eide-i-popup-menu-add-action "Find symbol (cscope)" (concat "(eide-search-find-symbol \"" l-string "\")") t))
+    (eide-i-popup-menu-add-action "Grep recursively from root directory" (concat "(eide-search-grep-global \"" l-string "\")") t)
     (eide-i-popup-menu-add-action "Grep in current directory" (concat "(eide-search-grep-local \"" l-string "\")") t)
     (eide-i-popup-menu-close-action-list "Search")
     (eide-i-popup-menu-add-action "Read manual (man 1: Executable programs or shell commands)" (concat "(eide-search-read-man \"1 " l-string "\")") t)

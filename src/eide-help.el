@@ -250,7 +250,14 @@ Information and configuration files will be stored in this directory.
   (insert "
 Either launch Emacs from your project root directory, or launch Emacs and open
 project popup menu to change root directory.
-Then open project popup menu and select 'Create a project in this directory'.
+Then open project popup menu and select:
+- 'Create a project in this directory' if you want to create a full project
+  with tags and cscope databases for code browsing.
+- 'Create a project without tags/cscope symbols in this directory' if you
+  don't want symbols for your project. It can be useful if the source tree is a
+  build system containing several source trees (packages), for which you don't
+  need symbols, and which would result in huge and useless databases.
+
 The project is automatically added to the projects list of the current
 workspace.
 
@@ -259,15 +266,10 @@ In your project root directory, several files are created:
 - .emacs.desktop:
   List of open files.
 
-- TAGS:
-  Tags database.
-
-- cscope.files:
-  Cscope list of files (C/C++ files).
-
 - .emacs-ide-project.cfg:
   It defines parameters for this project.
-  It is created with default values from configuration ('Default commands for projects').
+  It is created with default values from configuration ('Default commands for
+  projects').
   If you delete this file, it will be created again with default values.
   If you delete any parameter in this file, it will be restored with default
   value.
@@ -275,6 +277,14 @@ In your project root directory, several files are created:
 - .emacs-ide-project.txt:
   It can be used to write notes about the project, it is not used by Emacs.
   It is created empty.
+
+If you have created a project with symbols:
+
+- TAGS:
+  Tags database.
+
+- cscope.files:
+  Cscope list of files (C/C++ files).
 
 To edit project configuration ('.emacs-ide-project.cfg'), open project popup
 menu and select 'Project configuration'.

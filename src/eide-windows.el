@@ -21,6 +21,7 @@
 
 (require 'eide-config)
 (require 'eide-menu)
+(require 'eide-project)
 
 (defvar eide-windows-source-window nil)
 (defvar eide-windows-menu-window nil)
@@ -664,25 +665,35 @@ and display it. Current buffer is kept if correct."
           (eide-menu-update-project-name)
           (eide-project-update-name)
           (setq eide-project-old-project-name nil))
-        (when (and eide-search-tags-exclude-enabled-flag
-                   eide-project-old-tags-exclude-value
-                   (not (string-equal eide-project-tags-exclude eide-project-old-tags-exclude-value)))
-          ;; Tags exclude value has changed
-          (if eide-search-tags-creation-in-progress-flag
-            (eide-popup-message "Cannot update tags while they are being created...")
-            (eide-search-create-tags))
-          (setq eide-project-old-tags-exclude-value nil))
-        (when (and eide-search-cscope-exclude-enabled-flag
-                   (or (and eide-project-old-cscope-exclude-files-value
-                            (not (string-equal eide-project-cscope-exclude-files eide-project-old-cscope-exclude-files-value)))
-                       (and eide-project-old-cscope-exclude-dirs-value
-                            (not (string-equal eide-project-cscope-exclude-dirs eide-project-old-cscope-exclude-dirs-value)))))
-          ;; Cscope exclude files or dirs value has changed
-          (if eide-search-cscope-creation-in-progress-flag
-            (eide-popup-message "Cannot update cscope list of files while it is being created...")
-            (eide-search-create-cscope-list-of-files))
-          (setq eide-project-old-cscope-exclude-files-value nil)
-          (setq eide-project-old-cscope-exclude-dirs-value nil))
+        (if eide-project-symbols-flag
+          ;; Symbols are enabled
+          (progn
+            (when (or (not eide-project-old-symbols-flag)
+                      (and eide-search-tags-exclude-enabled-flag
+                           eide-project-old-tags-exclude-value
+                           (not (string-equal eide-project-tags-exclude eide-project-old-tags-exclude-value))))
+              ;; Symbols have just been enabled or tags exclude value has changed
+              (if eide-search-tags-creation-in-progress-flag
+                (eide-popup-message "Cannot update tags while they are being created...")
+                (eide-search-create-tags))
+              (setq eide-project-old-tags-exclude-value nil))
+            (when (or (not eide-project-old-symbols-flag)
+                      (and eide-search-cscope-exclude-enabled-flag
+                           (or (and eide-project-old-cscope-exclude-files-value
+                                    (not (string-equal eide-project-cscope-exclude-files eide-project-old-cscope-exclude-files-value)))
+                               (and eide-project-old-cscope-exclude-dirs-value
+                                    (not (string-equal eide-project-cscope-exclude-dirs eide-project-old-cscope-exclude-dirs-value))))))
+              ;; Symbols have just been enabled or cscope exclude files or dirs value has changed
+              (if eide-search-cscope-creation-in-progress-flag
+                (eide-popup-message "Cannot update cscope list of files while it is being created...")
+                (eide-search-create-cscope-list-of-files))
+              (setq eide-project-old-cscope-exclude-files-value nil)
+              (setq eide-project-old-cscope-exclude-dirs-value nil))
+            (setq eide-project-old-symbols-flag nil))
+          ;; Symbols are not enabled
+          (when eide-project-old-symbols-flag
+            ;; Symbols have just been disabled: cancel the creation of tags and cscope
+            (eide-project-stop-and-remove-tags-and-cscope)))
         ;; This buffer must not be closed
         (switch-to-buffer eide-current-buffer))
       (when (string-equal (buffer-name) eide-project-notes-file)
@@ -739,6 +750,11 @@ on previous state)."
               eide-project-create
               :visible (and (not eide-project-name) (not (file-exists-p (concat eide-root-directory eide-project-config-file))))))
 
+(define-key-after eide-menu-keymap [eide-project-create-without-symbols]
+  '(menu-item "Create a project without tags/cscope symbols in this directory"
+              eide-project-create-without-symbols
+              :visible (and (not eide-project-name) (not (file-exists-p (concat eide-root-directory eide-project-config-file))))))
+
 (define-key-after eide-menu-keymap [eide-project-load]
   '(menu-item "Load the project present in this directory"
               eide-project-load
@@ -782,26 +798,28 @@ on previous state)."
 (define-key-after eide-menu-keymap [eide-search-create-tags]
   '(menu-item "Update tags"
               eide-search-create-tags
-              :visible eide-project-name))
+              :visible (and eide-project-name eide-project-symbols-flag)))
 (define-key-after eide-menu-keymap [eide-search-create-cscope-list-of-files]
   '(menu-item "Update cscope list of files"
               eide-search-create-cscope-list-of-files
-              :visible (and eide-project-name eide-search-use-cscope-flag)))
+              :visible (and eide-project-name eide-project-symbols-flag eide-search-use-cscope-flag)))
 (define-key-after eide-menu-keymap [eide-search-update-cscope-database]
   '(menu-item "Update cscope database"
               eide-search-update-cscope-database
-              :visible (and eide-project-name eide-search-use-cscope-flag eide-custom-override-emacs-settings (or (not eide-custom-update-cscope-database) (equal eide-custom-update-cscope-database 'auto)))))
+              :visible (and eide-project-name eide-project-symbols-flag eide-search-use-cscope-flag eide-custom-override-emacs-settings (or (not eide-custom-update-cscope-database) (equal eide-custom-update-cscope-database 'auto)))))
 (define-key-after eide-menu-keymap [eide-search-toggle-tags-exclude-state]
   '(menu-item "Toggle activation of tags exclude filters"
               eide-search-toggle-tags-exclude-state
               :button (:toggle . eide-search-tags-exclude-enabled-flag)
               :visible (and eide-project-name
+                            eide-project-symbols-flag
                             (not (string-equal eide-project-tags-exclude "")))))
 (define-key-after eide-menu-keymap [eide-search-toggle-cscope-exclude-state]
   '(menu-item "Toggle activation of cscope exclude filters"
               eide-search-toggle-cscope-exclude-state
               :button (:toggle . eide-search-cscope-exclude-enabled-flag)
               :visible (and eide-project-name
+                            eide-project-symbols-flag
                             (or (not (string-equal eide-project-cscope-exclude-files ""))
                                 (not (string-equal eide-project-cscope-exclude-dirs ""))))))
 (define-key-after eide-menu-keymap [eide-search-toggle-grep-exclude-state]
@@ -809,6 +827,7 @@ on previous state)."
               eide-search-toggle-grep-exclude-state
               :button (:toggle . eide-search-grep-exclude-enabled-flag)
               :visible (and eide-project-name
+                            eide-project-symbols-flag
                             (or (not (string-equal eide-project-grep-exclude-files ""))
                                 (not (string-equal eide-project-grep-exclude-dirs ""))))))
 
