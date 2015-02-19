@@ -663,8 +663,7 @@ and display it. Current buffer is kept if correct."
                    (not (string-equal eide-project-name eide-project-old-project-name)))
           ;; Project name has changed
           (eide-menu-update-project-name)
-          (eide-project-update-name)
-          (setq eide-project-old-project-name nil))
+          (eide-project-update-name))
         (if eide-project-symbols-flag
           ;; Symbols are enabled
           (progn
@@ -675,8 +674,7 @@ and display it. Current buffer is kept if correct."
               ;; Symbols have just been enabled or tags exclude value has changed
               (if eide-search-tags-creation-in-progress-flag
                 (eide-popup-message "Cannot update tags while they are being created...")
-                (eide-search-create-tags))
-              (setq eide-project-old-tags-exclude-value nil))
+                (eide-search-create-tags)))
             (when (or (not eide-project-old-symbols-flag)
                       (and eide-search-cscope-exclude-enabled-flag
                            (or (and eide-project-old-cscope-exclude-files-value
@@ -686,14 +684,17 @@ and display it. Current buffer is kept if correct."
               ;; Symbols have just been enabled or cscope exclude files or dirs value has changed
               (if eide-search-cscope-creation-in-progress-flag
                 (eide-popup-message "Cannot update cscope list of files while it is being created...")
-                (eide-search-create-cscope-list-of-files))
-              (setq eide-project-old-cscope-exclude-files-value nil)
-              (setq eide-project-old-cscope-exclude-dirs-value nil))
-            (setq eide-project-old-symbols-flag nil))
+                (eide-search-create-cscope-list-of-files))))
           ;; Symbols are not enabled
           (when eide-project-old-symbols-flag
             ;; Symbols have just been disabled: cancel the creation of tags and cscope
             (eide-project-stop-and-remove-tags-and-cscope)))
+        ;; Reset all old values (although it is not really necessary...)
+        (setq eide-project-old-project-name nil)
+        (setq eide-project-old-symbols-flag nil)
+        (setq eide-project-old-tags-exclude-value nil)
+        (setq eide-project-old-cscope-exclude-files-value nil)
+        (setq eide-project-old-cscope-exclude-dirs-value nil)
         ;; This buffer must not be closed
         (switch-to-buffer eide-current-buffer))
       (when (string-equal (buffer-name) eide-project-notes-file)
