@@ -29,6 +29,10 @@
 (when (locate-library "xcscope")
   (progn
     (require 'xcscope)
+    (when (boundp 'cscope-minor-mode-keymap)
+      ;; Disable cscope mouse-3 key binding
+      ;; (because it overrides eide mouse-3 key binding)
+      (define-key cscope-minor-mode-keymap [mouse-3] nil))
     (setq eide-search-use-cscope-flag t)))
 
 (defvar eide-search-find-symbol-definition-flag nil)
