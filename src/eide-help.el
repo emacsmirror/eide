@@ -98,9 +98,9 @@ Argument:
   (eide-i-help-set-colors-for-help)
   (eide-keys-configure-for-special-buffer)
 
-  (when (get-buffer "* Help *")
-    (kill-buffer "* Help *"))
-  (switch-to-buffer (get-buffer-create "* Help *"))
+  (when (get-buffer "*Help*")
+    (kill-buffer "*Help*"))
+  (switch-to-buffer (get-buffer-create "*Help*"))
 
   (insert "\n")
   (put-text-property (point) (progn (insert "Emacs-IDE help page\n") (point)) 'face 'eide-help-title-face)

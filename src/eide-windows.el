@@ -42,11 +42,29 @@
 (defvar eide-windows-menu-window-width nil)
 (defvar eide-windows-configuration nil)
 
-(defvar eide-windows-update-output-buffer-id nil)
+(defvar eide-windows-update-execution-buffer-flag nil)
 
 (defvar eide-windows-frame-fullscreen-value nil)
 
 (defvar eide-windows-themes-edited-flag nil)
+
+(defvar eide-windows-display-buffer-alist
+  '(("\\*Completions\\*"
+     (display-buffer-at-bottom))
+    ("\\*Customize .*\\*"
+     (display-buffer-same-window))
+    ("\\*compilation\\*"
+     (eide-i-windows-display-compilation-buffer-function))
+    ("\\*shell\\*"
+     (eide-i-windows-display-shell-buffer-function))
+    ("\\*Man .*\\*"
+     (eide-i-windows-display-man-buffer-function))
+    ("\\*Menu\\*"
+     (eide-i-windows-display-menu-buffer-function))
+    ("\\*.*"
+     (eide-i-windows-display-buffer-in-output-window-function))
+    (".*"
+     (eide-i-windows-display-buffer-in-source-window-function))))
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
@@ -64,6 +82,111 @@
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+;; All functions named eide-i-windows-display-*-function below are action
+;; functions for display-buffer.
+;; alist argument is not forwarded to display-buffer-same-window
+;; because it might contain inhibit-same-window, which will make
+;; it fail.
+;; The purpose is to have complete control over the window in which
+;; a buffer should be displayed, so there is no point in forwarding
+;; alist.
+
+(defun eide-i-windows-display-compilation-buffer-function (p-buffer p-alist)
+  "Action function for display-buffer, for compilation buffer (to display in output window).
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (eide-windows-show-ide-windows)
+  (with-selected-window eide-windows-output-window
+    (display-buffer-same-window p-buffer nil))
+  (setq eide-compilation-buffer (buffer-name p-buffer))
+  ;; Return buffer window ("output" window)
+  eide-windows-output-window)
+
+(defun eide-i-windows-display-shell-buffer-function (p-buffer p-alist)
+  "Action function for display-buffer, for shell buffer (to display in output window).
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (eide-windows-show-ide-windows)
+  (with-selected-window eide-windows-output-window
+    (display-buffer-same-window p-buffer nil))
+  (setq eide-shell-buffer (buffer-name p-buffer))
+  ;; Return buffer window ("output" window)
+  eide-windows-output-window)
+
+(defun eide-i-windows-display-man-buffer-function (p-buffer p-alist)
+  "Action function for display-buffer, for man page buffer (to display in output window).
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (eide-windows-show-ide-windows)
+  (with-selected-window eide-windows-output-window
+    (display-buffer-same-window p-buffer nil))
+  ;; Update the list of files so that the man page will be available in output buffer list
+  (eide-menu-build-files-lists)
+  ;; Return buffer window ("output" window)
+  eide-windows-output-window)
+
+(defun eide-i-windows-display-menu-buffer-function (p-buffer p-alist)
+  "Action function for display-buffer, for menu buffer (to display in menu window).
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (eide-windows-show-ide-windows)
+  (with-selected-window eide-windows-menu-window
+    (display-buffer-same-window p-buffer nil))
+  ;; Return buffer window ("menu" window)
+  eide-windows-menu-window)
+
+(defun eide-i-windows-display-buffer-in-output-window-function (p-buffer p-alist)
+  "Action function for display-buffer, for buffers to display in output window.
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (eide-windows-show-ide-windows)
+  (with-selected-window eide-windows-output-window
+    (display-buffer-same-window p-buffer nil))
+  (when eide-windows-update-execution-buffer-flag
+    ;; The buffer was created for execution command.
+    ;; We must save the buffer name in order to be able to switch to
+    ;; this buffer later.
+    (setq eide-execution-buffer (buffer-name p-buffer))
+    (setq eide-windows-update-execution-buffer-flag nil))
+  ;; Return buffer window ("output" window)
+  eide-windows-output-window)
+
+(defun eide-i-windows-display-buffer-in-source-window-function (p-buffer p-alist)
+  "Action function for display-buffer, for buffers to display in source window.
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (let ((l-browsing-mode-flag nil))
+    (with-current-buffer p-buffer
+      (when (and (not eide-project-is-gdb-session-visible-flag)
+                 (or (equal major-mode 'dired-mode)
+                     (equal major-mode 'Buffer-menu-mode)))
+        (setq l-browsing-mode-flag t)))
+    (if l-browsing-mode-flag
+      ;; The buffer is a file browser: we must start "browsing mode"
+      ;; in order to display it in full frame.
+      (progn
+        (unless eide-menu-browsing-mode-flag
+          (eide-menu-browsing-mode-start))
+        (display-buffer-same-window p-buffer nil))
+      ;; The buffer is a standard file
+      (progn
+        (when eide-menu-browsing-mode-flag
+          ;; Stop the "browsing mode"
+          (eide-menu-browsing-mode-stop))
+        ;; Display the buffer in the "source" window
+        (with-selected-window eide-windows-source-window
+          (display-buffer-same-window p-buffer nil))
+        ;; Update menu if necessary
+        (eide-menu-update nil))))
+  ;; Return buffer window ("source" window)
+  eide-windows-source-window)
 
 (defun eide-i-windows-get-window-for-buffer (p-buffer-name)
   "Get the window in which a buffer should be displayed.
@@ -85,83 +208,6 @@ Argument:
             nil
             eide-windows-source-window))))
     nil))
-
-(defun eide-i-windows-display-buffer-function (p-buffer &optional p-not-this-window p-frame)
-  "Display a buffer in appropriate window (display-buffer-function).
-Returns the window.
-Called for: - compile, run, and shell buffers.
-            - man pages.
-Arguments (same as display-buffer function):
-- p-buffer: buffer.
-- p-not-this-window (optional): force to display in another window.
-- p-frame (optional): frame."
-  (let ((l-buffer-name) (l-window)
-        (l-selected-window (selected-window))
-        (l-browsing-mode-flag nil))
-    (if (bufferp p-buffer)
-      (setq l-buffer-name (buffer-name p-buffer))
-      (setq l-buffer-name p-buffer))
-    ;;(message (concat "eide-i-windows-display-buffer-function: " l-buffer-name))
-    (with-current-buffer l-buffer-name
-      (when (and (not eide-project-is-gdb-session-visible-flag)
-                 (or (equal major-mode 'dired-mode)
-                     (equal major-mode 'Buffer-menu-mode)))
-        (setq l-browsing-mode-flag t)))
-    (if l-browsing-mode-flag
-      (progn
-        (unless eide-menu-browsing-mode-flag
-          (eide-menu-browsing-mode-start))
-        (setq l-window l-selected-window)
-        (set-window-buffer l-window p-buffer))
-      (progn
-        (if (and (not eide-windows-ide-windows-visible-flag)
-                 (string-equal l-buffer-name "*Completions*"))
-          (progn
-            (setq l-window (get-buffer-window l-buffer-name))
-            (unless l-window
-              ;; When clicking on directories, completion buffer is closed,
-              ;; but its window is not closed: we must use it
-              (if (window-live-p eide-windows-window-completion)
-                (setq l-window eide-windows-window-completion)
-                (progn
-                  (select-window eide-windows-source-window)
-                  (split-window-vertically)
-                  (setq l-window (next-window))
-                  (setq eide-windows-window-completion l-window)))))
-          (progn
-            (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
-            (unless l-window
-              (setq l-window l-selected-window))))
-        (when (and (equal l-window eide-windows-source-window)
-                   eide-menu-browsing-mode-flag)
-          (eide-menu-browsing-mode-stop))
-        (set-window-buffer l-window p-buffer)
-        ;; Result buffer name is updated asynchronously
-        (when eide-windows-update-output-buffer-id
-          (if (string-equal eide-windows-update-output-buffer-id "c")
-            (setq eide-compilation-buffer l-buffer-name)
-            (if (string-equal eide-windows-update-output-buffer-id "r")
-              (setq eide-execution-buffer l-buffer-name)
-              (when (string-equal eide-windows-update-output-buffer-id "s")
-                (setq eide-shell-buffer l-buffer-name))))
-          (setq eide-windows-update-output-buffer-id nil))
-        (when (equal l-window eide-windows-source-window)
-          ;; Update menu if necessary
-          (eide-menu-update nil))
-        (when (string-equal l-buffer-name "*Completions*")
-          (select-window l-window)
-          ;; "Output" window temporarily expands to half or 2/3 of the frame to
-          ;; display completions
-          (let ((l-completion-height (max (+ (count-lines (point-min) (point-max)) 2) (/ (frame-height) 2))))
-            (when (> l-completion-height (/ (frame-height) 2))
-              (setq l-completion-height (/ (* (frame-height) 2) 3)))
-            (enlarge-window (- l-completion-height (window-height)))))
-        (when (string-match "^\*Man .*" l-buffer-name)
-          (eide-menu-build-files-lists))))
-    ;; Restore selected window
-    (select-window l-selected-window)
-    ;; Return buffer window
-    l-window))
 
 (defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
   "Override select-window function (advice), to know which window is the active
@@ -364,7 +410,7 @@ before gdb builds its own."
   (ad-activate 'next-buffer)
   (ad-activate 'gdb-setup-windows)
   (ad-activate 'gdb-restore-windows)
-  (setq display-buffer-function 'eide-i-windows-display-buffer-function)
+  (setq display-buffer-alist eide-windows-display-buffer-alist)
   (eide-windows-skip-unwanted-buffers-in-source-window)
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t)
@@ -637,6 +683,14 @@ and display it. Current buffer is kept if correct."
     ;; In "output" window, open popup menu to delete search results
     (eide-popup-open-menu-for-search-results-delete)))
 
+(defun eide-windows-disable-display-buffer-alist ()
+  "Clear display-buffer-alist."
+  (setq display-buffer-alist nil))
+
+(defun eide-windows-enable-display-buffer-alist ()
+  "Enable specific display-buffer-alist for windows layout."
+  (setq display-buffer-alist eide-windows-display-buffer-alist))
+
 (defun eide-windows-switch-to-editor-mode ()
   "Switch to editor mode and build the layout."
   (interactive)
@@ -647,7 +701,7 @@ and display it. Current buffer is kept if correct."
       ;; the color theme for source code has changed)
       (eide-display-apply-color-theme)
       (setq eide-windows-themes-edited-flag nil)))
-  (if (or (string-equal (buffer-name) "* Help *")
+  (if (or (string-equal (buffer-name) "*Help*")
           (string-match "^\*Customize.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
     ;; Close "help", customization, or projects list

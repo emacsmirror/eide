@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -605,7 +605,7 @@ current buffer."
 (defun eide-menu-init ()
   "Initialize \"menu\" buffer."
   ;; Menu buffer is created empty (content will be built by eide-menu-update)
-  (setq eide-menu-buffer-name (buffer-name (get-buffer-create "* Menu *")))
+  (setq eide-menu-buffer-name (buffer-name (get-buffer-create "*Menu*")))
   (with-current-buffer eide-menu-buffer-name
     ;; Don't show trailing whitespace in this buffer
     ;; (there is a space at the end of every line, because of properties)

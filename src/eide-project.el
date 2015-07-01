@@ -27,6 +27,7 @@
 (require 'eide-config)
 (require 'eide-popup)
 (require 'eide-search)
+(require 'eide-windows)
 
 ;; Check --no-desktop option before it is removed from command-line-args by desktop in after-init-hook
 (defvar eide-no-desktop-option nil)
@@ -44,7 +45,7 @@
 (setq desktop-restore-frames nil)
 
 ;; Preserve "menu" buffer from desktop-clear
-(setq desktop-clear-preserve-buffers (cons "\\* Menu \\*" desktop-clear-preserve-buffers))
+(setq desktop-clear-preserve-buffers (cons "\\*Menu\\*" desktop-clear-preserve-buffers))
 
 ;; expand-file-name replaces ~ with /home/<user>
 (defvar eide-root-directory (expand-file-name default-directory))
@@ -75,7 +76,7 @@
     (setq eide-project-gdb-option " --annotate=3 ")))
 
 (defvar eide-project-projects-file "~/.emacs.d/eide/workspace1/projects-list")
-(defvar eide-project-projects-buffer-name "* Emacs-IDE projects *")
+(defvar eide-project-projects-buffer-name "*Emacs-IDE projects*")
 
 (defvar eide-project-comparison-project-point nil)
 
@@ -569,10 +570,7 @@ Argument:
   (switch-to-buffer "*results*")
   ;; Change current directory (of unused buffer "*results*")
   (setq default-directory eide-root-directory)
-  (let ((l-compile-command (eide-project-get-full-command p-command)))
-    ;; Compile buffer name will be updated in eide-i-windows-display-buffer-function
-    (setq eide-windows-update-output-buffer-id "c")
-    (compile l-compile-command))
+  (compile (eide-project-get-full-command p-command))
   (eide-windows-select-source-window t))
 
 (defun eide-i-project-run (p-command)
@@ -586,10 +584,9 @@ Argument:
   ;; Changing current directory has no effect with shell-command
   ;; Instead, we must change current directory in the command itself
   ;; Command ends with "&" otherwise emacs gets frozen until gdb is closed
-  (let ((l-run-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-command) " &")))
-    ;; Run buffer name will be updated in eide-i-windows-display-buffer-function
-    (setq eide-windows-update-output-buffer-id "r")
-    (shell-command l-run-command)))
+  ;; Run buffer name will be updated in eide-i-windows-display-buffer-in-output-window-function
+  (setq eide-windows-update-execution-buffer-flag t)
+  (shell-command (concat "cd " eide-root-directory " ; " (eide-project-get-full-command p-command) " &")))
 
 (defun eide-i-project-debug (p-program)
   "Debug project.
@@ -1275,7 +1272,7 @@ Argument:
     (unless eide-project-is-gdb-session-visible-flag
       (setq eide-project-tool-bar-mode-before-debug tool-bar-mode))
     (tool-bar-mode 1))
-  (setq display-buffer-function nil)
+  (eide-windows-disable-display-buffer-alist)
   (setq eide-project-is-gdb-session-visible-flag t)
   (setq eide-project-is-gdb-session-running-flag t))
 
@@ -1287,7 +1284,7 @@ Argument:
   (when window-system
     ;; Hide tool bar if necessary (restore previous state)
     (tool-bar-mode (if eide-project-tool-bar-mode-before-debug 1 -1)))
-  (setq display-buffer-function 'eide-i-windows-display-buffer-function)
+  (eide-windows-enable-display-buffer-alist)
   (setq eide-project-is-gdb-session-visible-flag nil))
 
 (defun eide-project-debug-1 ()
