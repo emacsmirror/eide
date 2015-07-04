@@ -87,6 +87,9 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
+(defgroup eide-search nil "Update of cscope database."
+  :tag "Search"
+  :group 'eide-emacs-settings)
 (defcustom eide-custom-update-cscope-database 'auto "Update of cscope database. Update is necessary when the code has changed. You can update on every search (cscope default behaviour), only on user request, or automatically when a buffer has been edited or refreshed."
   :tag "Update of cscope database"
   :type '(choice (const :tag "Don't override" ignore)

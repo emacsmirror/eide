@@ -1,6 +1,6 @@
 ;;; eide-display.el --- Emacs-IDE: Display (color themes)
 
-;; Copyright (C) 2013-2014 Cédric Marie
+;; Copyright (C) 2013-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -28,6 +28,8 @@
 
 (defvar eide-display-color-theme nil)
 
+(defvar eide-display-user-ring-bell-function nil)
+
 ;; Hidden text (for hide/show minor mode)
 ;; Does not work with Emacs 22.3: I comment it until I can test
 ;; and maybe fix the bug.
@@ -50,16 +52,36 @@
   :set '(lambda (param value) (set-default param value) (eide-display-apply-color-theme))
   :initialize 'custom-initialize-default
   :group 'eide-display)
-
 (defcustom eide-custom-start-maximized t "Start with maximized frame."
   :tag "Start with maximized frame"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
   :group 'eide-display)
 
+(defgroup eide-sound-display nil "Beeping / screen flashing."
+  :tag "Sound/display"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-disable-beeping t "Beeping / screen flashing (visible bell). It is disabled by setting ring-bell-function variable to 'ignore."
+  :tag "Beeping / screen flashing"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Disable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-sound-display)
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-display-save-emacs-settings ()
+  "Save Emacs settings (for display)."
+  (setq eide-display-user-ring-bell-function ring-bell-function))
+
+(defun eide-display-apply-emacs-settings ()
+  "Apply Emacs settings (for display)."
+  (if (and eide-custom-override-emacs-settings eide-custom-disable-beeping)
+    (setq ring-bell-function 'ignore)
+    (setq ring-bell-function eide-display-user-ring-bell-function)))
 
 (defun eide-display-apply-color-theme ()
   "Apply color theme."
