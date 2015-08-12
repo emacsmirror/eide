@@ -844,7 +844,7 @@ finished yet), and delete these files."
 (defun eide-project-open-list ()
   "Display projects list (full frame), and rebuild internal projects list."
   (interactive)
-  (let ((l-do-it t) (l-current-project-marker nil))
+  (let ((l-do-it t) (l-current-project-marker nil) (l-save-list nil))
     (when (and (not eide-project-name)
                eide-menu-files-list
                (not (y-or-n-p "The list of open files will be lost if you select a project. Do you want to continue?")))
@@ -862,31 +862,45 @@ finished yet), and delete these files."
         (switch-to-buffer eide-project-projects-buffer-name)
         (progn
           (find-file eide-project-projects-file)
-          (rename-buffer eide-project-projects-buffer-name)))
+          (rename-buffer eide-project-projects-buffer-name)
+          ;; Don't show trailing whitespace in this buffer
+          ;; (there is a space at the end of every project name, because of properties)
+          (setq show-trailing-whitespace nil)))
+
       (goto-char (point-min))
       (forward-line)
       (while (not (eobp))
         (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
           (forward-line -1)
+          ;; Upgrade from version 2.1.0
+          (let ((l-line-end-pos (line-end-position)))
+            (when (not (= (char-before l-line-end-pos) 32))
+              (save-excursion
+                (end-of-line)
+                (insert " ")
+                (setq l-save-list t))))
           (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
             (progn
               ;; Current project (can't be selected)
-              (put-text-property (point) (line-end-position) 'face 'eide-project-project-current-name-face)
+              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
               (setq l-current-project-marker (point-marker)))
             (if (and eide-compare-other-project-name
                      (string-equal l-project-dir eide-compare-other-project-directory))
               ;; Project selected for comparison
               (progn
                 (setq eide-project-comparison-project-point (point))
-                (put-text-property (point) (line-end-position) 'face 'eide-project-project-comparison-name-face))
+                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
               ;; Other projects
-              (put-text-property (point) (line-end-position) 'face 'eide-project-project-name-face)))
-          (put-text-property (point) (line-end-position) 'keymap project-name-map)
-          (put-text-property (point) (line-end-position) 'mouse-face 'highlight)
+              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
+          (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
+          (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
           (push l-project-dir eide-project-current-projects-list)
           (forward-line 3)))
-      ;; Clear modified status (text properties don't need to be saved)
-      (set-buffer-modified-p nil)
+      (if l-save-list
+        ;; Save the buffer (upgrade from version 2.1.0)
+        (save-buffer)
+        ;; Clear modified status (text properties don't need to be saved)
+        (set-buffer-modified-p nil))
       (setq buffer-read-only t)
       (goto-char (if l-current-project-marker (marker-position l-current-project-marker) (point-min)))
       (ad-activate 'switch-to-buffer))))
@@ -905,9 +919,9 @@ finished yet), and delete these files."
       (progn
         ;; This project is already in the list
         (forward-line -1)
-        (unless (string-equal eide-project-name (buffer-substring-no-properties (point) (line-end-position)))
+        (unless (string-equal eide-project-name (buffer-substring-no-properties (point) (1- (line-end-position))))
           ;; Update the project name
-          (delete-region (point) (line-end-position))
+          (delete-region (point) (1- (line-end-position)))
           (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
           (save-buffer)))
       (progn
@@ -921,7 +935,7 @@ finished yet), and delete these files."
         (unless (eobp)
           (forward-line -1))
         (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
-        (insert "\n")
+        (insert " \n")
         (insert eide-root-directory)
         (insert "\n")
         (save-buffer)))
@@ -964,7 +978,7 @@ current workspace."
     (goto-char (point-min))
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
       (forward-line -1)
-      (delete-region (point) (line-end-position))
+      (delete-region (point) (1- (line-end-position)))
       (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
       (save-buffer))
     (kill-this-buffer)))
@@ -989,7 +1003,7 @@ current workspace."
   "Select/unselect the project on current line for comparison."
   (interactive)
   (let ((buffer-read-only nil) (l-project-name nil) (l-project-dir nil))
-    (setq l-project-name (buffer-substring-no-properties (point) (line-end-position)))
+    (setq l-project-name (buffer-substring-no-properties (point) (1- (line-end-position))))
     (forward-line)
     (setq l-project-dir (buffer-substring-no-properties (point) (line-end-position)))
     (if (string-equal l-project-dir eide-compare-other-project-directory)
@@ -1001,7 +1015,7 @@ current workspace."
     (let ((l-new-point (point)))
       (unless (string-equal l-project-dir eide-root-directory)
         ;; Highlight selected project
-        (put-text-property (point) (line-end-position) 'face 'eide-project-project-comparison-name-face))
+        (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
       (when eide-project-comparison-project-point
         ;; Clear previous selected project
         (save-excursion
@@ -1010,8 +1024,8 @@ current workspace."
           (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
             (forward-line -1)
             (if (string-equal l-old-project-dir eide-root-directory)
-              (put-text-property (point) (line-end-position) 'face 'eide-project-project-current-name-face)
-              (put-text-property (point) (line-end-position) 'face 'eide-project-project-name-face)))))
+              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
+              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))))
       (setq eide-project-comparison-project-point l-new-point))
     ;; Clear modified status (text properties don't need to be saved)
     (set-buffer-modified-p nil)))
