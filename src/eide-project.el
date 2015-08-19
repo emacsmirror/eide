@@ -255,10 +255,9 @@ Arguments:
 - param: customization parameter.
 - value: customization value."
   (set-default param value)
-  (when (boundp 'compilation-filter-hook)
-    (if eide-custom-support-ansi-escape-code-in-compilation-buffer
-      (add-hook 'compilation-filter-hook 'eide-i-colorize-compilation-buffer-hook)
-      (remove-hook 'compilation-filter-hook 'eide-i-colorize-compilation-buffer-hook))))
+  (if eide-custom-support-ansi-escape-code-in-compilation-buffer
+    (add-hook 'compilation-filter-hook 'eide-i-project-colorize-compilation-buffer-hook)
+    (remove-hook 'compilation-filter-hook 'eide-i-project-colorize-compilation-buffer-hook)))
 
 (defun eide-i-project-custom-set-number-of-workspaces (param value)
   "Set number of workspaces.
@@ -301,11 +300,9 @@ has already been called."
     (setq frame-title-format (concat eide-project-name " - Emacs"))
     (setq frame-title-format (concat eide-root-directory " - Emacs"))))
 
-(when (and (boundp 'compilation-filter-hook)
-           (boundp 'compilation-filter-start))
-  (defun eide-i-colorize-compilation-buffer-hook ()
-    (when (eq major-mode 'compilation-mode)
-      (ansi-color-apply-on-region compilation-filter-start (point)))))
+(defun eide-i-project-colorize-compilation-buffer-hook ()
+  (when (eq major-mode 'compilation-mode)
+    (ansi-color-apply-on-region compilation-filter-start (point))))
 
 (defun eide-i-project-set-current-workspace (p-workspace-number)
   "Set current workspace.
@@ -601,17 +598,11 @@ Argument:
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))
 
-(defun eide-i-compilation-finished-hook (cur-buffer msg)
+(defun eide-i-project-replace-filename-path-in-compilation-hook ()
   "Change the path of filenames in compilation buffer."
-  ;; Check that the process was a compilation (not a grep)
-  (when (and eide-compilation-buffer
-             (equal cur-buffer (get-buffer eide-compilation-buffer)))
-    (unless (string-equal eide-project-compile-error-old-path-regexp "")
-      ;; Replace all occurrences in compilation buffer
-      (with-current-buffer cur-buffer
-        (save-excursion
-          (goto-char (point-min))
-          (perform-replace eide-project-compile-error-old-path-regexp eide-project-compile-error-new-path-string nil t nil))))))
+  (when (and (eq major-mode 'compilation-mode)
+             (not (string-equal eide-project-compile-error-old-path-regexp "")))
+    (perform-replace eide-project-compile-error-old-path-regexp eide-project-compile-error-new-path-string nil t nil nil nil compilation-filter-start (point))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -620,7 +611,6 @@ Argument:
 (defun eide-project-init ()
   "Initialize project."
   (setq compilation-scroll-output 'first-error)
-  (add-hook 'compilation-finish-functions 'eide-i-compilation-finished-hook)
   (when (and eide-open-project-at-startup
              (file-exists-p (concat eide-root-directory eide-project-config-file)))
     (eide-i-project-load t nil)
@@ -1170,7 +1160,12 @@ current workspace."
       (insert-buffer-substring eide-project-config-target-buffer)
       (save-buffer))
     ;; Close temporary buffer
-    (kill-buffer eide-project-config-target-buffer)))
+    (kill-buffer eide-project-config-target-buffer))
+  (if (string-equal eide-project-compile-error-old-path-regexp "")
+    ;; Remove hook if present
+    (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+    ;; Add hook if not present
+    (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
 
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
