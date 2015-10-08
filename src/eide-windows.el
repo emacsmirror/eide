@@ -50,7 +50,9 @@
 
 (defvar eide-windows-display-buffer-alist
   '(("\\*Completions\\*"
-     (display-buffer-at-bottom))
+     ;; Display "*Completions*" buffer in a new window (half the size of the frame)
+     ;; instead of displaying it in "output" window (which might be too small)
+     (display-buffer-reuse-window display-buffer-at-bottom))
     ("\\*Customize .*\\*"
      (display-buffer-same-window))
     ("\\*compilation\\*"
