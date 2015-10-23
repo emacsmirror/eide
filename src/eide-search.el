@@ -23,6 +23,7 @@
 
 (require 'eide-config)
 (require 'eide-menu)
+(require 'eide-windows)
 
 ;; Test if xcscope is available
 (defvar eide-search-use-cscope-flag nil)
@@ -330,6 +331,9 @@ Argument:
         (unless eide-search-cscope-exclude-enabled-flag
           (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
         (eide-windows-select-output-window)
+        ;; Disable window configuration change hook, because output buffer will be changed,
+        ;; especially when killing available result to find again.
+        (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
         (when (get-buffer l-result-buffer-name)
           (if (y-or-n-p "This symbol has already been found... Find again (or use available result)?")
             ;; Delete existing find-symbol buffer
@@ -350,9 +354,11 @@ Argument:
                   (setq cscope-do-not-update-database t))))
             (cscope-find-this-symbol p-symbol)
             (with-current-buffer "*cscope*"
-              (rename-buffer l-result-buffer-name t))
+              (rename-buffer l-result-buffer-name t)
+              (setq eide-windows-output-window-buffer l-result-buffer-name))
             (eide-menu-build-files-lists))
           (eide-search-view-output-buffer l-result-buffer-name))
+        (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
         (eide-windows-select-source-window t))
       (message eide-search-cscope-no-file-string))
     (message eide-search-cscope-not-ready-string)))
@@ -392,6 +398,9 @@ Argument:
         (l-do-it-flag t))
     (when (and eide-project-name (not eide-search-grep-exclude-enabled-flag))
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
+    ;; Disable window configuration change hook, because output buffer will be changed,
+    ;; especially when killing available result to find again.
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (when (get-buffer l-result-buffer-name)
       (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
@@ -410,9 +419,11 @@ Argument:
           ;; 'cd' is used first, in case shell init changes current directory
           (grep-find (concat "echo ; cd " l-buffer-directory " ; grep -In " eide-search-grep-exclude-options l-grep-exclude-files-options " -e \"" p-string "\" * .* 2> /dev/null")))
         (with-current-buffer "*grep*"
-          (rename-buffer l-result-buffer-name t))
+          (rename-buffer l-result-buffer-name t)
+          (setq eide-windows-output-window-buffer l-result-buffer-name))
         (eide-menu-build-files-lists))
       (eide-search-view-output-buffer l-result-buffer-name))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (eide-windows-select-source-window t)))
 
 (defun eide-search-grep-local-without-prompt ()
@@ -443,6 +454,9 @@ Argument:
         (l-do-it-flag t))
     (when (and eide-project-name (not eide-search-grep-exclude-enabled-flag))
       (setq l-result-buffer-name (concat l-result-buffer-name " (filters disabled)")))
+    ;; Disable window configuration change hook, because output buffer will be changed,
+    ;; especially when killing available result to find again.
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (when (get-buffer l-result-buffer-name)
       (if (y-or-n-p "This string has already been searched... Search again (or use available search result)?")
         ;; Delete existing grep buffer
@@ -468,9 +482,11 @@ Argument:
             ;; 'cd' is used first, in case shell init changes current directory
             (grep-find (concat "echo ; cd " eide-root-directory " ; grep -rIn " eide-search-grep-exclude-options l-grep-exclude-files-options " " l-grep-exclude-dirs-options " -e \"" p-string "\" . 2> /dev/null"))))
         (with-current-buffer "*grep*"
-          (rename-buffer l-result-buffer-name t))
+          (rename-buffer l-result-buffer-name t)
+          (setq eide-windows-output-window-buffer l-result-buffer-name))
         (eide-menu-build-files-lists))
       (eide-search-view-output-buffer l-result-buffer-name))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (eide-windows-select-source-window t)))
 
 (defun eide-search-grep-global-without-prompt ()
@@ -536,6 +552,9 @@ Argument:
 - p-grep-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (kill-buffer p-grep-buffer-name)
     (setq eide-menu-grep-results-list (remove p-grep-buffer-name eide-menu-grep-results-list))
 
@@ -552,12 +571,16 @@ Argument:
               (setq l-buffer (car eide-menu-man-pages-list))
               (if l-buffer
                 (switch-to-buffer l-buffer)
-                (switch-to-buffer "*results*")))))))))
+                (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 (defun eide-search-close-all-grep-buffers ()
   "Close all grep result buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (dolist (l-grep-buffer-name eide-menu-grep-results-list)
       (kill-buffer l-grep-buffer-name))
     (setq eide-menu-grep-results-list nil)
@@ -571,7 +594,8 @@ Argument:
           (setq l-buffer (car eide-menu-man-pages-list))
           (if l-buffer
             (switch-to-buffer l-buffer)
-            (switch-to-buffer "*results*")))))))
+            (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 (defun eide-search-close-cscope-buffer (p-cscope-buffer-name)
   "Close a cscope result buffer.
@@ -579,6 +603,9 @@ Argument:
 - p-cscope-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (kill-buffer p-cscope-buffer-name)
     (setq eide-menu-cscope-results-list (remove p-cscope-buffer-name eide-menu-cscope-results-list))
 
@@ -595,12 +622,16 @@ Argument:
               (setq l-buffer (car eide-menu-man-pages-list))
               (if l-buffer
                 (switch-to-buffer l-buffer)
-                (switch-to-buffer "*results*")))))))))
+                (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 (defun eide-search-close-all-cscope-buffers ()
   "Close all cscope result buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (dolist (l-cscope-buffer-name eide-menu-cscope-results-list)
       (kill-buffer l-cscope-buffer-name))
     (setq eide-menu-cscope-results-list nil)
@@ -614,7 +645,8 @@ Argument:
           (setq l-buffer (car eide-menu-man-pages-list))
           (if l-buffer
             (switch-to-buffer l-buffer)
-            (switch-to-buffer "*results*")))))))
+            (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 (defun eide-search-close-man-buffer (p-man-buffer-name)
   "Close a man page buffer.
@@ -622,6 +654,9 @@ Argument:
 - p-man-buffer-name: buffer name."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (kill-buffer p-man-buffer-name)
     (setq eide-menu-man-pages-list (remove p-man-buffer-name eide-menu-man-pages-list))
 
@@ -638,12 +673,16 @@ Argument:
               (setq l-buffer (car eide-menu-cscope-results-list))
               (if l-buffer
                 (switch-to-buffer l-buffer)
-                (switch-to-buffer "*results*")))))))))
+                (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 (defun eide-search-close-all-man-buffers ()
   "Close all man page buffers."
   (eide-windows-select-output-window)
   (let ((l-buffer (buffer-name)))
+    ;; Disable window configuration change hook, because output buffer might be changed
+    ;; (if the current one is killed)
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (dolist (l-man-buffer-name eide-menu-man-pages-list)
       (kill-buffer l-man-buffer-name))
     (setq eide-menu-man-pages-list nil)
@@ -657,6 +696,7 @@ Argument:
           (setq l-buffer (car eide-menu-cscope-results-list))
           (if l-buffer
             (switch-to-buffer l-buffer)
-            (switch-to-buffer "*results*")))))))
+            (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))))))
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
 ;;; eide-search.el ends here

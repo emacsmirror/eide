@@ -114,6 +114,7 @@
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
   (ad-deactivate 'switch-to-buffer)
+  (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
   (customize-group 'eide))
 
 (defun eide-config-customize-themes ()
@@ -123,6 +124,7 @@
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
   (ad-deactivate 'switch-to-buffer)
+  (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
   (setq eide-windows-themes-edited-flag t)
   ;; customize-themes doesn't seem to be working properly
   ;; when selecting multiple themes.

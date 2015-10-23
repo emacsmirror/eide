@@ -396,7 +396,9 @@ Arguments:
   (unless eide-no-desktop-option
     (unless p-startup-flag
       ;; No need to update menu for every restored buffer
-      (ad-deactivate 'switch-to-buffer))
+      (ad-deactivate 'switch-to-buffer)
+      ;; No need to check windows layout for every restored buffer
+      (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook))
     (if desktop-dirname
       ;; A desktop is already loaded: switch to the new one.
       ;; desktop-change-dir saves the desktop, close all buffers, and read the new desktop.
@@ -413,7 +415,8 @@ Arguments:
           (desktop-clear)
           (desktop-read eide-root-directory))))
     (unless p-startup-flag
-      (ad-activate 'switch-to-buffer)))
+      (ad-activate 'switch-to-buffer)
+      (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
   ;; Close any existing TAGS file, to make sure we will use the right one
   (when (get-buffer "TAGS")
@@ -564,8 +567,8 @@ Argument:
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
-  (switch-to-buffer "*results*")
-  ;; Change current directory (of unused buffer "*results*")
+  (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
+  ;; Change current directory
   (setq default-directory eide-root-directory)
   (compile (eide-project-get-full-command p-command))
   (eide-windows-select-source-window t))
@@ -577,7 +580,7 @@ Argument:
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
-  (switch-to-buffer "*results*")
+  (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
   ;; Changing current directory has no effect with shell-command
   ;; Instead, we must change current directory in the command itself
   ;; Command ends with "&" otherwise emacs gets frozen until gdb is closed
@@ -592,8 +595,8 @@ Argument:
   (eide-windows-select-output-window)
   ;; Sometimes does not compile when a grep buffer is displayed
   ;; "compilation finished" is displayed in grep buffer!
-  (switch-to-buffer "*results*")
-  ;; Change current directory (of unused buffer "*results*")
+  (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
+  ;; Change current directory
   (setq default-directory eide-root-directory)
   (let ((l-eide-debug-command (eide-project-get-full-gdb-command p-program)))
     (gdb l-eide-debug-command)))

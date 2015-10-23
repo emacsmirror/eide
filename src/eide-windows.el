@@ -26,14 +26,14 @@
 (defvar eide-windows-source-window nil)
 (defvar eide-windows-menu-window nil)
 (defvar eide-windows-output-window nil)
-(defvar eide-windows-window-completion nil)
 
 (defvar eide-windows-ide-windows-visible-flag nil)
 (defvar eide-windows-menu-update-request-pending-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
 (defvar eide-windows-menu-update-request-pending-force-update-status-flag nil)
 
-(defvar eide-windows-output-window-buffer nil)
+(defvar eide-windows-default-output-buffer-name "*results*")
+(defvar eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
 (defvar eide-compilation-buffer nil)
 (defvar eide-execution-buffer nil)
 (defvar eide-shell-buffer nil)
@@ -52,7 +52,11 @@
   '(("\\*Completions\\*"
      ;; Display "*Completions*" buffer in a new window (half the size of the frame)
      ;; instead of displaying it in "output" window (which might be too small)
-     (display-buffer-reuse-window display-buffer-at-bottom))
+     ;; The sequence is:
+     ;; 1) Save "output" window height before it is resized by "*Completions*"
+     ;; 2) Reuse "*Completions*" window if already displayed
+     ;; 3) Otherwise, open a new window at bottom
+     (eide-i-windows-save-output-window-height display-buffer-reuse-window display-buffer-at-bottom))
     ("\\*Customize .*\\*"
      (display-buffer-same-window))
     ("\\*compilation\\*"
@@ -94,12 +98,29 @@
 ;; a buffer should be displayed, so there is no point in forwarding
 ;; alist.
 
+(defun eide-i-windows-save-output-window-height (p-buffer p-alist)
+  "display-buffer function that saves \"output\" window height (before it is
+resized by completions) and deliberately fails to display the completion buffer
+so that it is managed by next display-buffer functions.
+Arguments:
+- p-buffer: buffer.
+- p-alist: action alist."
+  (when (and eide-windows-ide-windows-visible-flag
+             (window-live-p eide-windows-output-window)
+             (not (get-buffer-window "*Completions*")))
+    ;; Save "output" window height
+    (with-selected-window eide-windows-output-window
+      (setq eide-windows-output-window-height (window-height))))
+  ;; Make it fail so that another display-buffer function will be used
+  nil)
+
 (defun eide-i-windows-display-compilation-buffer-function (p-buffer p-alist)
   "Action function for display-buffer, for compilation buffer (to display in output window).
 Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
   (eide-windows-show-ide-windows)
+  (setq eide-windows-output-window-buffer (buffer-name p-buffer))
   (with-selected-window eide-windows-output-window
     (display-buffer-same-window p-buffer nil))
   (setq eide-compilation-buffer (buffer-name p-buffer))
@@ -112,6 +133,7 @@ Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
   (eide-windows-show-ide-windows)
+  (setq eide-windows-output-window-buffer (buffer-name p-buffer))
   (with-selected-window eide-windows-output-window
     (display-buffer-same-window p-buffer nil))
   (setq eide-shell-buffer (buffer-name p-buffer))
@@ -124,6 +146,7 @@ Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
   (eide-windows-show-ide-windows)
+  (setq eide-windows-output-window-buffer (buffer-name p-buffer))
   (with-selected-window eide-windows-output-window
     (display-buffer-same-window p-buffer nil))
   ;; Update the list of files so that the man page will be available in output buffer list
@@ -148,6 +171,7 @@ Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
   (eide-windows-show-ide-windows)
+  (setq eide-windows-output-window-buffer (buffer-name p-buffer))
   (with-selected-window eide-windows-output-window
     (display-buffer-same-window p-buffer nil))
   (when eide-windows-update-execution-buffer-flag
@@ -240,28 +264,6 @@ Arguments (same as switch-to-buffer function):
 ones.
 - p-force-same-window (optional): force to display the buffer in the selected
 window."
-  ;; C-x C-f saves the windows layout before displaying completion buffer,
-  ;; and restores it when the file is selected - just before calling switch-to-buffer.
-  ;; If the user has changed the windows layout in between, it is lost.
-  ;; In particular, if the user has changed IDE windows visibility, is is lost,
-  ;; and the internal state is incorrect: we must fix it!
-  (if eide-windows-ide-windows-visible-flag
-    (unless (get-buffer-window eide-menu-buffer-name)
-      ;; IDE windows are supposed to be shown, but an old layout has been restored:
-      ;; let's clear internal status.
-      (setq eide-windows-ide-windows-visible-flag nil)
-      (setq eide-windows-menu-window nil)
-      (setq eide-windows-output-window nil))
-    (let ((l-menu-window (get-buffer-window eide-menu-buffer-name)))
-      (when l-menu-window
-        ;; IDE windows are supposed to be hidden, but an old layout has been restored:
-        ;; let's update internal status with menu buffer and possible output buffer.
-        (setq eide-windows-ide-windows-visible-flag t)
-        (setq eide-windows-menu-window l-menu-window)
-        (dolist (l-window (window-list))
-          (when (string-match "^\*.*" (buffer-name (window-buffer l-window)))
-            (setq eide-windows-output-window l-window))))))
-
   (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
       ;; Get buffer name from buffer
@@ -302,6 +304,8 @@ window."
               (when (and (equal l-window eide-windows-source-window)
                          eide-menu-browsing-mode-flag)
                 (eide-menu-browsing-mode-stop))
+              (when (equal l-window eide-windows-output-window)
+                (setq eide-windows-output-window-buffer l-buffer-name))
               ad-do-it
               (set-buffer l-buffer-name)
               (if eide-project-is-gdb-session-visible-flag
@@ -355,13 +359,19 @@ according to selected window."
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
+    ;; Temporarily disable window configuration change hook, otherwise it would
+    ;; try to show IDE windows when an IDE buffer is displayed
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
       ad-do-it
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
-    (ad-activate 'switch-to-buffer))
-  (eide-menu-update nil))
+    (ad-activate 'switch-to-buffer)
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+    (if (equal l-window eide-windows-output-window)
+      (setq eide-windows-output-window-buffer (buffer-name))
+      (eide-menu-update nil))))
 
 (defadvice next-buffer (around eide-next-buffer-advice-around)
   "Override next-buffer function (advice), to select appropriate buffer according
@@ -370,13 +380,19 @@ to selected window."
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
+    ;; Temporarily disable window configuration change hook, otherwise it would
+    ;; try to show IDE windows when an IDE buffer is displayed
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
       ad-do-it
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
-    (ad-activate 'switch-to-buffer))
-  (eide-menu-update nil))
+    (ad-activate 'switch-to-buffer)
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+    (if (equal l-window eide-windows-output-window)
+      (setq eide-windows-output-window-buffer (buffer-name))
+      (eide-menu-update nil))))
 
 (defadvice gdb-setup-windows (before eide-gdb-setup-windows-advice-before)
   "Override gdb-setup-windows function (advice), to unbuild windows layout before
@@ -416,6 +432,7 @@ before gdb builds its own."
   (eide-windows-skip-unwanted-buffers-in-source-window)
   ;; Create menu content (force to build and to retrieve files status)
   (eide-menu-update t t)
+  (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
 
   (when eide-custom-start-maximized
     (set-frame-parameter nil 'fullscreen 'maximized)))
@@ -438,6 +455,29 @@ before gdb builds its own."
   "Test if selected window is \"output\" window."
   (equal (selected-window) eide-windows-output-window))
 
+(defun eide-i-windows-delete-ide-windows ()
+  "Delete IDE windows if they are displayed."
+  (when (> (length (window-list nil 'ignore nil)) 1)
+    ;; There is more than one window: we can safely delete "menu" window
+    (if (window-live-p eide-windows-menu-window)
+      ;; The window object still exists: we can simply delete it
+      (delete-window eide-windows-menu-window)
+      ;; The window object is not valid: we must check if a window is currently
+      ;; displaying the "menu" buffer, and delete it
+      (let ((l-window (get-buffer-window eide-menu-buffer-name)))
+        (when l-window
+          (delete-window l-window)))))
+  (when (> (length (window-list nil 'ignore nil)) 1)
+    ;; There is more than one window: we can safely delete "output" window
+    (if (window-live-p eide-windows-output-window)
+      ;; The window object still exists: we can simply delete it
+      (delete-window eide-windows-output-window)
+      ;; The window object is not valid: we must check if a window is currently
+      ;; displaying the "output" buffer, and delete it
+      (let ((l-window (get-buffer-window eide-windows-output-window-buffer)))
+        (when l-window
+          (delete-window l-window))))))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -446,16 +486,47 @@ before gdb builds its own."
   "Initialize windows."
   (add-hook 'window-setup-hook 'eide-i-windows-window-setup-hook))
 
+(defun eide-windows-configuration-change-hook ()
+  "Update IDE layout internal information (status and window objects) if
+necessary when the window configuration is changed. It is useful when an old
+window configuration is restored. In particular, find-file command saves the
+window configuration, and restores it when finished - either normally or
+cancelled by C-g - whatever happened in between (including hide/show IDE
+windows)."
+  (if eide-windows-ide-windows-visible-flag
+    ;; IDE windows are supposed to be visible
+    (let ((l-menu-window (get-buffer-window eide-menu-buffer-name))
+          (l-output-window (get-buffer-window eide-windows-output-window-buffer)))
+      (if (or (not l-menu-window) (not l-output-window))
+        ;; At least one of the IDE windows is not visible
+        ;; Properly hide IDE windows in order to update internal information
+        (eide-windows-hide-ide-windows)
+        (when (not (equal l-menu-window eide-windows-menu-window))
+          ;; IDE windows are visible, but the window objects are not consistent
+          ;; Properly show IDE windows in order to update internal information
+          (eide-windows-show-ide-windows))))
+    ;; IDE windows are supposed not to be visible
+    (when (get-buffer-window eide-menu-buffer-name)
+      ;; IDE windows are visible
+      ;; Properly show IDE windows in order to update internal information
+      (eide-windows-show-ide-windows))))
+
 (defun eide-windows-show-ide-windows ()
   "Show \"menu\" and \"ouput\" windows."
-  (unless eide-windows-ide-windows-visible-flag
+  (unless (and eide-windows-ide-windows-visible-flag
+               (equal (get-buffer-window eide-menu-buffer-name) eide-windows-menu-window))
     (ad-deactivate 'select-window)
-    ;; If completion buffer is displayed, let's close its current window
-    ;; and display it in new output window.
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+    ;; If completion buffer is displayed, let's close its current window,
+    ;; because it should not be displayed above "output" window.
+    ;; It is not restored at bottom afterwards, because completion would be
+    ;; confused about windows.
     (let ((l-completion-window (get-buffer-window "*Completions*")))
       (when l-completion-window
-        (delete-window l-completion-window)
-        (setq eide-windows-output-window-buffer "*Completions*")))
+        (delete-window l-completion-window)))
+    ;; First, delete IDE windows in case they are displayed with inconsistent
+    ;; window objects
+    (eide-i-windows-delete-ide-windows)
     ;; Emacs 24 have internal and live windows.
     ;; When showing/hiding the "menu" and "output" windows, it is now possible
     ;; to keep the "source" windows layout unchanged.
@@ -483,7 +554,6 @@ before gdb builds its own."
           (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))
 
     ;; Temporarily disable switch-to-buffer advice
-    ;; It is useless and would check IDE windows while they're being created...
     (ad-deactivate 'switch-to-buffer)
 
     ;; "Menu" window
@@ -496,49 +566,54 @@ before gdb builds its own."
     ;; "Output" window
     (select-window eide-windows-output-window)
     (setq window-min-height 2)
-    (switch-to-buffer (get-buffer-create "*results*"))
-    (if eide-windows-output-window-buffer
-      (switch-to-buffer eide-windows-output-window-buffer)
-      (setq eide-windows-output-window-buffer "*results*"))
+    (if (string-equal eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
+      ;; Always make sure that this default buffer exists
+      (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
+      (switch-to-buffer eide-windows-output-window-buffer))
 
     ;; Enable switch-to-buffer advice again
     (ad-activate 'switch-to-buffer)
 
     (select-window eide-windows-source-window)
-    (eide-windows-skip-unwanted-buffers-in-source-window)
     (setq eide-windows-ide-windows-visible-flag t)
     ;; Update menu if necessary
     (when eide-windows-menu-update-request-pending-flag
       (eide-menu-update nil))
+
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (ad-activate 'select-window)))
 
 (defun eide-windows-hide-ide-windows ()
   "Hide \"menu\" and \"output\" windows."
-  (when eide-windows-ide-windows-visible-flag
+  (when (or eide-windows-ide-windows-visible-flag
+            (get-buffer-window eide-menu-buffer-name)
+            (get-buffer-window eide-windows-output-window-buffer))
     (ad-deactivate 'select-window)
-    (when (and (window-live-p eide-windows-menu-window)
-               (window-live-p eide-windows-output-window)
-               (window-live-p eide-windows-source-window))
-      ;; Remember windows positions only if the layout is complete
-      ;; Remember "menu" window width
-      (eide-windows-select-menu-window)
-      (setq eide-windows-menu-window-width (window-total-width))
-      ;; Remember "output" window height
-      (eide-windows-select-output-window)
-      (setq eide-windows-output-window-height (window-height))
-      ;; Remember which result buffer is displayed in "output" window
-      (setq eide-windows-output-window-buffer (buffer-name)))
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+    ;; If completion buffer is displayed, let's close its current window.
+    ;; It is not necessary, but the idea is to be consistent with the behaviour
+    ;; when IDE windows are shown.
+    (let ((l-completion-window (get-buffer-window "*Completions*")))
+      (when l-completion-window
+        (delete-window l-completion-window)))
+    (let ((l-menu-window (get-buffer-window eide-menu-buffer-name)))
+      (when l-menu-window
+        ;; Remember "menu" window width
+        (setq eide-windows-menu-window-width (window-total-width l-menu-window))))
+    (let ((l-output-window (get-buffer-window eide-windows-output-window-buffer)))
+      (when l-output-window
+        ;; Remember "output" window height (completion window is closed, so we
+        ;; are sure that "output" window is not resized)
+        (setq eide-windows-output-window-height (window-height l-output-window))))
     ;; Close "menu" and "output" windows
-    (when (window-live-p eide-windows-menu-window)
-      (delete-window eide-windows-menu-window))
-    (when (window-live-p eide-windows-output-window)
-      (delete-window eide-windows-output-window))
+    (eide-i-windows-delete-ide-windows)
     ;; Current window becomes - if not already - "source" window
     (setq eide-windows-menu-window nil)
     (setq eide-windows-output-window nil)
     (setq eide-windows-source-window (selected-window))
     (setq eide-windows-ide-windows-visible-flag nil)
     (eide-windows-skip-unwanted-buffers-in-source-window)
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (ad-activate 'select-window)))
 
 (defun eide-windows-show-hide-ide-windows ()
@@ -642,14 +717,6 @@ and display it. Current buffer is kept if correct."
       (eide-popup-open-menu-for-cleaning))
     ;; No text selected
     (progn
-      ;; If windows layout is supposed to be visible, but one of
-      ;; the three windows is not visible, first unbuild, to
-      ;; force rebuild
-      (when (and eide-windows-ide-windows-visible-flag
-                 (or (not (window-live-p eide-windows-menu-window))
-                     (not (window-live-p eide-windows-output-window))
-                     (not (window-live-p eide-windows-source-window))))
-        (eide-windows-hide-ide-windows))
       (if (eide-i-windows-is-output-window-selected-p)
         ;; "Output" window: open search results popup menu
         (eide-popup-open-menu-for-search-results)
@@ -698,6 +765,7 @@ and display it. Current buffer is kept if correct."
   (interactive)
   (when (string-match "^\*Customize.*" (buffer-name))
     (ad-activate 'switch-to-buffer)
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (when eide-windows-themes-edited-flag
       ;; Update color theme for specific faces (in case
       ;; the color theme for source code has changed)
