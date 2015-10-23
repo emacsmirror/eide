@@ -1,6 +1,6 @@
 ;;; eide-compare.el --- Emacs-IDE: Comparison of files with ediff
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -76,17 +76,17 @@
 
 (defun eide-i-compare-ediff-mode-start ()
   "Start ediff mode."
-  (ad-deactivate 'select-window)
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
-  (eide-keys-configure-for-ediff))
+  (eide-keys-configure-for-ediff)
+  (ad-deactivate 'select-window))
 
 (defun eide-i-compare-ediff-mode-stop ()
   "Stop ediff mode."
-  (ad-activate 'select-window)
   (eide-keys-configure-for-editor)
   (eide-windows-restore-layout)
-  (eide-windows-show-ide-windows))
+  (eide-windows-show-ide-windows)
+  (ad-activate 'select-window))
 
 (defun eide-i-compare-ediff-quit-hook ()
   "Hook for exiting ediff: Close temporary buffer, and restore display."
