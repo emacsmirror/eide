@@ -1,6 +1,6 @@
 ;;; eide-edit.el --- Emacs-IDE: Clean and edit files (REF/NEW)
 
-;; Copyright (C) 2008-2014 Cédric Marie
+;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,14 +20,6 @@
 (provide 'eide-edit)
 
 (require 'eide-popup)
-
-;; ----------------------------------------------------------------------------
-;; OPTIONS
-;; ----------------------------------------------------------------------------
-
-;; When using a file (.ref or .new for example), update file date,
-;; so that compilation takes it into account.
-(defvar eide-option-touch-files-when-using-flag t)
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -90,18 +82,20 @@ Argument:
   (when (string-equal eide-menu-local-edit-status "new")
     (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
     (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
-    (when eide-option-touch-files-when-using-flag
-      (shell-command (concat "touch \"" buffer-file-name "\"")))
-    (revert-buffer)))
+    (revert-buffer)
+    ;; Update the modification time of the file (for it to be recompiled)
+    (set-buffer-modified-p t)
+    (save-buffer)))
 
 (defun eide-edit-use-new-file ()
   "Use \".new\" version of current file."
   (when (string-equal eide-menu-local-edit-status "ref")
     (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
     (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
-    (when eide-option-touch-files-when-using-flag
-      (shell-command (concat "touch \"" buffer-file-name "\"")))
-    (revert-buffer)))
+    (revert-buffer)
+    ;; Update the modification time of the file (for it to be recompiled)
+    (set-buffer-modified-p t)
+    (save-buffer)))
 
 (defun eide-edit-discard-new-file ()
   "Discard \".new\" version of current file."
@@ -113,9 +107,10 @@ Argument:
   "Restore \".ref\" version of current file."
   (when (string-equal eide-menu-local-edit-status "new")
     (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
-    (when eide-option-touch-files-when-using-flag
-      (shell-command (concat "touch \"" buffer-file-name "\"")))
-    (revert-buffer)))
+    (revert-buffer)
+    ;; Update the modification time of the file (for it to be recompiled)
+    (set-buffer-modified-p t)
+    (save-buffer)))
 
 (defun eide-edit-discard-ref-file ()
   "Discard \".ref\" version of current file."

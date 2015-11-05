@@ -278,12 +278,13 @@ Arguments:
     (while (<= l-workspace-number eide-custom-number-of-workspaces)
       (let ((l-workspace-dir nil) (l-projects-list-file nil))
         (setq l-workspace-dir (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number)))
-        ;; "touch" command requires expand-file-name (which replaces ~ with /home/<user>)
-        (setq l-projects-list-file (expand-file-name (concat l-workspace-dir "/projects-list")))
+        (setq l-projects-list-file (concat l-workspace-dir "/projects-list"))
         (unless (file-directory-p l-workspace-dir)
           (make-directory l-workspace-dir))
         (unless (file-exists-p l-projects-list-file)
-          (shell-command (concat "touch \"" l-projects-list-file "\""))))
+          (with-current-buffer (find-file-noselect l-projects-list-file)
+            (save-buffer)
+            (kill-this-buffer))))
       (setq l-workspace-number (+ l-workspace-number 1))))
   (eide-i-project-update-internal-projects-list))
 
@@ -388,7 +389,9 @@ Arguments:
 
   (unless (file-exists-p (concat eide-root-directory eide-project-notes-file))
     ;; Create empty project notes file
-    (shell-command (concat "touch " eide-root-directory eide-project-notes-file)))
+    (with-current-buffer (find-file-noselect (concat eide-root-directory eide-project-notes-file))
+      (save-buffer)
+      (kill-this-buffer)))
 
   ;; Update version control show status
   (eide-vc-update-show-vc-status)
@@ -720,8 +723,7 @@ Argument:
   "Create a project in root directory, and add it in projects list."
   (interactive)
   (when (y-or-n-p (concat "Create a project in " eide-root-directory " ?"))
-    ;; Create empty project file
-    (shell-command (concat "touch " eide-root-directory eide-project-config-file))
+    ;; Create and load the new project
     (eide-i-project-load nil t)
     ;; Update project name in menu
     (eide-menu-update-project-name)
