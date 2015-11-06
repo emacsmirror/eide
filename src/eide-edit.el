@@ -84,8 +84,7 @@ Argument:
     (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-buffer-modified-p t)
-    (save-buffer)))
+    (set-file-times buffer-file-name)))
 
 (defun eide-edit-use-new-file ()
   "Use \".new\" version of current file."
@@ -94,8 +93,7 @@ Argument:
     (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-buffer-modified-p t)
-    (save-buffer)))
+    (set-file-times buffer-file-name)))
 
 (defun eide-edit-discard-new-file ()
   "Discard \".new\" version of current file."
@@ -109,8 +107,7 @@ Argument:
     (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-buffer-modified-p t)
-    (save-buffer)))
+    (set-file-times buffer-file-name)))
 
 (defun eide-edit-discard-ref-file ()
   "Discard \".ref\" version of current file."
