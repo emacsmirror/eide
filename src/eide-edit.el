@@ -53,35 +53,33 @@ Argument:
 (defun eide-edit-set-rw ()
   "Set write permission for current file."
   (when buffer-read-only
-    (shell-command (concat "chmod +w \"" buffer-file-name "\""))
+    ;; chmod +w (add -w-------, i.e. w for user)
+    (set-file-modes buffer-file-name (logior (file-modes buffer-file-name) 128))
     (revert-buffer)))
 
 (defun eide-edit-set-r ()
   "Unset write permission for current file."
   (unless buffer-read-only
-    (shell-command (concat "chmod -w \"" buffer-file-name "\""))
+    ;; chmod -w (remove -w-------, i.e. w for user)
+    (set-file-modes buffer-file-name (logxor (file-modes buffer-file-name) 128))
     (revert-buffer)))
 
 (defun eide-edit-make-ref-file ()
-  "Create \".ref\" version of current file, and use \".new\"."
+  "Create \".ref\" version of current file, use \".new\", and set write
+permission for it."
   (when (string-equal eide-menu-local-edit-status "")
-    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\" ; cp \"" buffer-file-name ".ref\" \"" buffer-file-name "\" ; chmod +w \"" buffer-file-name "\""))
+    (let ((l-ref-file (concat buffer-file-name ".ref")))
+      (rename-file buffer-file-name l-ref-file)
+      (copy-file l-ref-file buffer-file-name))
+    ;; chmod +w (add -w-------, i.e. w for user)
+    (set-file-modes buffer-file-name (logior (file-modes buffer-file-name) 128))
     (revert-buffer)))
-
-;;(setq nnn (file-modes buffer-file-name))
-;;(setq mmm (logior (file-modes buffer-file-name) 128))) ; = "chmod +w"
-;; file-name-sans-extension
-;; TODO: utiliser les commandes lisp équivalentes
-;; (shell-command (concat "mv " buffer-file-name " " buffer-file-name ".ref ; cp " buffer-file-name ".ref " buffer-file-name " ; chmod +w " buffer-file-name))
-;; (rename-file buffer-file-name (concat buffer-file-name ".ref"))
-;; (copy-file (concat buffer-file-name ".ref") buffer-file-name)
-;; (set-file-modes (logior (file-modes buffer-file-name) 128)) ; = "chmod +w"
 
 (defun eide-edit-use-ref-file ()
   "Use \".ref\" version of current file."
   (when (string-equal eide-menu-local-edit-status "new")
-    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".new\""))
-    (shell-command (concat "mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
+    (rename-file buffer-file-name (concat buffer-file-name ".new"))
+    (rename-file (concat buffer-file-name ".ref") buffer-file-name)
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
     (set-file-times buffer-file-name)))
@@ -89,8 +87,8 @@ Argument:
 (defun eide-edit-use-new-file ()
   "Use \".new\" version of current file."
   (when (string-equal eide-menu-local-edit-status "ref")
-    (shell-command (concat "mv \"" buffer-file-name "\" \"" buffer-file-name ".ref\""))
-    (shell-command (concat "mv \"" buffer-file-name ".new\" \"" buffer-file-name "\""))
+    (rename-file buffer-file-name (concat buffer-file-name ".ref"))
+    (rename-file (concat buffer-file-name ".new") buffer-file-name)
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
     (set-file-times buffer-file-name)))
@@ -98,13 +96,13 @@ Argument:
 (defun eide-edit-discard-new-file ()
   "Discard \".new\" version of current file."
   (when (string-equal eide-menu-local-edit-status "ref")
-    (shell-command (concat "rm -f \"" buffer-file-name ".new\""))
-    (revert-buffer)))
+    (delete-file (concat buffer-file-name ".new") nil)))
 
 (defun eide-edit-restore-ref-file ()
   "Restore \".ref\" version of current file."
   (when (string-equal eide-menu-local-edit-status "new")
-    (shell-command (concat "rm -f \"" buffer-file-name "\" ; mv \"" buffer-file-name ".ref\" \"" buffer-file-name "\""))
+    (delete-file buffer-file-name)
+    (rename-file (concat buffer-file-name ".ref") buffer-file-name)
     (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
     (set-file-times buffer-file-name)))
@@ -112,8 +110,7 @@ Argument:
 (defun eide-edit-discard-ref-file ()
   "Discard \".ref\" version of current file."
   (when (string-equal eide-menu-local-edit-status "new")
-    (shell-command (concat "rm -f \"" buffer-file-name ".ref\""))
-    (revert-buffer)))
+    (delete-file (concat buffer-file-name ".ref"))))
 
 (defun eide-edit-untabify-and-indent ()
   "Untabify and indent the content of current file."

@@ -734,8 +734,10 @@ Argument:
   "Create a project without symbols in root directory, and add it in projects list."
   (interactive)
   (when (y-or-n-p (concat "Create a project without symbols in " eide-root-directory " ?"))
-    ;; Create empty project file
-    (shell-command (concat "echo \"symbols = no\" > " eide-root-directory eide-project-config-file))
+    ;; Create empty project file (with only "symbols = no" to override the default value)
+    (with-current-buffer (find-file-noselect (concat eide-root-directory eide-project-config-file))
+      (insert "symbols = no\n")
+      (save-buffer))
     (eide-i-project-load nil t)
     ;; Update project name in menu
     (eide-menu-update-project-name)
@@ -772,7 +774,12 @@ Argument:
     (setq eide-project-name nil)
     (kill-buffer eide-project-config-file)
     ;; Remove project files
-    (shell-command (concat "cd " eide-root-directory " ; rm -f .emacs-ide-project.*"))
+    (let ((l-filename (concat eide-root-directory eide-project-config-file)))
+      (if (file-exists-p l-filename)
+        (delete-file l-filename)))
+    (let ((l-filename (concat eide-root-directory eide-project-notes-file)))
+      (if (file-exists-p l-filename)
+        (delete-file l-filename)))
     ;; Delete desktop file and disable automatic saving
     (when eide-no-desktop-option
       ;; desktop-remove needs desktop-save-mode to be enabled
@@ -834,7 +841,15 @@ finished yet), and delete these files."
   (setq eide-search-cscope-creation-in-progress-flag nil)
   (when (get-buffer "TAGS")
     (kill-buffer "TAGS"))
-  (shell-command (concat "cd " eide-root-directory " ; rm -f TAGS cscope.files cscope.out")))
+  (let ((l-filename (concat eide-root-directory "TAGS")))
+    (if (file-exists-p l-filename)
+      (delete-file l-filename)))
+  (let ((l-filename (concat eide-root-directory "cscope.files")))
+    (if (file-exists-p l-filename)
+      (delete-file l-filename)))
+  (let ((l-filename (concat eide-root-directory "cscope.out")))
+    (if (file-exists-p l-filename)
+      (delete-file l-filename))))
 
 (defun eide-project-open-list ()
   "Display projects list (full frame), and rebuild internal projects list."
