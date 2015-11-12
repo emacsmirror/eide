@@ -1,6 +1,6 @@
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
-;; Copyright (C) 2010-2014 Cédric Marie
+;; Copyright (C) 2010-2015 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -68,9 +68,9 @@ Arguments:
   (set-default param value)
   (when eide-config-ready
     (if (string-equal value "")
-      (progn
-        (setq eide-vc-svn-diff-full-command nil)
-        (setq eide-vc-git-diff-full-command nil))
+        (progn
+          (setq eide-vc-svn-diff-full-command nil)
+          (setq eide-vc-git-diff-full-command nil))
       (progn
         (setq eide-vc-svn-diff-full-command (concat "svn diff --diff-cmd=" value " "))
         (setq eide-vc-git-diff-full-command (concat "git difftool -y --extcmd=" value " "))))))
@@ -91,14 +91,14 @@ Arguments:
   (when eide-vc-show-status-flag
     (let ((l-full-directory-name nil))
       (if (string-match "^/" p-directory-name)
-        (setq l-full-directory-name p-directory-name)
+          (setq l-full-directory-name p-directory-name)
         (setq l-full-directory-name (concat eide-root-directory p-directory-name)))
       (if (equal p-vc-backend 'SVN)
-        (if eide-vc-svn-diff-full-command
-          (start-process-shell-command "svn-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-svn-diff-full-command p-files-list))
-          (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list)))
+          (if eide-vc-svn-diff-full-command
+              (start-process-shell-command "svn-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-svn-diff-full-command p-files-list))
+            (shell-command (concat "cd " l-full-directory-name " && svn diff " p-files-list)))
         (if (equal p-vc-backend 'Git)
-          (start-process-shell-command "git-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-git-diff-full-command p-files-list))
+            (start-process-shell-command "git-diff" nil (concat "cd " l-full-directory-name " && " eide-vc-git-diff-full-command p-files-list))
           (shell-command (concat "cd " l-full-directory-name " && git diff " p-files-list)))))))
 
 ;; ----------------------------------------------------------------------------
@@ -113,10 +113,10 @@ Arguments:
 (defun eide-vc-update-show-vc-status ()
   "Update show VC status."
   (if (equal eide-custom-show-vc-status 'auto)
-    (if (or (file-exists-p (concat eide-root-directory ".svn"))
-            (file-exists-p (concat eide-root-directory ".git")))
-      (setq eide-vc-show-status-flag t)
-      (setq eide-vc-show-status-flag nil))
+      (if (or (file-exists-p (concat eide-root-directory ".svn"))
+              (file-exists-p (concat eide-root-directory ".git")))
+          (setq eide-vc-show-status-flag t)
+        (setq eide-vc-show-status-flag nil))
     (setq eide-vc-show-status-flag eide-custom-show-vc-status))
   (eide-menu-update t t))
 
@@ -135,7 +135,7 @@ Argument:
     (save-current-buffer
       (let ((l-files-list nil))
         (if p-files-list
-          (setq l-files-list p-files-list)
+            (setq l-files-list p-files-list)
           (setq l-files-list eide-menu-files-list))
         (dolist (l-buffer-name l-files-list)
           (set-buffer l-buffer-name)
@@ -145,7 +145,7 @@ Argument:
   "Execute \"svn diff\" on current buffer."
   (when (and eide-vc-show-status-flag eide-menu-local-vc-modified-status-flag)
     (if eide-vc-svn-diff-full-command
-      (start-process-shell-command "svn-diff" nil (concat eide-vc-svn-diff-full-command buffer-file-name))
+        (start-process-shell-command "svn-diff" nil (concat eide-vc-svn-diff-full-command buffer-file-name))
       (save-excursion
         (vc-diff nil)))))
 
@@ -153,7 +153,7 @@ Argument:
   "Execute \"git diff\" on current buffer."
   (when (and eide-vc-show-status-flag eide-menu-local-vc-modified-status-flag)
     (if eide-vc-git-diff-full-command
-      (start-process-shell-command "git-diff" nil (concat eide-vc-git-diff-full-command buffer-file-name))
+        (start-process-shell-command "git-diff" nil (concat eide-vc-git-diff-full-command buffer-file-name))
       (save-excursion
         (vc-diff nil)))))
 

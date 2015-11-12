@@ -389,79 +389,79 @@
 (defun eide-keys-apply-emacs-settings ()
   "Apply Emacs settings (for keys)."
   (if eide-custom-override-emacs-settings
-    (progn
-      (if eide-custom-key-f1
-        (global-set-key [f1] eide-custom-key-f1)
-        (global-set-key [f1] eide-keys-user-f1))
-      (if eide-custom-key-shift-f1
-        (global-set-key [S-f1] eide-custom-key-shift-f1)
-        (global-set-key [S-f1] eide-keys-user-shift-f1))
-      (if eide-custom-key-f2
-        (global-set-key [f2] eide-custom-key-f2)
-        (global-set-key [f2] eide-keys-user-f2))
-      (if eide-custom-key-shift-f2
-        (global-set-key [S-f2] eide-custom-key-shift-f2)
-        (global-set-key [S-f2] eide-keys-user-shift-f2))
-      (if eide-custom-key-f3
-        (global-set-key [f3] eide-custom-key-f3)
-        (global-set-key [f3] eide-keys-user-f3))
-      (if eide-custom-key-shift-f3
-        (global-set-key [S-f3] eide-custom-key-shift-f3)
-        (global-set-key [S-f3] eide-keys-user-shift-f3))
-      (if eide-custom-key-f4
-        (global-set-key [f4] eide-custom-key-f4)
-        (global-set-key [f4] eide-keys-user-f4))
-      (if eide-custom-key-shift-f4
-        (global-set-key [S-f4] eide-custom-key-shift-f4)
-        (global-set-key [S-f4] eide-keys-user-shift-f4))
-      (if eide-custom-key-f5
-        (global-set-key [f5] eide-custom-key-f5)
-        (global-set-key [f5] eide-keys-user-f5))
-      (if eide-custom-key-shift-f5
-        (global-set-key [S-f5] eide-custom-key-shift-f5)
-        (global-set-key [S-f5] eide-keys-user-shift-f5))
-      (if eide-custom-key-f6
-        (global-set-key [f6] eide-custom-key-f6)
-        (global-set-key [f6] eide-keys-user-f6))
-      (if eide-custom-key-shift-f6
-        (global-set-key [S-f6] eide-custom-key-shift-f6)
-        (global-set-key [S-f6] eide-keys-user-shift-f6))
-      (if eide-custom-key-f7
-        (global-set-key [f7] eide-custom-key-f7)
-        (global-set-key [f7] eide-keys-user-f7))
-      (if eide-custom-key-shift-f7
-        (global-set-key [S-f7] eide-custom-key-shift-f7)
-        (global-set-key [S-f7] eide-keys-user-shift-f7))
-      (if eide-custom-key-f8
-        (global-set-key [f8] eide-custom-key-f8)
-        (global-set-key [f8] eide-keys-user-f8))
-      (if eide-custom-key-shift-f8
-        (global-set-key [S-f8] eide-custom-key-shift-f8)
-        (global-set-key [S-f8] eide-keys-user-shift-f8))
-      (if eide-custom-key-f9
-        (global-set-key [f9] eide-custom-key-f9)
-        (global-set-key [f9] eide-keys-user-f9))
-      (if eide-custom-key-shift-f9
-        (global-set-key [S-f9] eide-custom-key-shift-f9)
-        (global-set-key [S-f9] eide-keys-user-shift-f9))
-      (if eide-custom-key-f10
-        (global-set-key [f10] eide-custom-key-f10)
-        (global-set-key [f10] eide-keys-user-f10))
-      (if eide-custom-key-shift-f10
-        (global-set-key [S-f10] eide-custom-key-shift-f10)
-        (global-set-key [S-f10] eide-keys-user-shift-f10))
-      (if eide-custom-key-f11
-        (global-set-key [f11] eide-custom-key-f11)
-        (global-set-key [f11] eide-keys-user-f11))
-      (if eide-custom-key-shift-f11
-        (global-set-key [S-f11] eide-custom-key-shift-f11)
-        (global-set-key [S-f11] eide-keys-user-shift-f11))
-      (if eide-custom-key-f12
-        (global-set-key [f12] eide-custom-key-f12)
-        (global-set-key [f12] eide-keys-user-f12))
-      (if eide-custom-key-shift-f12
-        (global-set-key [S-f12] eide-custom-key-shift-f12)
-        (global-set-key [S-f12] eide-keys-user-shift-f12)))
+      (progn
+        (if eide-custom-key-f1
+            (global-set-key [f1] eide-custom-key-f1)
+          (global-set-key [f1] eide-keys-user-f1))
+        (if eide-custom-key-shift-f1
+            (global-set-key [S-f1] eide-custom-key-shift-f1)
+          (global-set-key [S-f1] eide-keys-user-shift-f1))
+        (if eide-custom-key-f2
+            (global-set-key [f2] eide-custom-key-f2)
+          (global-set-key [f2] eide-keys-user-f2))
+        (if eide-custom-key-shift-f2
+            (global-set-key [S-f2] eide-custom-key-shift-f2)
+          (global-set-key [S-f2] eide-keys-user-shift-f2))
+        (if eide-custom-key-f3
+            (global-set-key [f3] eide-custom-key-f3)
+          (global-set-key [f3] eide-keys-user-f3))
+        (if eide-custom-key-shift-f3
+            (global-set-key [S-f3] eide-custom-key-shift-f3)
+          (global-set-key [S-f3] eide-keys-user-shift-f3))
+        (if eide-custom-key-f4
+            (global-set-key [f4] eide-custom-key-f4)
+          (global-set-key [f4] eide-keys-user-f4))
+        (if eide-custom-key-shift-f4
+            (global-set-key [S-f4] eide-custom-key-shift-f4)
+          (global-set-key [S-f4] eide-keys-user-shift-f4))
+        (if eide-custom-key-f5
+            (global-set-key [f5] eide-custom-key-f5)
+          (global-set-key [f5] eide-keys-user-f5))
+        (if eide-custom-key-shift-f5
+            (global-set-key [S-f5] eide-custom-key-shift-f5)
+          (global-set-key [S-f5] eide-keys-user-shift-f5))
+        (if eide-custom-key-f6
+            (global-set-key [f6] eide-custom-key-f6)
+          (global-set-key [f6] eide-keys-user-f6))
+        (if eide-custom-key-shift-f6
+            (global-set-key [S-f6] eide-custom-key-shift-f6)
+          (global-set-key [S-f6] eide-keys-user-shift-f6))
+        (if eide-custom-key-f7
+            (global-set-key [f7] eide-custom-key-f7)
+          (global-set-key [f7] eide-keys-user-f7))
+        (if eide-custom-key-shift-f7
+            (global-set-key [S-f7] eide-custom-key-shift-f7)
+          (global-set-key [S-f7] eide-keys-user-shift-f7))
+        (if eide-custom-key-f8
+            (global-set-key [f8] eide-custom-key-f8)
+          (global-set-key [f8] eide-keys-user-f8))
+        (if eide-custom-key-shift-f8
+            (global-set-key [S-f8] eide-custom-key-shift-f8)
+          (global-set-key [S-f8] eide-keys-user-shift-f8))
+        (if eide-custom-key-f9
+            (global-set-key [f9] eide-custom-key-f9)
+          (global-set-key [f9] eide-keys-user-f9))
+        (if eide-custom-key-shift-f9
+            (global-set-key [S-f9] eide-custom-key-shift-f9)
+          (global-set-key [S-f9] eide-keys-user-shift-f9))
+        (if eide-custom-key-f10
+            (global-set-key [f10] eide-custom-key-f10)
+          (global-set-key [f10] eide-keys-user-f10))
+        (if eide-custom-key-shift-f10
+            (global-set-key [S-f10] eide-custom-key-shift-f10)
+          (global-set-key [S-f10] eide-keys-user-shift-f10))
+        (if eide-custom-key-f11
+            (global-set-key [f11] eide-custom-key-f11)
+          (global-set-key [f11] eide-keys-user-f11))
+        (if eide-custom-key-shift-f11
+            (global-set-key [S-f11] eide-custom-key-shift-f11)
+          (global-set-key [S-f11] eide-keys-user-shift-f11))
+        (if eide-custom-key-f12
+            (global-set-key [f12] eide-custom-key-f12)
+          (global-set-key [f12] eide-keys-user-f12))
+        (if eide-custom-key-shift-f12
+            (global-set-key [S-f12] eide-custom-key-shift-f12)
+          (global-set-key [S-f12] eide-keys-user-shift-f12)))
     (progn
       (global-set-key [f1] eide-keys-user-f1)
       (global-set-key [S-f1] eide-keys-user-shift-f1)
@@ -492,9 +492,9 @@
   "Configure keys for edition mode."
   (setq eide-keys-is-editor-configuration-active-flag t)
   (if eide-project-name
-    (progn
-      (eide-search-set-tags-and-cscope-state eide-project-symbols-flag)
-      (eide-project-set-commands-state t))
+      (progn
+        (eide-search-set-tags-and-cscope-state eide-project-symbols-flag)
+        (eide-project-set-commands-state t))
     (progn
       (eide-search-set-tags-and-cscope-state nil)
       (eide-project-set-commands-state nil)))

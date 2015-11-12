@@ -80,21 +80,21 @@
 (defun eide-display-apply-emacs-settings ()
   "Apply Emacs settings (for display)."
   (if (and eide-custom-override-emacs-settings eide-custom-disable-beeping)
-    (setq ring-bell-function 'ignore)
+      (setq ring-bell-function 'ignore)
     (setq ring-bell-function eide-display-user-ring-bell-function)))
 
 (defun eide-display-apply-color-theme ()
   "Apply color theme."
   (when eide-config-ready
     (if eide-custom-color-theme
-      ;; Color theme for Emacs-IDE specific faces is forced
-      (setq eide-display-color-theme eide-custom-color-theme)
+        ;; Color theme for Emacs-IDE specific faces is forced
+        (setq eide-display-color-theme eide-custom-color-theme)
       ;; Color theme for Emacs-IDE specific faces is not forced
       ;; and depends on which Emacs-IDE color theme is enabled
       (if (custom-theme-enabled-p 'eide-dark)
-        ;; If eide-dark theme is enabled, use dark color theme for Emacs-IDE
-        ;; specific faces
-        (setq eide-display-color-theme 'dark)
+          ;; If eide-dark theme is enabled, use dark color theme for Emacs-IDE
+          ;; specific faces
+          (setq eide-display-color-theme 'dark)
         ;; If eide-light theme is enabled, or neither eide-dark nor eide-light
         ;; theme is enabled, use light color theme for Emacs-IDE specific faces
         (setq eide-display-color-theme 'light)))

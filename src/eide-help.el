@@ -69,16 +69,16 @@ Argument:
 (defun eide-help-apply-color-theme ()
   "Apply color theme (for help)."
   (if (equal eide-display-color-theme 'dark)
-    ;; "Dark" color theme
-    (progn
-      (setq eide-help-background-color "black")
-      (setq eide-help-foreground-color "gray95")
-      (set-face-background 'eide-help-title-face "indian red")
-      (set-face-foreground 'eide-help-title-face "white")
-      (set-face-background 'eide-help-chapter1-face "brown")
-      (set-face-foreground 'eide-help-chapter1-face "yellow")
-      (set-face-background 'eide-help-chapter2-face "dark slate gray")
-      (set-face-foreground 'eide-help-chapter2-face "pale green"))
+      ;; "Dark" color theme
+      (progn
+        (setq eide-help-background-color "black")
+        (setq eide-help-foreground-color "gray95")
+        (set-face-background 'eide-help-title-face "indian red")
+        (set-face-foreground 'eide-help-title-face "white")
+        (set-face-background 'eide-help-chapter1-face "brown")
+        (set-face-foreground 'eide-help-chapter1-face "yellow")
+        (set-face-background 'eide-help-chapter2-face "dark slate gray")
+        (set-face-foreground 'eide-help-chapter2-face "pale green"))
     ;; "Light" color theme
     (progn
       (setq eide-help-background-color "white")

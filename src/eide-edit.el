@@ -28,11 +28,11 @@
 (defun eide-edit-get-buffer-status ()
   "Get current buffer status (\"nofile\", \"ref\", \"new\" or \"\")."
   (if (not (file-exists-p buffer-file-name))
-    "nofile"
+      "nofile"
     (if (file-exists-p (concat buffer-file-name ".ref"))
-      "new"
+        "new"
       (if (file-exists-p (concat buffer-file-name ".new"))
-        "ref"
+          "ref"
         ""))))
 
 (defun eide-edit-update-files-status (&optional p-files-list)
@@ -43,7 +43,7 @@ Argument:
   (save-current-buffer
     (let ((l-files-list nil))
       (if p-files-list
-        (setq l-files-list p-files-list)
+          (setq l-files-list p-files-list)
         (setq l-files-list eide-menu-files-list))
       (dolist (l-buffer-name l-files-list)
         (set-buffer l-buffer-name)

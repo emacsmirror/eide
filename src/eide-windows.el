@@ -195,12 +195,12 @@ Arguments:
                      (equal major-mode 'Buffer-menu-mode)))
         (setq l-browsing-mode-flag t)))
     (if l-browsing-mode-flag
-      ;; The buffer is a file browser: we must start "browsing mode"
-      ;; in order to display it in full frame.
-      (progn
-        (unless eide-menu-browsing-mode-flag
-          (eide-menu-browsing-mode-start))
-        (display-buffer-same-window p-buffer nil))
+        ;; The buffer is a file browser: we must start "browsing mode"
+        ;; in order to display it in full frame.
+        (progn
+          (unless eide-menu-browsing-mode-flag
+            (eide-menu-browsing-mode-start))
+          (display-buffer-same-window p-buffer nil))
       ;; The buffer is a standard file
       (progn
         (when eide-menu-browsing-mode-flag
@@ -219,20 +219,20 @@ Arguments:
 Argument:
 - p-buffer-name: buffer name."
   (if eide-keys-is-editor-configuration-active-flag
-    (if (string-match "^\*.*" p-buffer-name)
-      (if eide-windows-ide-windows-visible-flag
-        (if (string-equal eide-menu-buffer-name p-buffer-name)
-          eide-windows-menu-window
-          eide-windows-output-window)
-        ;; Layout is not built => "menu" and "output" windows don't exist
-        nil)
-      (with-current-buffer p-buffer-name
-        (if (or (equal major-mode 'dired-mode)
-                (equal major-mode 'Buffer-menu-mode))
-          nil
-          (if (eide-windows-is-file-special-p p-buffer-name)
-            nil
-            eide-windows-source-window))))
+      (if (string-match "^\*.*" p-buffer-name)
+          (if eide-windows-ide-windows-visible-flag
+              (if (string-equal eide-menu-buffer-name p-buffer-name)
+                  eide-windows-menu-window
+                eide-windows-output-window)
+            ;; Layout is not built => "menu" and "output" windows don't exist
+            nil)
+        (with-current-buffer p-buffer-name
+          (if (or (equal major-mode 'dired-mode)
+                  (equal major-mode 'Buffer-menu-mode))
+              nil
+            (if (eide-windows-is-file-special-p p-buffer-name)
+                nil
+              eide-windows-source-window))))
     nil))
 
 (defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
@@ -266,8 +266,8 @@ ones.
 window."
   (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
-      ;; Get buffer name from buffer
-      (setq l-buffer-name (buffer-name p-buffer))
+        ;; Get buffer name from buffer
+        (setq l-buffer-name (buffer-name p-buffer))
       ;; p-buffer is already a buffer name
       (setq l-buffer-name p-buffer))
     (when l-buffer-name
@@ -282,24 +282,24 @@ window."
                          (equal major-mode 'Buffer-menu-mode)))
             (setq l-browsing-mode-flag t))))
       (if l-browsing-mode-flag
-        (progn
-          (unless eide-menu-browsing-mode-flag
-            (eide-menu-browsing-mode-start))
-          ad-do-it
-          p-buffer)
+          (progn
+            (unless eide-menu-browsing-mode-flag
+              (eide-menu-browsing-mode-start))
+            ad-do-it
+            p-buffer)
         (progn
           (if (eide-windows-is-file-special-p l-buffer-name)
-            (progn
-              ;; Do not display special files
-              (when (string-equal l-buffer-name eide-project-notes-file)
-                ;; Project notes file should not be opened with switch-to-buffer advice
-                (kill-buffer l-buffer-name))
-              ;; Return the current buffer
-              (current-buffer))
+              (progn
+                ;; Do not display special files
+                (when (string-equal l-buffer-name eide-project-notes-file)
+                  ;; Project notes file should not be opened with switch-to-buffer advice
+                  (kill-buffer l-buffer-name))
+                ;; Return the current buffer
+                (current-buffer))
             (progn
               (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
               (if l-window
-                (select-window l-window)
+                  (select-window l-window)
                 (setq l-window (selected-window)))
               (when (and (equal l-window eide-windows-source-window)
                          eide-menu-browsing-mode-flag)
@@ -309,7 +309,7 @@ window."
               ad-do-it
               (set-buffer l-buffer-name)
               (if eide-project-is-gdb-session-visible-flag
-                (eide-menu-update nil)
+                  (eide-menu-update nil)
                 (progn
                   (when eide-search-find-symbol-definition-flag
                     (recenter)
@@ -370,7 +370,7 @@ according to selected window."
     (ad-activate 'switch-to-buffer)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (if (equal l-window eide-windows-output-window)
-      (setq eide-windows-output-window-buffer (buffer-name))
+        (setq eide-windows-output-window-buffer (buffer-name))
       (eide-menu-update nil))))
 
 (defadvice next-buffer (around eide-next-buffer-advice-around)
@@ -391,7 +391,7 @@ to selected window."
     (ad-activate 'switch-to-buffer)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (if (equal l-window eide-windows-output-window)
-      (setq eide-windows-output-window-buffer (buffer-name))
+        (setq eide-windows-output-window-buffer (buffer-name))
       (eide-menu-update nil))))
 
 (defadvice gdb-setup-windows (before eide-gdb-setup-windows-advice-before)
@@ -460,8 +460,8 @@ before gdb builds its own."
   (when (> (length (window-list nil 'ignore nil)) 1)
     ;; There is more than one window: we can safely delete "menu" window
     (if (window-live-p eide-windows-menu-window)
-      ;; The window object still exists: we can simply delete it
-      (delete-window eide-windows-menu-window)
+        ;; The window object still exists: we can simply delete it
+        (delete-window eide-windows-menu-window)
       ;; The window object is not valid: we must check if a window is currently
       ;; displaying the "menu" buffer, and delete it
       (let ((l-window (get-buffer-window eide-menu-buffer-name)))
@@ -470,8 +470,8 @@ before gdb builds its own."
   (when (> (length (window-list nil 'ignore nil)) 1)
     ;; There is more than one window: we can safely delete "output" window
     (if (window-live-p eide-windows-output-window)
-      ;; The window object still exists: we can simply delete it
-      (delete-window eide-windows-output-window)
+        ;; The window object still exists: we can simply delete it
+        (delete-window eide-windows-output-window)
       ;; The window object is not valid: we must check if a window is currently
       ;; displaying the "output" buffer, and delete it
       (let ((l-window (get-buffer-window eide-windows-output-window-buffer)))
@@ -494,17 +494,17 @@ window configuration, and restores it when finished - either normally or
 cancelled by C-g - whatever happened in between (including hide/show IDE
 windows)."
   (if eide-windows-ide-windows-visible-flag
-    ;; IDE windows are supposed to be visible
-    (let ((l-menu-window (get-buffer-window eide-menu-buffer-name))
-          (l-output-window (get-buffer-window eide-windows-output-window-buffer)))
-      (if (or (not l-menu-window) (not l-output-window))
-        ;; At least one of the IDE windows is not visible
-        ;; Properly hide IDE windows in order to update internal information
-        (eide-windows-hide-ide-windows)
-        (when (not (equal l-menu-window eide-windows-menu-window))
-          ;; IDE windows are visible, but the window objects are not consistent
-          ;; Properly show IDE windows in order to update internal information
-          (eide-windows-show-ide-windows))))
+      ;; IDE windows are supposed to be visible
+      (let ((l-menu-window (get-buffer-window eide-menu-buffer-name))
+            (l-output-window (get-buffer-window eide-windows-output-window-buffer)))
+        (if (or (not l-menu-window) (not l-output-window))
+            ;; At least one of the IDE windows is not visible
+            ;; Properly hide IDE windows in order to update internal information
+            (eide-windows-hide-ide-windows)
+          (when (not (equal l-menu-window eide-windows-menu-window))
+            ;; IDE windows are visible, but the window objects are not consistent
+            ;; Properly show IDE windows in order to update internal information
+            (eide-windows-show-ide-windows))))
     ;; IDE windows are supposed not to be visible
     (when (get-buffer-window eide-menu-buffer-name)
       ;; IDE windows are visible
@@ -532,22 +532,22 @@ windows)."
     ;; to keep the "source" windows layout unchanged.
     ;; Split to create 2 new windows ("menu" and "output")
     (if (equal eide-custom-menu-window-height 'full)
-      ;; "Menu" window uses the whole frame height
-      (if (equal eide-custom-menu-window-position 'left)
-        ;; Menu on left side
-        (progn
-          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
-        ;; Menu on right side
-        (progn
-          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
-          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
+        ;; "Menu" window uses the whole frame height
+        (if (equal eide-custom-menu-window-position 'left)
+            ;; Menu on left side
+            (progn
+              (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+              (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left)))
+          ;; Menu on right side
+          (progn
+            (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below))
+            (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))))
       ;; "Output" window uses the whole frame width
       (if (equal eide-custom-menu-window-position 'left)
-        ;; Menu on left side
-        (progn
-          (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
-          (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
+          ;; Menu on left side
+          (progn
+            (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'left))
+            (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))
         ;; Menu on right side
         (progn
           (setq eide-windows-menu-window (split-window (frame-root-window) (- eide-windows-menu-window-width) 'right))
@@ -567,8 +567,8 @@ windows)."
     (select-window eide-windows-output-window)
     (setq window-min-height 2)
     (if (string-equal eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
-      ;; Always make sure that this default buffer exists
-      (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
+        ;; Always make sure that this default buffer exists
+        (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
       (switch-to-buffer eide-windows-output-window-buffer))
 
     ;; Enable switch-to-buffer advice again
@@ -620,7 +620,7 @@ windows)."
   "Show/hide \"menu\" and \"ouput\" windows."
   (interactive)
   (if eide-windows-ide-windows-visible-flag
-    (eide-windows-hide-ide-windows)
+      (eide-windows-hide-ide-windows)
     (progn
       (eide-windows-show-ide-windows)
       (unless (listp last-nonmenu-event)
@@ -684,7 +684,7 @@ and display it. Current buffer is kept if correct."
       (progn
         (bury-buffer)
         (if (= l-iteration 0)
-          (setq l-first-found-buffer-name (buffer-name))
+            (setq l-first-found-buffer-name (buffer-name))
           (when (string-equal (buffer-name) l-first-found-buffer-name)
             ;; We have parsed the whole buffer list without finding any other
             ;; buffer that fits. Moreover, current buffer cannot be found again
@@ -709,24 +709,24 @@ and display it. Current buffer is kept if correct."
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
   (if (eq mark-active t)
-    ;; Text is selected
-    (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
-      ;; Text is selected on a single line
-      (eide-popup-open-menu-for-search)
-      ;; Text is selected on several lines
-      (eide-popup-open-menu-for-cleaning))
+      ;; Text is selected
+      (if (= (count-screen-lines (region-beginning) (region-end) t) 1)
+          ;; Text is selected on a single line
+          (eide-popup-open-menu-for-search)
+        ;; Text is selected on several lines
+        (eide-popup-open-menu-for-cleaning))
     ;; No text selected
     (progn
       (if (eide-i-windows-is-output-window-selected-p)
-        ;; "Output" window: open search results popup menu
-        (eide-popup-open-menu-for-search-results)
+          ;; "Output" window: open search results popup menu
+          (eide-popup-open-menu-for-search-results)
         (if (eide-i-windows-is-menu-window-selected-p)
-          ;; "Menu" window: open global popup menu
-          (eval (x-popup-menu t eide-menu-keymap))
+            ;; "Menu" window: open global popup menu
+            (eval (x-popup-menu t eide-menu-keymap))
           ;; "Source" window
           (if eide-windows-ide-windows-visible-flag
-            ;; Hide
-            (eide-windows-hide-ide-windows)
+              ;; Hide
+              (eide-windows-hide-ide-windows)
             ;; Show
             (progn
               (when eide-menu-browsing-mode-flag
@@ -740,7 +740,7 @@ and display it. Current buffer is kept if correct."
   ;; Select the window where the mouse is
   (eide-i-windows-select-window-at-mouse-position)
   (if (and eide-windows-ide-windows-visible-flag (eide-i-windows-is-menu-window-selected-p))
-    (eide-menu-dired-open)
+      (eide-menu-dired-open)
     (yank)))
 
 (defun eide-windows-handle-shift-mouse-3 ()
@@ -774,53 +774,53 @@ and display it. Current buffer is kept if correct."
   (if (or (string-equal (buffer-name) "*Help*")
           (string-match "^\*Customize.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
-    ;; Close "help", customization, or projects list
-    ;; NB: In customization, exit button does not work...
-    (kill-this-buffer)
+      ;; Close "help", customization, or projects list
+      ;; NB: In customization, exit button does not work...
+      (kill-this-buffer)
     (if (string-equal (buffer-name) eide-project-config-file)
-      ;; Display another buffer (other than ".emacs-ide-project.cfg")
-      (progn
-        (save-buffer)
-        (eide-project-rebuild-config-file)
-        ;; Some options requires some actions if the value has been changed
-        (when (and eide-project-old-project-name
-                   (not (string-equal eide-project-name eide-project-old-project-name)))
-          ;; Project name has changed
-          (eide-menu-update-project-name)
-          (eide-project-update-name))
-        (if eide-project-symbols-flag
-          ;; Symbols are enabled
-          (progn
-            (when (or (not eide-project-old-symbols-flag)
-                      (and eide-search-tags-exclude-enabled-flag
-                           eide-project-old-tags-exclude-value
-                           (not (string-equal eide-project-tags-exclude eide-project-old-tags-exclude-value))))
-              ;; Symbols have just been enabled or tags exclude value has changed
-              (if eide-search-tags-creation-in-progress-flag
-                (eide-popup-message "Cannot update tags while they are being created...")
-                (eide-search-create-tags)))
-            (when (or (not eide-project-old-symbols-flag)
-                      (and eide-search-cscope-exclude-enabled-flag
-                           (or (and eide-project-old-cscope-exclude-files-value
-                                    (not (string-equal eide-project-cscope-exclude-files eide-project-old-cscope-exclude-files-value)))
-                               (and eide-project-old-cscope-exclude-dirs-value
-                                    (not (string-equal eide-project-cscope-exclude-dirs eide-project-old-cscope-exclude-dirs-value))))))
-              ;; Symbols have just been enabled or cscope exclude files or dirs value has changed
-              (if eide-search-cscope-creation-in-progress-flag
-                (eide-popup-message "Cannot update cscope list of files while it is being created...")
-                (eide-search-create-cscope-list-of-files))))
-          ;; Symbols are not enabled
-          (when eide-project-old-symbols-flag
-            ;; Symbols have just been disabled: cancel the creation of tags and cscope
-            (eide-project-stop-and-remove-tags-and-cscope)))
-        ;; Reset all old values (although it is not really necessary...)
-        (setq eide-project-old-project-name nil)
-        (setq eide-project-old-symbols-flag nil)
-        (setq eide-project-old-tags-exclude-value nil)
-        (setq eide-project-old-cscope-exclude-files-value nil)
-        (setq eide-project-old-cscope-exclude-dirs-value nil)
-        ;; This buffer must not be closed
-        (switch-to-buffer eide-current-buffer))
+        ;; Display another buffer (other than ".emacs-ide-project.cfg")
+        (progn
+          (save-buffer)
+          (eide-project-rebuild-config-file)
+          ;; Some options requires some actions if the value has been changed
+          (when (and eide-project-old-project-name
+                     (not (string-equal eide-project-name eide-project-old-project-name)))
+            ;; Project name has changed
+            (eide-menu-update-project-name)
+            (eide-project-update-name))
+          (if eide-project-symbols-flag
+              ;; Symbols are enabled
+              (progn
+                (when (or (not eide-project-old-symbols-flag)
+                          (and eide-search-tags-exclude-enabled-flag
+                               eide-project-old-tags-exclude-value
+                               (not (string-equal eide-project-tags-exclude eide-project-old-tags-exclude-value))))
+                  ;; Symbols have just been enabled or tags exclude value has changed
+                  (if eide-search-tags-creation-in-progress-flag
+                      (eide-popup-message "Cannot update tags while they are being created...")
+                    (eide-search-create-tags)))
+                (when (or (not eide-project-old-symbols-flag)
+                          (and eide-search-cscope-exclude-enabled-flag
+                               (or (and eide-project-old-cscope-exclude-files-value
+                                        (not (string-equal eide-project-cscope-exclude-files eide-project-old-cscope-exclude-files-value)))
+                                   (and eide-project-old-cscope-exclude-dirs-value
+                                        (not (string-equal eide-project-cscope-exclude-dirs eide-project-old-cscope-exclude-dirs-value))))))
+                  ;; Symbols have just been enabled or cscope exclude files or dirs value has changed
+                  (if eide-search-cscope-creation-in-progress-flag
+                      (eide-popup-message "Cannot update cscope list of files while it is being created...")
+                    (eide-search-create-cscope-list-of-files))))
+            ;; Symbols are not enabled
+            (when eide-project-old-symbols-flag
+              ;; Symbols have just been disabled: cancel the creation of tags and cscope
+              (eide-project-stop-and-remove-tags-and-cscope)))
+          ;; Reset all old values (although it is not really necessary...)
+          (setq eide-project-old-project-name nil)
+          (setq eide-project-old-symbols-flag nil)
+          (setq eide-project-old-tags-exclude-value nil)
+          (setq eide-project-old-cscope-exclude-files-value nil)
+          (setq eide-project-old-cscope-exclude-dirs-value nil)
+          ;; This buffer must not be closed
+          (switch-to-buffer eide-current-buffer))
       (when (string-equal (buffer-name) eide-project-notes-file)
         ;; Close ".emacs-ide-project.txt"
         (save-buffer)
@@ -848,8 +848,8 @@ on previous state)."
   (interactive)
   (let ((l-frame-fullscreen-value (frame-parameter nil 'fullscreen)))
     (if (equal l-frame-fullscreen-value 'fullboth)
-      ;; Switch back to previous state (nil or maximized)
-      (set-frame-parameter nil 'fullscreen eide-windows-frame-fullscreen-value)
+        ;; Switch back to previous state (nil or maximized)
+        (set-frame-parameter nil 'fullscreen eide-windows-frame-fullscreen-value)
       (progn
         ;; Save current state (nil or maximized)
         (setq eide-windows-frame-fullscreen-value l-frame-fullscreen-value)

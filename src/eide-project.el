@@ -68,9 +68,9 @@
 (defvar eide-project-is-gdb-session-visible-flag nil)
 
 (if (locate-library "gdb-mi")
-  (progn
-    (require 'gdb-mi)
-    (setq eide-project-gdb-option " -i=mi "))
+    (progn
+      (require 'gdb-mi)
+      (setq eide-project-gdb-option " -i=mi "))
   (progn
     (require 'gdb-ui) ; deprecated
     (setq eide-project-gdb-option " --annotate=3 ")))
@@ -256,7 +256,7 @@ Arguments:
 - value: customization value."
   (set-default param value)
   (if eide-custom-support-ansi-escape-code-in-compilation-buffer
-    (add-hook 'compilation-filter-hook 'eide-i-project-colorize-compilation-buffer-hook)
+      (add-hook 'compilation-filter-hook 'eide-i-project-colorize-compilation-buffer-hook)
     (remove-hook 'compilation-filter-hook 'eide-i-project-colorize-compilation-buffer-hook)))
 
 (defun eide-i-project-custom-set-number-of-workspaces (param value)
@@ -298,7 +298,7 @@ has already been called."
 (defun eide-i-project-update-frame-title ()
   "Update frame title with project name (or root directory if no project)."
   (if eide-project-name
-    (setq frame-title-format (concat eide-project-name " - Emacs"))
+      (setq frame-title-format (concat eide-project-name " - Emacs"))
     (setq frame-title-format (concat eide-root-directory " - Emacs"))))
 
 (defun eide-i-project-colorize-compilation-buffer-hook ()
@@ -313,29 +313,29 @@ Argument:
           (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
-    (when (<= p-workspace-number eide-custom-number-of-workspaces)
-      (setq eide-project-current-workspace p-workspace-number)
-      ;; Change projects list file
-      (setq eide-project-projects-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
-      ;; Restore initial root directory
-      (setq eide-project-name nil)
-      (setq eide-root-directory eide-root-directory-at-startup)
-      ;; Clear the project selected for comparison
-      (setq eide-compare-other-project-name nil)
-      (setq eide-compare-other-project-directory nil)
-      (unless eide-no-desktop-option
-        ;; Clear desktop (even if a project is defined)
-        (eide-windows-hide-ide-windows)
-        (desktop-save-mode -1)
-        ;; Close all buffers
-        (desktop-clear)
-        (setq desktop-dirname nil)
-        (eide-menu-update t)
-        (eide-windows-show-ide-windows))
-      (eide-i-project-update-internal-projects-list)
-      ;; Update default directory if current buffer is not visiting a file
-      (unless buffer-file-name
-        (setq default-directory eide-root-directory)))
+      (when (<= p-workspace-number eide-custom-number-of-workspaces)
+        (setq eide-project-current-workspace p-workspace-number)
+        ;; Change projects list file
+        (setq eide-project-projects-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+        ;; Restore initial root directory
+        (setq eide-project-name nil)
+        (setq eide-root-directory eide-root-directory-at-startup)
+        ;; Clear the project selected for comparison
+        (setq eide-compare-other-project-name nil)
+        (setq eide-compare-other-project-directory nil)
+        (unless eide-no-desktop-option
+          ;; Clear desktop (even if a project is defined)
+          (eide-windows-hide-ide-windows)
+          (desktop-save-mode -1)
+          ;; Close all buffers
+          (desktop-clear)
+          (setq desktop-dirname nil)
+          (eide-menu-update t)
+          (eide-windows-show-ide-windows))
+        (eide-i-project-update-internal-projects-list)
+        ;; Update default directory if current buffer is not visiting a file
+        (unless buffer-file-name
+          (setq default-directory eide-root-directory)))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-i-project-load (p-startup-flag p-creation-flag)
@@ -372,7 +372,7 @@ Arguments:
   (when eide-project-symbols-flag
     ;; Create tags if necessary
     (if (file-exists-p (concat eide-root-directory "TAGS"))
-      (setq eide-search-tags-available-flag t)
+        (setq eide-search-tags-available-flag t)
       (eide-search-create-tags))
     ;; Load tags now, otherwise first tag search will take some time...
     ;;(find-file-noselect (concat eide-root-directory "TAGS"))
@@ -380,11 +380,11 @@ Arguments:
     (when eide-search-use-cscope-flag
       ;; Create cscope database if necessary
       (if (file-exists-p (concat eide-root-directory "cscope.files"))
-        (progn
-          (eide-search-update-cscope-status)
-          (setq eide-search-cscope-available-flag t)
-          (unless (file-exists-p (concat eide-root-directory "cscope.out"))
-            (setq eide-search-cscope-update-database-request-pending-flag t)))
+          (progn
+            (eide-search-update-cscope-status)
+            (setq eide-search-cscope-available-flag t)
+            (unless (file-exists-p (concat eide-root-directory "cscope.out"))
+              (setq eide-search-cscope-update-database-request-pending-flag t)))
         (eide-search-create-cscope-list-of-files))))
 
   (unless (file-exists-p (concat eide-root-directory eide-project-notes-file))
@@ -403,9 +403,9 @@ Arguments:
       ;; No need to check windows layout for every restored buffer
       (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook))
     (if desktop-dirname
-      ;; A desktop is already loaded: switch to the new one.
-      ;; desktop-change-dir saves the desktop, close all buffers, and read the new desktop.
-      (desktop-change-dir eide-root-directory)
+        ;; A desktop is already loaded: switch to the new one.
+        ;; desktop-change-dir saves the desktop, close all buffers, and read the new desktop.
+        (desktop-change-dir eide-root-directory)
       (progn
         ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
         (desktop-save-mode 1)
@@ -481,49 +481,49 @@ Arguments:
           (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
-    (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
-      (if (file-directory-p l-project-dir)
-        (progn
-          ;; Close projects list (so that it can be modified by another Emacs session)
-          (kill-this-buffer)
-          ;; Restore editor configuration
-          ;; NB: Keys are restored later, because we need to know if a project
-          ;; is defined or not.
-          (eide-display-set-colors-for-files)
-          (unless (and eide-project-name (string-equal l-project-dir eide-root-directory))
-            ;; This project is not already loaded
-            ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-            ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-            ;; otherwise we get errors for non-existing windows
-            (eide-windows-hide-ide-windows)
-            ;; Set root directory
-            (setq eide-root-directory l-project-dir)
-            ;; Check if a project is defined, and start it.
-            (if (file-exists-p (concat eide-root-directory eide-project-config-file))
-              ;; A project is defined in this directory
-              (eide-i-project-load nil nil)
-              (progn
-                ;; There is no project in this directory
-                (setq eide-project-name nil)
-                (unless eide-no-desktop-option
-                  (desktop-save-mode -1)
-                  ;; Close all buffers
-                  (desktop-clear)
-                  (setq desktop-dirname nil))))
-            (eide-menu-update t))
-          ;; Restore keys, now that eide-project-name is set.
-          (eide-keys-configure-for-editor)
-          (eide-windows-show-ide-windows))
-        (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
-          (let ((buffer-read-only nil))
-            (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
-            (when (string-equal l-project-dir eide-compare-other-project-directory)
-              ;; Clear the project selected for comparison
-              (setq eide-compare-other-project-name nil)
-              (setq eide-compare-other-project-directory nil))
-            (forward-line -1)
-            (delete-region (point) (progn (forward-line 2) (point)))
-            (save-buffer)))))
+      (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
+        (if (file-directory-p l-project-dir)
+            (progn
+              ;; Close projects list (so that it can be modified by another Emacs session)
+              (kill-this-buffer)
+              ;; Restore editor configuration
+              ;; NB: Keys are restored later, because we need to know if a project
+              ;; is defined or not.
+              (eide-display-set-colors-for-files)
+              (unless (and eide-project-name (string-equal l-project-dir eide-root-directory))
+                ;; This project is not already loaded
+                ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+                ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+                ;; otherwise we get errors for non-existing windows
+                (eide-windows-hide-ide-windows)
+                ;; Set root directory
+                (setq eide-root-directory l-project-dir)
+                ;; Check if a project is defined, and start it.
+                (if (file-exists-p (concat eide-root-directory eide-project-config-file))
+                    ;; A project is defined in this directory
+                    (eide-i-project-load nil nil)
+                  (progn
+                    ;; There is no project in this directory
+                    (setq eide-project-name nil)
+                    (unless eide-no-desktop-option
+                      (desktop-save-mode -1)
+                      ;; Close all buffers
+                      (desktop-clear)
+                      (setq desktop-dirname nil))))
+                (eide-menu-update t))
+              ;; Restore keys, now that eide-project-name is set.
+              (eide-keys-configure-for-editor)
+              (eide-windows-show-ide-windows))
+          (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
+            (let ((buffer-read-only nil))
+              (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+              (when (string-equal l-project-dir eide-compare-other-project-directory)
+                ;; Clear the project selected for comparison
+                (setq eide-compare-other-project-name nil)
+                (setq eide-compare-other-project-directory nil))
+              (forward-line -1)
+              (delete-region (point) (progn (forward-line 2) (point)))
+              (save-buffer)))))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-i-project-set-colors-for-config ()
@@ -542,7 +542,7 @@ Argument:
 - p-parameter: config parameter."
   (goto-char (point-min))
   (if (re-search-forward (concat "^" p-parameter " = ") nil t)
-    (buffer-substring-no-properties (point) (line-end-position))
+      (buffer-substring-no-properties (point) (line-end-position))
     nil))
 
 (defun eide-i-project-rebuild-config-line (p-parameter p-default-value p-var)
@@ -644,23 +644,23 @@ Argument:
   "Apply color theme (for project)."
   (when eide-config-ready
     (if (equal eide-display-color-theme 'dark)
-      ;; "Dark" color theme
-      (progn
-        (setq eide-project-background-color "gray20")
-        (setq eide-project-foreground-color "white")
-        ;; Config files
-        (set-face-foreground 'eide-project-config-comment-face "deep sky blue")
-        (set-face-foreground 'eide-project-config-parameter-face "salmon")
-        (set-face-foreground 'eide-project-config-possibilities-face "medium sea green")
-        (set-face-foreground 'eide-project-config-separator-face "orange red")
-        (set-face-background 'eide-project-config-value-face "gray30")
-        (set-face-foreground 'eide-project-config-value-face "white")
-        ;; Projects list
-        (set-face-foreground 'eide-project-project-name-face "sandy brown")
-        (set-face-background 'eide-project-project-current-name-face "dark red")
-        (set-face-foreground 'eide-project-project-current-name-face "sandy brown")
-        (set-face-background 'eide-project-project-comparison-name-face "dark green")
-        (set-face-foreground 'eide-project-project-comparison-name-face "sandy brown"))
+        ;; "Dark" color theme
+        (progn
+          (setq eide-project-background-color "gray20")
+          (setq eide-project-foreground-color "white")
+          ;; Config files
+          (set-face-foreground 'eide-project-config-comment-face "deep sky blue")
+          (set-face-foreground 'eide-project-config-parameter-face "salmon")
+          (set-face-foreground 'eide-project-config-possibilities-face "medium sea green")
+          (set-face-foreground 'eide-project-config-separator-face "orange red")
+          (set-face-background 'eide-project-config-value-face "gray30")
+          (set-face-foreground 'eide-project-config-value-face "white")
+          ;; Projects list
+          (set-face-foreground 'eide-project-project-name-face "sandy brown")
+          (set-face-background 'eide-project-project-current-name-face "dark red")
+          (set-face-foreground 'eide-project-project-current-name-face "sandy brown")
+          (set-face-background 'eide-project-project-comparison-name-face "dark green")
+          (set-face-foreground 'eide-project-project-comparison-name-face "sandy brown"))
       ;; "Light" color theme
       (progn
         (setq eide-project-background-color "gray90")
@@ -776,10 +776,10 @@ Argument:
     ;; Remove project files
     (let ((l-filename (concat eide-root-directory eide-project-config-file)))
       (if (file-exists-p l-filename)
-        (delete-file l-filename)))
+          (delete-file l-filename)))
     (let ((l-filename (concat eide-root-directory eide-project-notes-file)))
       (if (file-exists-p l-filename)
-        (delete-file l-filename)))
+          (delete-file l-filename)))
     ;; Delete desktop file and disable automatic saving
     (when eide-no-desktop-option
       ;; desktop-remove needs desktop-save-mode to be enabled
@@ -803,29 +803,29 @@ Argument:
           (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
-    (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
-      ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-      ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-      ;; otherwise we get errors for non-existing windows
-      (eide-windows-hide-ide-windows)
-      (let ((l-old-root-directory eide-root-directory))
-        (call-interactively 'dired)
-        ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-        (setq eide-root-directory (expand-file-name default-directory))
-        ;; Exit browsing mode (kill dired buffer)
-        (eide-menu-browsing-mode-stop)
-        (when eide-project-name
-          ;; Exit project mode: clear project name and disable desktop
-          (setq eide-project-name nil)
-          (unless eide-no-desktop-option
-            (desktop-save l-old-root-directory t)
-            (desktop-save-mode -1)
-            (setq desktop-dirname nil))
-          ;; Update key bindings (no more project)
-          (eide-keys-configure-for-editor)))
-      (eide-menu-update t)
-      (when l-ide-windows-visible-flag
-        (eide-windows-show-ide-windows)))
+      (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
+        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
+        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
+        ;; otherwise we get errors for non-existing windows
+        (eide-windows-hide-ide-windows)
+        (let ((l-old-root-directory eide-root-directory))
+          (call-interactively 'dired)
+          ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+          (setq eide-root-directory (expand-file-name default-directory))
+          ;; Exit browsing mode (kill dired buffer)
+          (eide-menu-browsing-mode-stop)
+          (when eide-project-name
+            ;; Exit project mode: clear project name and disable desktop
+            (setq eide-project-name nil)
+            (unless eide-no-desktop-option
+              (desktop-save l-old-root-directory t)
+              (desktop-save-mode -1)
+              (setq desktop-dirname nil))
+            ;; Update key bindings (no more project)
+            (eide-keys-configure-for-editor)))
+        (eide-menu-update t)
+        (when l-ide-windows-visible-flag
+          (eide-windows-show-ide-windows)))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-stop-and-remove-tags-and-cscope ()
@@ -843,13 +843,13 @@ finished yet), and delete these files."
     (kill-buffer "TAGS"))
   (let ((l-filename (concat eide-root-directory "TAGS")))
     (if (file-exists-p l-filename)
-      (delete-file l-filename)))
+        (delete-file l-filename)))
   (let ((l-filename (concat eide-root-directory "cscope.files")))
     (if (file-exists-p l-filename)
-      (delete-file l-filename)))
+        (delete-file l-filename)))
   (let ((l-filename (concat eide-root-directory "cscope.out")))
     (if (file-exists-p l-filename)
-      (delete-file l-filename))))
+        (delete-file l-filename))))
 
 (defun eide-project-open-list ()
   "Display projects list (full frame), and rebuild internal projects list."
@@ -869,7 +869,7 @@ finished yet), and delete these files."
       (eide-keys-configure-for-special-buffer)
       (ad-deactivate 'switch-to-buffer)
       (if (get-buffer eide-project-projects-buffer-name)
-        (switch-to-buffer eide-project-projects-buffer-name)
+          (switch-to-buffer eide-project-projects-buffer-name)
         (progn
           (find-file eide-project-projects-file)
           (rename-buffer eide-project-projects-buffer-name)
@@ -890,16 +890,16 @@ finished yet), and delete these files."
                 (insert " ")
                 (setq l-save-list t))))
           (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
-            (progn
-              ;; Current project (can't be selected)
-              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
-              (setq l-current-project-marker (point-marker)))
+              (progn
+                ;; Current project (can't be selected)
+                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
+                (setq l-current-project-marker (point-marker)))
             (if (and eide-compare-other-project-name
                      (string-equal l-project-dir eide-compare-other-project-directory))
-              ;; Project selected for comparison
-              (progn
-                (setq eide-project-comparison-project-point (point))
-                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
+                ;; Project selected for comparison
+                (progn
+                  (setq eide-project-comparison-project-point (point))
+                  (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
               ;; Other projects
               (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
           (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
@@ -907,8 +907,8 @@ finished yet), and delete these files."
           (push l-project-dir eide-project-current-projects-list)
           (forward-line 3)))
       (if l-save-list
-        ;; Save the buffer (upgrade from version 2.1.0)
-        (save-buffer)
+          ;; Save the buffer (upgrade from version 2.1.0)
+          (save-buffer)
         ;; Clear modified status (text properties don't need to be saved)
         (set-buffer-modified-p nil))
       (setq buffer-read-only t)
@@ -920,20 +920,20 @@ finished yet), and delete these files."
   (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
-      (progn
-        (set-buffer eide-project-projects-buffer-name)
-        (setq buffer-read-only nil))
+        (progn
+          (set-buffer eide-project-projects-buffer-name)
+          (setq buffer-read-only nil))
       (set-buffer (find-file-noselect eide-project-projects-file)))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
-      (progn
-        ;; This project is already in the list
-        (forward-line -1)
-        (unless (string-equal eide-project-name (buffer-substring-no-properties (point) (1- (line-end-position))))
-          ;; Update the project name
-          (delete-region (point) (1- (line-end-position)))
-          (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
-          (save-buffer)))
+        (progn
+          ;; This project is already in the list
+          (forward-line -1)
+          (unless (string-equal eide-project-name (buffer-substring-no-properties (point) (1- (line-end-position))))
+            ;; Update the project name
+            (delete-region (point) (1- (line-end-position)))
+            (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
+            (save-buffer)))
       (progn
         ;; This project is not in the list: let's insert it in the right place
         ;; (root directories in alphabetical order)
@@ -957,9 +957,9 @@ finished yet), and delete these files."
   (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
-      (progn
-        (set-buffer eide-project-projects-buffer-name)
-        (setq buffer-read-only nil))
+        (progn
+          (set-buffer eide-project-projects-buffer-name)
+          (setq buffer-read-only nil))
       (set-buffer (find-file-noselect eide-project-projects-file)))
     (goto-char (point-min))
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
@@ -981,9 +981,9 @@ current workspace."
   ;; Update projects list
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
-      (progn
-        (set-buffer eide-project-projects-buffer-name)
-        (setq buffer-read-only nil))
+        (progn
+          (set-buffer eide-project-projects-buffer-name)
+          (setq buffer-read-only nil))
       (set-buffer (find-file-noselect eide-project-projects-file)))
     (goto-char (point-min))
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
@@ -1017,8 +1017,8 @@ current workspace."
     (forward-line)
     (setq l-project-dir (buffer-substring-no-properties (point) (line-end-position)))
     (if (string-equal l-project-dir eide-compare-other-project-directory)
-      ;; Unselect
-      (eide-compare-select-another-project nil nil)
+        ;; Unselect
+        (eide-compare-select-another-project nil nil)
       ;; Select
       (eide-compare-select-another-project l-project-name l-project-dir))
     (forward-line -1)
@@ -1034,7 +1034,7 @@ current workspace."
           (let ((l-old-project-dir (buffer-substring-no-properties (point) (line-end-position))))
             (forward-line -1)
             (if (string-equal l-old-project-dir eide-root-directory)
-              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
+                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
               (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))))
       (setq eide-project-comparison-project-point l-new-point))
     ;; Clear modified status (text properties don't need to be saved)
@@ -1079,7 +1079,7 @@ current workspace."
                                         "yes"
                                         'eide-project-symbols)
     (if (string-equal eide-project-symbols "yes")
-      (setq eide-project-symbols-flag t)
+        (setq eide-project-symbols-flag t)
       (setq eide-project-symbols-flag nil))
 
     (insert "# Init command is called before all 'compile' and 'run' commands.\n")
@@ -1182,8 +1182,8 @@ current workspace."
     ;; Close temporary buffer
     (kill-buffer eide-project-config-target-buffer))
   (if (string-equal eide-project-compile-error-old-path-regexp "")
-    ;; Remove hook if present
-    (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+      ;; Remove hook if present
+      (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
     ;; Add hook if not present
     (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
 
@@ -1222,7 +1222,7 @@ current workspace."
 Argument:
 - p-command: command string."
   (if (string-equal eide-project-init-command "")
-    p-command
+      p-command
     (concat eide-project-init-command " ; " p-command)))
 
 (defun eide-project-get-full-gdb-command (p-program)
@@ -1238,7 +1238,7 @@ Argument:
 - p-program: program string."
   (let ((l-short-gdb-command nil))
     (if (string-match "/" eide-project-debug-command)
-      (setq l-short-gdb-command (concat "[...]/" (car (last (split-string eide-project-debug-command "/")))))
+        (setq l-short-gdb-command (concat "[...]/" (car (last (split-string eide-project-debug-command "/")))))
       (setq l-short-gdb-command eide-project-debug-command))
     (concat l-short-gdb-command eide-project-gdb-option p-program)))
 
@@ -1249,7 +1249,7 @@ Argument:
 - p-directory: directory (absolute path)."
   ;; Remove project base path if the file is part of it (otherwise display full path)
   (if (and (<= (length eide-root-directory) (length p-directory)) (string-equal eide-root-directory (substring p-directory 0 (length eide-root-directory))))
-    (substring p-directory (length eide-root-directory))
+      (substring p-directory (length eide-root-directory))
     p-directory))
 
 (defun eide-project-compile-1 ()

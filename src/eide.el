@@ -77,22 +77,22 @@
 (defun eide-start ()
   "Start Emacs-IDE."
   (if (>= emacs-major-version 24)
-    (progn
-      (unless (file-directory-p "~/.emacs.d/eide")
-        (if (file-directory-p "~/.emacs-ide")
-          ;; Upgrade from version 2.0.0:
-          ;; Store the environment in ~/.emacs.d/eide instead of ~/.emacs-ide
-          (rename-file "~/.emacs-ide" "~/.emacs.d/eide")
-          ;; Create ~/.emacs.d/eide if it does not exist
-          (make-directory "~/.emacs.d/eide")))
-      ;; Emacs settings must be saved before the desktop is loaded, because it
-      ;; reads some variables that might be overridden by local values in buffers.
-      (eide-config-init)
-      (eide-project-init)
-      (eide-menu-init)
-      (eide-windows-init)
-      ;; Start with "editor" mode
-      (eide-keys-configure-for-editor))
+      (progn
+        (unless (file-directory-p "~/.emacs.d/eide")
+          (if (file-directory-p "~/.emacs-ide")
+              ;; Upgrade from version 2.0.0:
+              ;; Store the environment in ~/.emacs.d/eide instead of ~/.emacs-ide
+              (rename-file "~/.emacs-ide" "~/.emacs.d/eide")
+            ;; Create ~/.emacs.d/eide if it does not exist
+            (make-directory "~/.emacs.d/eide")))
+        ;; Emacs settings must be saved before the desktop is loaded, because it
+        ;; reads some variables that might be overridden by local values in buffers.
+        (eide-config-init)
+        (eide-project-init)
+        (eide-menu-init)
+        (eide-windows-init)
+        ;; Start with "editor" mode
+        (eide-keys-configure-for-editor))
     (message "Failed to start Emacs-IDE (requires Emacs version >= 24)")))
 
 ;;; eide.el ends here

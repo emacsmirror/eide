@@ -131,7 +131,7 @@ Arguments:
 Argument:
 - p-string: string to insert."
   (if eide-menu-use-specific-background-color-flag
-    (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-menu-default-face)
+      (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-menu-default-face)
     (insert p-string)))
 
 (defun eide-i-menu-insert-imenu-elements-list (p-elements-list p-unfolded-symbols-folders-list p-highlighted-symbols-list p-prefix)
@@ -144,29 +144,29 @@ Arguments:
   (dolist (l-element p-elements-list)
     (let ((l-begin-point (point)))
       (if (markerp (cdr l-element))
-        ;; l-element is a function
-        (progn
-          ;; Make it clickable from the beginning of line, for keyboard shortcut
-          (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap function-name-map)
-          (put-text-property l-begin-point (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
-          (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-          (eide-i-menu-insert-text " ")
-          (put-text-property (setq l-begin-point (point)) (progn (insert (car l-element)) (point)) 'keymap function-name-map)
-          (if (member (car l-element) p-highlighted-symbols-list)
-            (put-text-property l-begin-point (point) 'face 'eide-menu-function-with-highlight-face)
-            (put-text-property l-begin-point (point) 'face 'eide-menu-function-face))
-          (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-          (eide-i-menu-insert-text " \n"))
+          ;; l-element is a function
+          (progn
+            ;; Make it clickable from the beginning of line, for keyboard shortcut
+            (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap function-name-map)
+            (put-text-property l-begin-point (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
+            (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+            (eide-i-menu-insert-text " ")
+            (put-text-property (setq l-begin-point (point)) (progn (insert (car l-element)) (point)) 'keymap function-name-map)
+            (if (member (car l-element) p-highlighted-symbols-list)
+                (put-text-property l-begin-point (point) 'face 'eide-menu-function-with-highlight-face)
+              (put-text-property l-begin-point (point) 'face 'eide-menu-function-face))
+            (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+            (eide-i-menu-insert-text " \n"))
         ;; l-element is a folder
         (progn
           ;; Make it clickable from the beginning of line, for keyboard shortcut
           (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap unfold-symbols-folder-map)
           (if (member (car l-element) p-unfolded-symbols-folders-list)
-            (progn
-              (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
-              (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-              (eide-i-menu-insert-text " \n")
-              (eide-i-menu-insert-imenu-elements-list (cdr l-element) p-unfolded-symbols-folders-list p-highlighted-symbols-list (concat p-prefix " | ")))
+              (progn
+                (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
+                (put-text-property l-begin-point (point) 'mouse-face 'highlight)
+                (eide-i-menu-insert-text " \n")
+                (eide-i-menu-insert-imenu-elements-list (cdr l-element) p-unfolded-symbols-folders-list p-highlighted-symbols-list (concat p-prefix " | ")))
             (progn
               (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(+) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
               (put-text-property l-begin-point (point) 'mouse-face 'highlight)
@@ -204,21 +204,21 @@ Arguments:
 
     ;; Check if this is current buffer
     (if (string-equal eide-current-buffer p-buffer-name)
-      (setq l-is-current t)
+        (setq l-is-current t)
       (setq l-is-current nil))
 
     (beginning-of-line)
     (when p-update-flag
       (while (char-equal (char-after) ?\s) (forward-line -1))
       (if p-update-symbols-flag
-        ;; Remove file and symbols
-        (delete-region (point)
-                       (progn
-                         (forward-line)
-                         (while (and (not (eobp))
-                                     (char-equal (char-after) ?\s))
-                           (forward-line))
-                         (point)))
+          ;; Remove file and symbols
+          (delete-region (point)
+                         (progn
+                           (forward-line)
+                           (while (and (not (eobp))
+                                       (char-equal (char-after) ?\s))
+                             (forward-line))
+                           (point)))
         ;; Remove file only
         (progn
           ;; Skip "(+) "
@@ -230,7 +230,7 @@ Arguments:
       ;; Insert "(-) " or "(+) " depending on unfolded status
       (let ((l-begin-point (point)))
         (if l-functions-unfolded-flag
-          (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
+            (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
           (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
         (put-text-property l-begin-point (point) 'mouse-face 'highlight)
         (eide-i-menu-insert-text " ")))
@@ -238,29 +238,29 @@ Arguments:
     (let ((l-begin-point (point)))
       (put-text-property l-begin-point (progn (insert p-buffer-name) (point)) 'keymap file-name-map)
       (if l-is-current
-        ;; Current file
-        (if (string-equal l-buffer-status "nofile")
-          (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-nofile-face)
-          (if (string-equal l-buffer-status "ref")
-            (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ref-face)
-            (if (string-equal l-buffer-status "new")
-              (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-new-face)
-              (if l-buffer-vc-modified-flag
-                (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-vc-modified-face)
-                (if l-buffer-rw-flag
-                  (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-rw-face)
-                  (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ro-face))))))
+          ;; Current file
+          (if (string-equal l-buffer-status "nofile")
+              (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-nofile-face)
+            (if (string-equal l-buffer-status "ref")
+                (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ref-face)
+              (if (string-equal l-buffer-status "new")
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-new-face)
+                (if l-buffer-vc-modified-flag
+                    (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-vc-modified-face)
+                  (if l-buffer-rw-flag
+                      (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-rw-face)
+                    (put-text-property l-begin-point (point) 'face 'eide-menu-current-file-ro-face))))))
         ;; Not current file
         (if (string-equal l-buffer-status "nofile")
-          (put-text-property l-begin-point (point) 'face 'eide-menu-file-nofile-face)
+            (put-text-property l-begin-point (point) 'face 'eide-menu-file-nofile-face)
           (if (string-equal l-buffer-status "ref")
-            (put-text-property l-begin-point (point) 'face 'eide-menu-file-ref-face)
+              (put-text-property l-begin-point (point) 'face 'eide-menu-file-ref-face)
             (if (string-equal l-buffer-status "new")
-              (put-text-property l-begin-point (point) 'face 'eide-menu-file-new-face)
+                (put-text-property l-begin-point (point) 'face 'eide-menu-file-new-face)
               (if l-buffer-vc-modified-flag
-                (put-text-property l-begin-point (point) 'face 'eide-menu-file-vc-modified-face)
+                  (put-text-property l-begin-point (point) 'face 'eide-menu-file-vc-modified-face)
                 (if l-buffer-rw-flag
-                  (put-text-property l-begin-point (point) 'face 'eide-menu-file-rw-face)
+                    (put-text-property l-begin-point (point) 'face 'eide-menu-file-rw-face)
                   (put-text-property l-begin-point (point) 'face 'eide-menu-file-ro-face)))))))
       (put-text-property l-begin-point (point) 'mouse-face 'highlight))
 
@@ -285,7 +285,7 @@ Arguments:
     (when (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
       ;; Insert functions
       (if l-imenu-elements-list
-        (eide-i-menu-insert-imenu-elements-list l-imenu-elements-list l-unfolded-symbols-folders-list l-highlighted-symbols-list "  ")
+          (eide-i-menu-insert-imenu-elements-list l-imenu-elements-list l-unfolded-symbols-folders-list l-highlighted-symbols-list "  ")
         (progn
           (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-menu-empty-list-face)
           (eide-i-menu-insert-text "\n"))))))
@@ -296,21 +296,21 @@ Argument:
 - p-directory-name: directory name."
   (let ((buffer-read-only nil) (l-directory-short (eide-project-get-short-directory p-directory-name)) (l-begin-point nil))
     (if (string-equal p-directory-name l-directory-short)
-      (setq l-directory-short nil)
+        (setq l-directory-short nil)
       (when (string-equal l-directory-short "")
         ;; Make root directory "clickable"
         (setq l-directory-short "./")))
 
     (if l-directory-short
-      (progn
-        (put-text-property (setq l-begin-point (point)) (progn (insert l-directory-short) (point)) 'keymap directory-name-map)
-        (put-text-property l-begin-point (point) 'face 'eide-menu-directory-face))
+        (progn
+          (put-text-property (setq l-begin-point (point)) (progn (insert l-directory-short) (point)) 'keymap directory-name-map)
+          (put-text-property l-begin-point (point) 'face 'eide-menu-directory-face))
       (progn
         (put-text-property (setq l-begin-point (point)) (progn (insert p-directory-name) (point)) 'keymap directory-name-map)
         (put-text-property l-begin-point (point) 'face 'eide-menu-directory-out-of-project-face)))
     (put-text-property l-begin-point (point) 'mouse-face 'highlight)
     (if l-directory-short
-      (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-menu-directory-face)
+        (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-menu-directory-face)
       (put-text-property (point) (progn (insert " \n") (point)) 'face 'eide-menu-directory-out-of-project-face))
 
     ;; Parse buffer list for buffers from this directory to display
@@ -430,7 +430,7 @@ Argument:
     (setq eide-menu-current-buffer-marker nil)
 
     (if eide-project-name
-      (eide-i-menu-insert-project-name)
+        (eide-i-menu-insert-project-name)
       (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-menu-project-header-face))
 
     (eide-i-menu-insert-text "\n")
@@ -438,13 +438,13 @@ Argument:
     (eide-i-menu-insert-text "\n\n")
 
     (if p-force-update-status-flag
-      ;; Update status of all files
-      (progn
-        (eide-menu-build-files-lists)
-        ;; Update edit status (REF/NEW) of all files
-        (eide-edit-update-files-status)
-        ;; Update vc modified status of all files
-        (eide-vc-update-files-status))
+        ;; Update status of all files
+        (progn
+          (eide-menu-build-files-lists)
+          ;; Update edit status (REF/NEW) of all files
+          (eide-edit-update-files-status)
+          ;; Update vc modified status of all files
+          (eide-vc-update-files-status))
       ;; Retrieve status of new open files, but do not update status of other files
       (let ((eide-menu-files-old-list eide-menu-files-list) (l-new-files nil))
         (eide-menu-build-files-lists)
@@ -491,7 +491,7 @@ Argument:
   (let ((l-buffer-name (eide-i-menu-get-buffer-name-on-previous-lines)))
     (with-current-buffer l-buffer-name
       (if eide-menu-local-functions-unfolded-flag
-        (setq eide-menu-local-functions-unfolded-flag nil)
+          (setq eide-menu-local-functions-unfolded-flag nil)
         (progn
           (make-local-variable 'eide-menu-local-functions-unfolded-flag)
           (setq eide-menu-local-functions-unfolded-flag t))))
@@ -509,8 +509,8 @@ Argument:
       (with-current-buffer l-buffer-name
         (make-local-variable 'eide-menu-local-unfolded-symbols-folders-list)
         (if (member l-folder-name eide-menu-local-unfolded-symbols-folders-list)
-          ;; Already unfolded => remove it
-          (setq eide-menu-local-unfolded-symbols-folders-list (remove l-folder-name eide-menu-local-unfolded-symbols-folders-list))
+            ;; Already unfolded => remove it
+            (setq eide-menu-local-unfolded-symbols-folders-list (remove l-folder-name eide-menu-local-unfolded-symbols-folders-list))
           ;; Not unfolded yet => add it
           (push l-folder-name eide-menu-local-unfolded-symbols-folders-list)))
       (eide-i-menu-insert-file l-buffer-name t t))
@@ -526,9 +526,9 @@ Arguments:
       (unless l-marker-found
         ;; Symbol not found yet
         (if (markerp (cdr l-element))
-          ;; Check if this element contains the symbol we are looking for
-          (when (equal p-symbol (car l-element))
-            (setq l-marker-found (cdr l-element)))
+            ;; Check if this element contains the symbol we are looking for
+            (when (equal p-symbol (car l-element))
+              (setq l-marker-found (cdr l-element)))
           ;; This element is a list: recursive call
           (setq l-marker-found (eide-i-menu-get-symbol-marker-in-imenu-list p-symbol (cdr l-element))))))
     l-marker-found))
@@ -550,8 +550,8 @@ Argument:
       (with-current-buffer l-buffer-name
         (make-local-variable 'eide-menu-local-highlighted-symbols-list)
         (if (member l-symbol-name eide-menu-local-highlighted-symbols-list)
-          ;; Already highlighted => remove it
-          (setq eide-menu-local-highlighted-symbols-list (remove l-symbol-name eide-menu-local-highlighted-symbols-list))
+            ;; Already highlighted => remove it
+            (setq eide-menu-local-highlighted-symbols-list (remove l-symbol-name eide-menu-local-highlighted-symbols-list))
           ;; Not highlighted yet => add it
           (push l-symbol-name eide-menu-local-highlighted-symbols-list)))
       (eide-i-menu-insert-file l-buffer-name t t))
@@ -619,28 +619,28 @@ current buffer."
 (defun eide-menu-apply-color-theme ()
   "Apply color theme (for menu)."
   (if (equal eide-display-color-theme 'dark)
-    ;; "Dark" color theme
-    (progn
-      (setq eide-menu-background-color "black")
-      (setq eide-menu-foreground-color "gray95")
-      ;; Project
-      (set-face-foreground 'eide-menu-project-header-face "deep sky blue")
-      (set-face-foreground 'eide-menu-project-name-face "orange")
-      ;; Directories
-      (set-face-background 'eide-menu-directory-face "#300030")
-      (set-face-foreground 'eide-menu-directory-face "thistle")
-      (set-face-background 'eide-menu-directory-out-of-project-face "saddle brown")
-      (set-face-foreground 'eide-menu-directory-out-of-project-face "peach puff")
-      ;; Files
-      (set-face-foreground 'eide-menu-file-rw-face "gray95")
-      (set-face-foreground 'eide-menu-file-ro-face "gray65")
-      (set-face-foreground 'eide-menu-file-nofile-face "gray95")
-      (setq eide-menu-file-highlight-background-color "dark red")
-      (set-face-foreground 'eide-menu-file-vc-modified-face "deep sky blue")
-      ;; Functions
-      (set-face-foreground 'eide-menu-function-face "deep sky blue")
-      (set-face-background 'eide-menu-function-with-highlight-face "navy")
-      (set-face-foreground 'eide-menu-function-with-highlight-face "deep sky blue"))
+      ;; "Dark" color theme
+      (progn
+        (setq eide-menu-background-color "black")
+        (setq eide-menu-foreground-color "gray95")
+        ;; Project
+        (set-face-foreground 'eide-menu-project-header-face "deep sky blue")
+        (set-face-foreground 'eide-menu-project-name-face "orange")
+        ;; Directories
+        (set-face-background 'eide-menu-directory-face "#300030")
+        (set-face-foreground 'eide-menu-directory-face "thistle")
+        (set-face-background 'eide-menu-directory-out-of-project-face "saddle brown")
+        (set-face-foreground 'eide-menu-directory-out-of-project-face "peach puff")
+        ;; Files
+        (set-face-foreground 'eide-menu-file-rw-face "gray95")
+        (set-face-foreground 'eide-menu-file-ro-face "gray65")
+        (set-face-foreground 'eide-menu-file-nofile-face "gray95")
+        (setq eide-menu-file-highlight-background-color "dark red")
+        (set-face-foreground 'eide-menu-file-vc-modified-face "deep sky blue")
+        ;; Functions
+        (set-face-foreground 'eide-menu-function-face "deep sky blue")
+        (set-face-background 'eide-menu-function-with-highlight-face "navy")
+        (set-face-foreground 'eide-menu-function-with-highlight-face "deep sky blue"))
     ;; "Light" color theme
     (progn
       (setq eide-menu-background-color "white")
@@ -673,9 +673,9 @@ current buffer."
         (setq l-background-color (face-background 'default))
         (if (or (not eide-custom-menu-use-specific-background-color)
                 (equal eide-menu-background-color l-background-color))
-          (progn
-            (setq eide-menu-use-specific-background-color-flag nil)
-            (setq l-menu-background-color l-background-color))
+            (progn
+              (setq eide-menu-use-specific-background-color-flag nil)
+              (setq l-menu-background-color l-background-color))
           (progn
             (setq eide-menu-use-specific-background-color-flag t)
             (setq l-menu-background-color eide-menu-background-color))))
@@ -719,45 +719,45 @@ Arguments:
 - p-force-update-status-flag (optional): t = update files status, nil = do not
   update."
   (if eide-windows-ide-windows-visible-flag
-    (progn
-      ;; Cancel pending request
-      (setq eide-windows-menu-update-request-pending-flag nil)
-      ;; Save window to go back to, once menu has been updated
-      (let ((l-window (selected-window)))
-        (eide-windows-select-source-window t)
-        ;; With Emacs 22: buffer-name does not return current but previous
-        ;; buffer!... The bug is fixed if window-buffer is used.
-        ;;(setq eide-current-buffer-temp (buffer-name))
-        (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
-          (if (or p-force-rebuild-flag eide-windows-menu-update-request-pending-force-rebuild-flag)
-            (progn
-              ;; Cancel pending request (force rebuild)
-              (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
-              (eide-windows-select-menu-window)
-              (setq eide-current-buffer eide-current-buffer-temp)
-              (eide-i-menu-rebuild (or p-force-update-status-flag eide-windows-menu-update-request-pending-force-update-status-flag))
-              ;; Cancel pending request (force update status)
-              (setq eide-windows-menu-update-request-pending-force-update-status-flag nil))
-            (unless (string-equal eide-current-buffer eide-current-buffer-temp)
-              (eide-windows-select-menu-window)
-              (goto-char (point-min))
-              ;; Case sensitive search is necessary for buffer name
-              (if (and (let ((case-fold-search nil)) (search-forward (concat " " eide-current-buffer-temp " ") nil t))
-                       (get-buffer eide-current-buffer))
-                ;; Old and new files are both present in menu: just update current buffer
-                (eide-i-menu-update-current-buffer eide-current-buffer-temp)
-                ;; File not present in menu: update whole menu
+      (progn
+        ;; Cancel pending request
+        (setq eide-windows-menu-update-request-pending-flag nil)
+        ;; Save window to go back to, once menu has been updated
+        (let ((l-window (selected-window)))
+          (eide-windows-select-source-window t)
+          ;; With Emacs 22: buffer-name does not return current but previous
+          ;; buffer!... The bug is fixed if window-buffer is used.
+          ;;(setq eide-current-buffer-temp (buffer-name))
+          (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
+            (if (or p-force-rebuild-flag eide-windows-menu-update-request-pending-force-rebuild-flag)
                 (progn
+                  ;; Cancel pending request (force rebuild)
+                  (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
+                  (eide-windows-select-menu-window)
                   (setq eide-current-buffer eide-current-buffer-temp)
-                  (eide-i-menu-rebuild nil))))))
-        ;; Go back to "current window"
-        (select-window l-window)))
+                  (eide-i-menu-rebuild (or p-force-update-status-flag eide-windows-menu-update-request-pending-force-update-status-flag))
+                  ;; Cancel pending request (force update status)
+                  (setq eide-windows-menu-update-request-pending-force-update-status-flag nil))
+              (unless (string-equal eide-current-buffer eide-current-buffer-temp)
+                (eide-windows-select-menu-window)
+                (goto-char (point-min))
+                ;; Case sensitive search is necessary for buffer name
+                (if (and (let ((case-fold-search nil)) (search-forward (concat " " eide-current-buffer-temp " ") nil t))
+                         (get-buffer eide-current-buffer))
+                    ;; Old and new files are both present in menu: just update current buffer
+                    (eide-i-menu-update-current-buffer eide-current-buffer-temp)
+                  ;; File not present in menu: update whole menu
+                  (progn
+                    (setq eide-current-buffer eide-current-buffer-temp)
+                    (eide-i-menu-rebuild nil))))))
+          ;; Go back to "current window"
+          (select-window l-window)))
     (progn
       (setq eide-windows-menu-update-request-pending-flag t)
       ;; Force rebuild flag must not be changed if already set
       (unless eide-windows-menu-update-request-pending-force-rebuild-flag
         (if p-force-rebuild-flag
-          (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)
+            (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)
           (when (or (not (member eide-current-buffer eide-menu-files-list))
                     (not (member (buffer-name (window-buffer (selected-window))) eide-menu-files-list)))
             (setq eide-windows-menu-update-request-pending-force-rebuild-flag t))))
@@ -780,17 +780,17 @@ pages)."
     (dolist (l-buffer-name l-buffer-name-list)
       (if (not (or (string-match "^[ \*]" l-buffer-name)
                    (eide-windows-is-file-special-p l-buffer-name)))
-        ;; This is a "useful" buffer
-        (with-current-buffer l-buffer-name
-          (if (or (equal major-mode 'dired-mode)
-                  (equal major-mode 'Buffer-menu-mode))
-            (kill-buffer l-buffer-name)
-            (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list))))
+          ;; This is a "useful" buffer
+          (with-current-buffer l-buffer-name
+            (if (or (equal major-mode 'dired-mode)
+                    (equal major-mode 'Buffer-menu-mode))
+                (kill-buffer l-buffer-name)
+              (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list))))
         ;; This is a "*..." buffer (or a special file that should be ignored)
         (if (string-match "^\*grep.*" l-buffer-name)
-          (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
+            (setq eide-menu-grep-results-list (cons l-buffer-name eide-menu-grep-results-list))
           (if (string-match "^\*cscope\*.*" l-buffer-name)
-            (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))
+              (setq eide-menu-cscope-results-list (cons l-buffer-name eide-menu-cscope-results-list))
             (when (string-match "^\*Man .*" l-buffer-name)
               (setq eide-menu-man-pages-list (cons l-buffer-name eide-menu-man-pages-list)))))))))
 
@@ -849,11 +849,11 @@ Argument:
       (kill-buffer p-buffer-name)
       (setq eide-menu-files-list (remove p-buffer-name eide-menu-files-list))
       (if (string-equal p-buffer-name eide-current-buffer)
-        (progn
-          ;; Current buffer has been closed: display another one
-          (eide-windows-skip-unwanted-buffers-in-source-window)
-          ;; Update menu to focus on new current buffer
-          (eide-menu-update t))
+          (progn
+            ;; Current buffer has been closed: display another one
+            (eide-windows-skip-unwanted-buffers-in-source-window)
+            ;; Update menu to focus on new current buffer
+            (eide-menu-update t))
         (progn
           (eide-i-menu-remove-file)
           (when (or (eobp)
@@ -890,8 +890,8 @@ Argument:
           (kill-buffer l-buffer)
           (setq eide-menu-files-list (remove l-buffer eide-menu-files-list))))
       (if (get-buffer eide-current-buffer)
-        ;; Current buffer has not been closed: just remove this directory
-        (eide-i-menu-remove-directory)
+          ;; Current buffer has not been closed: just remove this directory
+          (eide-i-menu-remove-directory)
         (progn
           ;; Current buffer has been closed: display another one
           (eide-windows-skip-unwanted-buffers-in-source-window)
@@ -999,7 +999,7 @@ Argument:
     (forward-line)
     (let ((l-directory-full-name nil))
       (if (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
-        (setq l-directory-full-name p-directory-name)
+          (setq l-directory-full-name p-directory-name)
         (setq l-directory-full-name (concat eide-root-directory p-directory-name)))
       (eide-i-menu-remove-directory)
       (eide-i-menu-insert-directory l-directory-full-name)))

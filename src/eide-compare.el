@@ -119,25 +119,25 @@ Arguments:
   (setq eide-compare-current-point (point))
 
   (if p-force-major-mode-flag
-    (let ((l-auto-mode-alist auto-mode-alist))
-      ;; Add .ref and .new files in auto-mode-alist (with current buffer major
-      ;; mode)
-      (push (cons "\\.ref\\'" major-mode) auto-mode-alist)
-      (push (cons "\\.new\\'" major-mode) auto-mode-alist)
-      (eide-windows-find-file-without-advice p-other-buffer-filename)
-      ;; Restore auto-mode-alist
-      (setq auto-mode-alist l-auto-mode-alist)
-      ;; Turn hide/show mode off, because if emacs is closed before this
-      ;; temporary buffer is closed, it will be loaded next time, with an error
-      ;; because default major mode is Fundamental
-      (when hs-minor-mode
-        (hs-minor-mode)))
+      (let ((l-auto-mode-alist auto-mode-alist))
+        ;; Add .ref and .new files in auto-mode-alist (with current buffer major
+        ;; mode)
+        (push (cons "\\.ref\\'" major-mode) auto-mode-alist)
+        (push (cons "\\.new\\'" major-mode) auto-mode-alist)
+        (eide-windows-find-file-without-advice p-other-buffer-filename)
+        ;; Restore auto-mode-alist
+        (setq auto-mode-alist l-auto-mode-alist)
+        ;; Turn hide/show mode off, because if emacs is closed before this
+        ;; temporary buffer is closed, it will be loaded next time, with an error
+        ;; because default major mode is Fundamental
+        (when hs-minor-mode
+          (hs-minor-mode)))
     (eide-windows-find-file-without-advice p-other-buffer-filename))
 
   (setq eide-compare-other-buffer-name (concat p-other-buffer-name-prefix eide-compare-buffer-name))
   (rename-buffer eide-compare-other-buffer-name)
   (if p-buffer-in-left-window-flag
-    (ediff-buffers eide-compare-buffer-name eide-compare-other-buffer-name)
+      (ediff-buffers eide-compare-buffer-name eide-compare-other-buffer-name)
     (ediff-buffers eide-compare-other-buffer-name eide-compare-buffer-name)))
 
 (defun eide-i-compare-select-control-window ()
@@ -180,7 +180,7 @@ Argument:
   (setq eide-compare-buffer-name p-buffer-name)
   (let ((l-other-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory)))))
     (if (file-exists-p l-other-file)
-      (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil)
+        (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil)
       (eide-popup-message "This file doesn't exist in the other project."))))
 
 (defun eide-compare-quit ()
