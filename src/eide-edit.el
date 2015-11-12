@@ -80,18 +80,18 @@ permission for it."
   (when (string-equal eide-menu-local-edit-status "new")
     (rename-file buffer-file-name (concat buffer-file-name ".new"))
     (rename-file (concat buffer-file-name ".ref") buffer-file-name)
-    (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-file-times buffer-file-name)))
+    (set-file-times buffer-file-name)
+    (revert-buffer)))
 
 (defun eide-edit-use-new-file ()
   "Use \".new\" version of current file."
   (when (string-equal eide-menu-local-edit-status "ref")
     (rename-file buffer-file-name (concat buffer-file-name ".ref"))
     (rename-file (concat buffer-file-name ".new") buffer-file-name)
-    (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-file-times buffer-file-name)))
+    (set-file-times buffer-file-name)
+    (revert-buffer)))
 
 (defun eide-edit-discard-new-file ()
   "Discard \".new\" version of current file."
@@ -103,9 +103,9 @@ permission for it."
   (when (string-equal eide-menu-local-edit-status "new")
     (delete-file buffer-file-name)
     (rename-file (concat buffer-file-name ".ref") buffer-file-name)
-    (revert-buffer)
     ;; Update the modification time of the file (for it to be recompiled)
-    (set-file-times buffer-file-name)))
+    (set-file-times buffer-file-name)
+    (revert-buffer)))
 
 (defun eide-edit-discard-ref-file ()
   "Discard \".ref\" version of current file."
