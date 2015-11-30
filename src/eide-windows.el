@@ -495,16 +495,22 @@ cancelled by C-g - whatever happened in between (including hide/show IDE
 windows)."
   (if eide-windows-ide-windows-visible-flag
       ;; IDE windows are supposed to be visible
-      (let ((l-menu-window (get-buffer-window eide-menu-buffer-name))
-            (l-output-window (get-buffer-window eide-windows-output-window-buffer)))
-        (if (or (not l-menu-window) (not l-output-window))
-            ;; At least one of the IDE windows is not visible
+      (let ((l-menu-window (get-buffer-window eide-menu-buffer-name)))
+        (if (not l-menu-window)
+            ;; The "menu" window is not visible
             ;; Properly hide IDE windows in order to update internal information
             (eide-windows-hide-ide-windows)
-          (when (not (equal l-menu-window eide-windows-menu-window))
-            ;; IDE windows are visible, but the window objects are not consistent
-            ;; Properly show IDE windows in order to update internal information
-            (eide-windows-show-ide-windows))))
+          (if (not (equal l-menu-window eide-windows-menu-window))
+              ;; The "menu" window is visible, but the window object is not consistent
+              ;; Properly show IDE windows in order to update internal information
+              (eide-windows-show-ide-windows)
+            (when (not (window-live-p eide-windows-output-window))
+              ;; The "menu" window is visible and the window object is consistent, but
+              ;; the "output" window - which should be consistent as well - is not visible
+              ;; NB: We don't check the window displaying the "output" buffer, because
+              ;; Emacs might be reusing the "output" window to display another buffer
+              ;; Properly hide IDE windows in order to update internal information
+              (eide-windows-hide-ide-windows)))))
     ;; IDE windows are supposed not to be visible
     (when (get-buffer-window eide-menu-buffer-name)
       ;; IDE windows are visible
