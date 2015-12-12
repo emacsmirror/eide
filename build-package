@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=2.1.0
+VERSION=2.1.1
 rm -rf eide-$VERSION eide-$VERSION.tar
 
 printf "\033[1mCopy source files to package directory\033[0m\n"

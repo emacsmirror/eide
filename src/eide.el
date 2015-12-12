@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2015 Cédric Marie
 
 ;; Author: Cédric Marie <cedric.marie@openmailbox.org>
-;; Version: 2.1.0
+;; Version: 2.1.1
 ;; URL: http://emacs-ide.tuxfamily.org/
 
 ;; This file is not part of GNU Emacs.

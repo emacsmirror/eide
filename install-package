@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=2.1.0
+VERSION=2.1.1
 if [ ! -f eide-$VERSION.tar ]; then
   printf "\033[1;31meide-$VERSION.tar does not exist\033[0m\n"
   exit 1
