@@ -1065,6 +1065,10 @@ Arguments:
 (defun eide-menu-dired-open ()
   "Open directory (dired mode)."
   (eide-windows-select-source-window nil)
+  ;; If the "source" window is displaying a temporary buffer - usually
+  ;; "*scratch*" - we must update its default directory
+  (if (not buffer-file-name)
+      (setq default-directory eide-root-directory))
   (find-file default-directory))
 
 (defun eide-menu-browsing-mode-start ()
