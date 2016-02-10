@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2016 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -684,6 +684,9 @@ and display it. Current buffer is kept if correct."
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
     (ad-deactivate 'switch-to-buffer)
+    ;; Temporarily disable window configuration change hook, otherwise it would
+    ;; try to show IDE windows when an IDE buffer is displayed
+    (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while (and (not (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window))
                 l-should-we-continue
                 (< l-iteration 30))
@@ -706,6 +709,7 @@ and display it. Current buffer is kept if correct."
             (switch-to-buffer "*scratch*")))
         (setq l-iteration (1+ l-iteration))))
     (ad-activate 'switch-to-buffer)
+    (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
 

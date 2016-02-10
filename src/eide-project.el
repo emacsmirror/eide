@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2016 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -803,29 +803,22 @@ Argument:
           (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
-      (let ((l-ide-windows-visible-flag eide-windows-ide-windows-visible-flag))
-        ;; Changing desktop (desktop-change-dir) sometimes unbuild the windows layout!...
-        ;; Therefore it is necessary to unbuild it intentionally before loading the new desktop,
-        ;; otherwise we get errors for non-existing windows
-        (eide-windows-hide-ide-windows)
-        (let ((l-old-root-directory eide-root-directory))
-          (call-interactively 'dired)
-          ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
-          (setq eide-root-directory (expand-file-name default-directory))
-          ;; Exit browsing mode (kill dired buffer)
-          (eide-menu-browsing-mode-stop)
-          (when eide-project-name
-            ;; Exit project mode: clear project name and disable desktop
-            (setq eide-project-name nil)
-            (unless eide-no-desktop-option
-              (desktop-save l-old-root-directory t)
-              (desktop-save-mode -1)
-              (setq desktop-dirname nil))
-            ;; Update key bindings (no more project)
-            (eide-keys-configure-for-editor)))
-        (eide-menu-update t)
-        (when l-ide-windows-visible-flag
-          (eide-windows-show-ide-windows)))
+      (let ((l-old-root-directory eide-root-directory))
+        (call-interactively 'dired)
+        ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
+        (setq eide-root-directory (expand-file-name default-directory))
+        ;; Exit browsing mode (kill dired buffer)
+        (eide-menu-browsing-mode-stop)
+        (when eide-project-name
+          ;; Exit project mode: clear project name and disable desktop
+          (setq eide-project-name nil)
+          (unless eide-no-desktop-option
+            (desktop-save l-old-root-directory t)
+            (desktop-save-mode -1)
+            (setq desktop-dirname nil))
+          ;; Update key bindings (no more project)
+          (eide-keys-configure-for-editor))
+    (eide-menu-update t))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-stop-and-remove-tags-and-cscope ()

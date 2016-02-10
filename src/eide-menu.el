@@ -1079,7 +1079,6 @@ Arguments:
 (defun eide-menu-browsing-mode-stop ()
   "Stop browsing mode (dired and buffer menu modes)."
   (eide-keys-configure-for-editor) ;; must be done first, for eide-i-windows-get-window-for-buffer
-  (eide-windows-skip-unwanted-buffers-in-source-window)
   (eide-windows-restore-layout)
   (when eide-i-menu-restore-ide-windows-after-browsing-mode-flag
     (eide-windows-show-ide-windows)
@@ -1090,6 +1089,7 @@ Arguments:
       (when (or (equal major-mode 'dired-mode)
                 (equal major-mode 'Buffer-menu-mode))
         (kill-buffer l-buffer))))
+  (eide-windows-skip-unwanted-buffers-in-source-window)
   (setq eide-menu-browsing-mode-flag nil))
 
 ;; ----------------------------------------------------------------------------
