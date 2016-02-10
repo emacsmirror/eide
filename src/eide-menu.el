@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2016 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -1085,11 +1085,11 @@ Arguments:
     (eide-windows-show-ide-windows)
     (setq eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil))
   ;; Kill all browsing buffers
-  (dolist (l-buffer-name (mapcar 'buffer-name (buffer-list)))
-    (with-current-buffer l-buffer-name
+  (dolist (l-buffer (buffer-list))
+    (with-current-buffer l-buffer
       (when (or (equal major-mode 'dired-mode)
                 (equal major-mode 'Buffer-menu-mode))
-        (kill-buffer l-buffer-name))))
+        (kill-buffer l-buffer))))
   (setq eide-menu-browsing-mode-flag nil))
 
 ;; ----------------------------------------------------------------------------
