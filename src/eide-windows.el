@@ -802,6 +802,17 @@ and display it. Current buffer is kept if correct."
             ;; Project name has changed
             (eide-menu-update-project-name)
             (eide-project-update-name))
+          (unless (string-equal eide-project-c-style eide-project-old-c-style)
+            ;; C style has changed
+            (save-current-buffer
+              ;; Revert all C/C++ buffers to apply hooks
+              ;; (This will also restore default C style in case it is undefined)
+              (dolist (l-buffer-name eide-menu-files-list)
+                (set-buffer l-buffer-name)
+                (when (and (or (equal major-mode 'c-mode)
+                               (equal major-mode 'c++-mode))
+                           (file-exists-p l-buffer-name))
+                  (revert-buffer)))))
           (if eide-project-symbols-flag
               ;; Symbols are enabled
               (progn
@@ -829,6 +840,7 @@ and display it. Current buffer is kept if correct."
               (eide-project-stop-and-remove-tags-and-cscope)))
           ;; Reset all old values (although it is not really necessary...)
           (setq eide-project-old-project-name nil)
+          (setq eide-project-old-c-style nil)
           (setq eide-project-old-symbols-flag nil)
           (setq eide-project-old-tags-exclude-value nil)
           (setq eide-project-old-cscope-exclude-files-value nil)

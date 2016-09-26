@@ -22,6 +22,7 @@
 (require 'compile)
 (require 'desktop)
 (require 'ansi-color)
+(require 'cc-styles)
 
 (require 'eide-compare)
 (require 'eide-config)
@@ -87,6 +88,7 @@
 ;; Some config values are saved before editing, so that actions
 ;; can be performed in case they have been modified
 (defvar eide-project-old-project-name nil)
+(defvar eide-project-old-c-style nil)
 (defvar eide-project-old-symbols-flag nil)
 (defvar eide-project-old-tags-exclude-value nil)
 (defvar eide-project-old-cscope-exclude-files-value nil)
@@ -96,6 +98,7 @@
 ;; (to avoid parsing the config file)
 (defvar eide-project-symbols nil)
 (defvar eide-project-symbols-flag nil)
+(defvar eide-project-c-style nil)
 (defvar eide-project-init-command nil)
 (defvar eide-project-compile-command-1 nil)
 (defvar eide-project-compile-command-2 nil)
@@ -158,6 +161,11 @@
                  (const :tag "Yes" t))
   :set 'eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer
   :initialize 'custom-initialize-default
+  :group 'eide-project)
+(defcustom eide-custom-project-default-c-style "" "Default C style."
+  :tag "Default C style"
+  :type 'string
+  :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
 (defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
   :tag "Default init command"
@@ -610,6 +618,12 @@ Argument:
              (not (string-equal eide-project-compile-error-old-path-regexp "")))
     (perform-replace eide-project-compile-error-old-path-regexp eide-project-compile-error-new-path-string nil t nil nil nil compilation-filter-start (point))))
 
+(defun eide-i-project-set-c-style-hook ()
+  "Set C style according to project configuration."
+  (when (and eide-project-name
+             (not (string-equal eide-project-c-style "")))
+    (c-set-style eide-project-c-style)))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -629,7 +643,10 @@ Argument:
     ;; but not displayed, because desktop is read after the loading of main.c
     ;; and selects its own current buffer.
     (when (not eide-no-desktop-option)
-      (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook))))
+      (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook)))
+  ;; Add C/C++ mode hook to set C style according to project configuration
+  (add-hook 'c-mode-hook 'eide-i-project-set-c-style-hook)
+  (add-hook 'c++-mode-hook 'eide-i-project-set-c-style-hook))
 
 (defun eide-project-set-commands-state (p-state-flag)
   "Disable/enable project commands."
@@ -818,7 +835,7 @@ Argument:
             (setq desktop-dirname nil))
           ;; Update key bindings (no more project)
           (eide-keys-configure-for-editor))
-    (eide-menu-update t))
+        (eide-menu-update t))
     (eide-popup-message "Please wait for tags and cscope list of files to be created...")))
 
 (defun eide-project-stop-and-remove-tags-and-cscope ()
@@ -1075,6 +1092,34 @@ current workspace."
         (setq eide-project-symbols-flag t)
       (setq eide-project-symbols-flag nil))
 
+    (let ((l-available-style-name-list nil))
+      ;; Build the list of available C styles
+      (dolist (l-style c-style-alist)
+        (add-to-list 'l-available-style-name-list (car l-style)))
+      ;; Display the list
+      (insert "# Possible C styles are:\n")
+      (insert "#")
+      (dolist (l-style-name l-available-style-name-list)
+        (insert (concat " " l-style-name)))
+      (insert "\n")
+      (insert "# Empty value means default (gnu if not customized).\n")
+      (insert "# (See c-style-alist and c-default-style for more details.)\n")
+      (insert "# Two styles are provided by eide:\n")
+      (insert "# - bsd-4-spaces: based on bsd, with 4 spaces (instead of 8) and no tabulations,\n")
+      (insert "# - linux-tabs: based on linux, with explicit tabulations (in case indent-tabs-mode is customized nil).\n")
+      (eide-i-project-rebuild-config-line "c_style"
+                                          eide-custom-project-default-c-style
+                                          'eide-project-c-style)
+      ;; Insert a warning message in case it is not part of possible values.
+      ;; NB: The value is not reset to the default value, because:
+      ;; - This is how Emacs behaves with c-default-style (incorrect value is kept)
+      ;; - This is more convenient for the user to fix its value
+      ;; - This will not erase the value in case it is temporarily unavailable
+      ;;   (a C style might not be defined at this particular time, whatever the
+      ;;   reason...)
+      (unless (or (string-equal eide-project-c-style "")
+                  (member eide-project-c-style l-available-style-name-list))
+        (insert "(incorrect value)\n")))
     (insert "# Init command is called before all 'compile' and 'run' commands.\n")
     (eide-i-project-rebuild-config-line "init_command"
                                         eide-custom-project-default-init-command
@@ -1186,6 +1231,7 @@ current workspace."
 
   ;; Save some config values (actions are required if they are modified)
   (setq eide-project-old-project-name eide-project-name)
+  (setq eide-project-old-c-style eide-project-c-style)
   (setq eide-project-old-symbols-flag eide-project-symbols-flag)
   (setq eide-project-old-tags-exclude-value eide-project-tags-exclude)
   (setq eide-project-old-cscope-exclude-files-value eide-project-cscope-exclude-files)
