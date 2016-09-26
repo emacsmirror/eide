@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2016 Cédric Marie
 
 ;; Author: Cédric Marie <cedric.marie@openmailbox.org>
 ;; Version: 2.1.1
@@ -59,6 +59,20 @@
 (require 'eide-search)
 (require 'eide-vc)
 (require 'eide-windows)
+
+;; Create a C style based on bsd, with:
+;; - 4 spaces (instead of 8)
+;; - no tabulations
+(c-add-style "bsd-4-spaces"
+             '("bsd"
+               (indent-tabs-mode . nil)
+               (c-basic-offset . 4)))
+
+;; Create a C style based on linux, with explicit tabulations
+;; (in case indent-tabs-mode is customized nil)
+(c-add-style "linux-tabs"
+             '("linux"
+               (indent-tabs-mode . t)))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
