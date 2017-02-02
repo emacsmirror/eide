@@ -630,7 +630,6 @@ Argument:
 
 (defun eide-project-init ()
   "Initialize project."
-  (setq compilation-scroll-output 'first-error)
   (when (and eide-open-project-at-startup
              (file-exists-p (concat eide-root-directory eide-project-config-file)))
     (eide-i-project-load t nil)

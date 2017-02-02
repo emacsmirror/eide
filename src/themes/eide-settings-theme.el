@@ -29,6 +29,7 @@
  '(tags-revert-without-query t)
  '(scroll-conservatively 1)
  '(scroll-preserve-screen-position t)
+ '(compilation-scroll-output t)
  '(mouse-wheel-progressive-speed nil))
 
 ;;;###autoload
