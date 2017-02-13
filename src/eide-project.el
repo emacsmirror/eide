@@ -23,6 +23,7 @@
 (require 'desktop)
 (require 'ansi-color)
 (require 'cc-styles)
+(require 'gdb-mi)
 
 (require 'eide-compare)
 (require 'eide-config)
@@ -63,18 +64,9 @@
 (defvar eide-project-background-color nil)
 (defvar eide-project-foreground-color nil)
 
-(defvar eide-project-gdb-option nil)
 (defvar eide-project-tool-bar-mode-before-debug nil)
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
-
-(if (locate-library "gdb-mi")
-    (progn
-      (require 'gdb-mi)
-      (setq eide-project-gdb-option " -i=mi "))
-  (progn
-    (require 'gdb-ui) ; deprecated
-    (setq eide-project-gdb-option " --annotate=3 ")))
 
 (defvar eide-project-projects-file "~/.emacs.d/eide/workspace1/projects-list")
 (defvar eide-project-projects-buffer-name "*Emacs-IDE projects*")
@@ -1267,7 +1259,7 @@ Argument:
   "Get full gdb command (gdb command + gdb option + program name).
 Argument:
 - p-program: program string."
-  (concat eide-project-debug-command eide-project-gdb-option p-program))
+  (concat eide-project-debug-command " -i=mi " p-program))
 
 (defun eide-project-get-short-gdb-command (p-program)
   "Get short gdb command (short gdb command + gdb option + program name) for popup
@@ -1278,7 +1270,7 @@ Argument:
     (if (string-match "/" eide-project-debug-command)
         (setq l-short-gdb-command (concat "[...]/" (car (last (split-string eide-project-debug-command "/")))))
       (setq l-short-gdb-command eide-project-debug-command))
-    (concat l-short-gdb-command eide-project-gdb-option p-program)))
+    (concat l-short-gdb-command " -i=mi " p-program)))
 
 (defun eide-project-get-short-directory (p-directory)
   "Get the path relative to project root directory from absolute path if it is
