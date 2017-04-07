@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright (C) 2008-2016 Cédric Marie
+;; Copyright (C) 2008-2017 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -776,7 +776,6 @@ pages)."
   (let ((l-buffer-name-list (mapcar 'buffer-name (buffer-list))))
     (setq l-buffer-name-list (sort l-buffer-name-list 'string<))
     (setq l-buffer-name-list (reverse l-buffer-name-list))
-
     (dolist (l-buffer-name l-buffer-name-list)
       (if (not (or (string-match "^[ \*]" l-buffer-name)
                    (eide-windows-is-file-special-p l-buffer-name)))
@@ -850,33 +849,40 @@ Argument:
       (setq eide-menu-files-list (remove p-buffer-name eide-menu-files-list))
       (if (string-equal p-buffer-name eide-current-buffer)
           (progn
-            ;; Current buffer has been closed: display another one
+            ;; The current buffer has been closed: display another one
             (eide-windows-skip-unwanted-buffers-in-source-window)
             ;; Update menu to focus on new current buffer
             (eide-menu-update t))
-        (progn
-          (eide-i-menu-remove-file)
-          (when (or (eobp)
-                    (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
-                    (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
-                    (char-equal (char-after) ?\n))
-            ;; It was the last file of the group
-            (forward-line -1)
-            (let ((l-property (get-text-property (point) 'face)))
-              (when (or (equal l-property 'eide-menu-directory-face)
-                        (equal l-property 'eide-menu-directory-out-of-project-face))
-                ;; It was also the only one: we must delete directory line
-                (let ((buffer-read-only nil))
-                  (delete-region (point)
-                                 (progn
-                                   (forward-line (if eide-custom-menu-insert-blank-line-between-directories 2 1))
-                                   (point))))))))))))
+        (if (string-suffix-p ">" p-buffer-name)
+            ;; The buffer name had a directory suffix, which means that at
+            ;; least one other buffer was displaying a file with the same name,
+            ;; and its buffer name might have been changed (suffix removed for
+            ;; example, if no longer required).
+            ;; Let's update the whole list!...
+            (eide-menu-update t)
+          (progn
+            (eide-i-menu-remove-file)
+            (when (or (eobp)
+                      (equal (get-text-property (point) 'face) 'eide-menu-directory-face)
+                      (equal (get-text-property (point) 'face) 'eide-menu-directory-out-of-project-face)
+                      (char-equal (char-after) ?\n))
+              ;; It was the last file of the group
+              (forward-line -1)
+              (let ((l-property (get-text-property (point) 'face)))
+                (when (or (equal l-property 'eide-menu-directory-face)
+                          (equal l-property 'eide-menu-directory-out-of-project-face))
+                  ;; It was also the only one: we must delete directory line
+                  (let ((buffer-read-only nil))
+                    (delete-region (point)
+                                   (progn
+                                     (forward-line (if eide-custom-menu-insert-blank-line-between-directories 2 1))
+                                     (point)))))))))))))
 
 (defun eide-menu-directory-close (p-directory-name)
   "Close all files in selected directory.
 Argument:
 - p-directory-name: directory name."
-  (let ((l-ask-flag nil) (l-do-it-flag t))
+  (let ((l-ask-flag nil) (l-do-it-flag t) (l-rebuild-flag nil))
     ;; Check if at least one file has been edited
     (dolist (l-buffer eide-menu-files-list)
       (when (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
@@ -888,12 +894,24 @@ Argument:
       (dolist (l-buffer eide-menu-files-list)
         (when (eide-menu-is-file-in-directory-p l-buffer p-directory-name)
           (kill-buffer l-buffer)
-          (setq eide-menu-files-list (remove l-buffer eide-menu-files-list))))
+          (setq eide-menu-files-list (remove l-buffer eide-menu-files-list))
+          (when (string-suffix-p ">" l-buffer)
+            ;; The buffer name had a directory suffix, which means that at
+            ;; least one other buffer was displaying a file with the same name,
+            ;; and its buffer name might have been changed (suffix removed for
+            ;; example, if no longer required).
+            ;; As a consequence, it is necessary to rebuild the whole list.
+            (setq l-rebuild-flag t))))
       (if (get-buffer eide-current-buffer)
-          ;; Current buffer has not been closed: just remove this directory
-          (eide-i-menu-remove-directory)
+          ;; The current buffer was neither closed nor renamed
+          (if l-rebuild-flag
+              ;; Updating the list is required anyway...
+              (eide-menu-update t)
+            ;; Just remove this directory
+            (eide-i-menu-remove-directory))
         (progn
-          ;; Current buffer has been closed: display another one
+          ;; The current buffer has been either closed or renamed
+          ;; In case it has been closed, display another one
           (eide-windows-skip-unwanted-buffers-in-source-window)
           ;; Update menu to focus on new current buffer
           (eide-menu-update t))))))
@@ -1016,9 +1034,13 @@ Argument:
 Arguments:
 - p-buffer-name: buffer name.
 - p-directory-name: directory name."
-  ;; TODO: Use file-in-directory-p instead (requires Emacs 24)
-  ;; Extract the "short" directory from the buffer file name
-  (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name (get-buffer p-buffer-name))))))
+  (let ((l-buffer (get-buffer p-buffer-name)))
+    (if l-buffer
+        ;; Extract the "short" directory from the buffer file name
+        ;; NB: file-in-directory-p cannot be used, because it also returns t
+        ;; when the file is in a subdirectory.
+        (string-equal p-directory-name (eide-project-get-short-directory (file-name-directory (buffer-file-name l-buffer))))
+      nil)))
 
 (defun eide-menu-update-buffers ()
   "Reload all open files from disk."
