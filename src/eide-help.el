@@ -22,7 +22,7 @@
 (require 'eide-keys)
 (require 'eide-windows)
 
-(defvar eide-version "2.1.1+")
+(defvar eide-version "2.1.2")
 
 (defvar eide-help-background-color nil)
 (defvar eide-help-foreground-color nil)

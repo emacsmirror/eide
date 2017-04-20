@@ -1,9 +1,9 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright (C) 2008-2016 Cédric Marie
+;; Copyright (C) 2008-2017 Cédric Marie
 
 ;; Author: Cédric Marie <cedric.marie@openmailbox.org>
-;; Version: 2.1.1
+;; Version: 2.1.2
 ;; URL: http://emacs-ide.tuxfamily.org/
 
 ;; This file is not part of GNU Emacs.
