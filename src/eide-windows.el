@@ -586,11 +586,12 @@ windows)."
 
     (select-window eide-windows-source-window)
     (setq eide-windows-ide-windows-visible-flag t)
-    ;; Update menu if necessary
-    (when eide-windows-menu-update-request-pending-flag
-      (eide-menu-update nil))
-
+    ;; Restore window-configuration-change-hook before calling eide-windows-skip-unwanted-buffers-in-source-window
+    ;; because this function will also remove and add eide-windows-configuration-change-hook
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+
+    ;; eide-windows-skip-unwanted-buffers-in-source-window updates the menu if necessary
+    (eide-windows-skip-unwanted-buffers-in-source-window)
     (ad-activate 'select-window)))
 
 (defun eide-windows-hide-ide-windows ()
@@ -622,8 +623,11 @@ windows)."
     (setq eide-windows-output-window nil)
     (setq eide-windows-source-window (selected-window))
     (setq eide-windows-ide-windows-visible-flag nil)
-    (eide-windows-skip-unwanted-buffers-in-source-window)
+    ;; Restore window-configuration-change-hook before calling eide-windows-skip-unwanted-buffers-in-source-window
+    ;; because this function will also remove and add eide-windows-configuration-change-hook
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
+
+    (eide-windows-skip-unwanted-buffers-in-source-window)
     (ad-activate 'select-window)))
 
 (defun eide-windows-show-hide-ide-windows ()
