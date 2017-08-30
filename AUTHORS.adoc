@@ -1,7 +1,7 @@
 = Credits for Emacs-IDE
 
 Author::
-Cédric Marie <cedric.marie@openmailbox.org>
+Cédric Marie <cedric@hjuvi.lautre.net>
 
 Contributor::
 Cédric Chépied (git support, local installation)

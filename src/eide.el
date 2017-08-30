@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2008-2017 Cédric Marie
 
-;; Author: Cédric Marie <cedric.marie@openmailbox.org>
+;; Author: Cédric Marie <cedric@hjuvi.lautre.net>
 ;; Version: 2.1.2
 ;; URL: http://emacs-ide.tuxfamily.org/
 
