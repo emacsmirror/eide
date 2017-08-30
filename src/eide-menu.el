@@ -61,6 +61,9 @@
 
 (defvar eide-menu-update-enabled-flag nil)
 
+(defvar eide-i-menu-update-request-pending-force-rebuild-flag nil)
+(defvar eide-i-menu-update-request-pending-force-update-status-flag nil)
+
 ;; Faces
 (make-face 'eide-menu-default-face)
 (make-face 'eide-menu-project-header-face)
@@ -711,8 +714,8 @@ current buffer."
     (eide-menu-update t)))
 
 (defun eide-menu-update (p-force-rebuild-flag &optional p-force-update-status-flag)
-  "Update \"menu\" buffer (may be postponed until next time \"menu\" buffer is
-shown, with eide-windows-menu-update-request-pending-flag).
+  "Update \"menu\" buffer (may be postponed if the \"menu\" buffer is not
+visible).
 Arguments:
 - p-force-rebuild-flag: t = always rebuild menu, nil = rebuild only if current
   buffer has changed.
@@ -720,8 +723,6 @@ Arguments:
   update."
   (if eide-windows-ide-windows-visible-flag
       (progn
-        ;; Cancel pending request
-        (setq eide-windows-menu-update-request-pending-flag nil)
         ;; Save window to go back to, once menu has been updated
         (let ((l-window (selected-window)))
           (eide-windows-select-source-window t)
@@ -729,15 +730,15 @@ Arguments:
           ;; buffer!... The bug is fixed if window-buffer is used.
           ;;(setq eide-current-buffer-temp (buffer-name))
           (let ((eide-current-buffer-temp (buffer-name (window-buffer (selected-window)))))
-            (if (or p-force-rebuild-flag eide-windows-menu-update-request-pending-force-rebuild-flag)
+            (if (or p-force-rebuild-flag eide-i-menu-update-request-pending-force-rebuild-flag)
                 (progn
                   ;; Cancel pending request (force rebuild)
-                  (setq eide-windows-menu-update-request-pending-force-rebuild-flag nil)
+                  (setq eide-i-menu-update-request-pending-force-rebuild-flag nil)
                   (eide-windows-select-menu-window)
                   (setq eide-current-buffer eide-current-buffer-temp)
-                  (eide-i-menu-rebuild (or p-force-update-status-flag eide-windows-menu-update-request-pending-force-update-status-flag))
+                  (eide-i-menu-rebuild (or p-force-update-status-flag eide-i-menu-update-request-pending-force-update-status-flag))
                   ;; Cancel pending request (force update status)
-                  (setq eide-windows-menu-update-request-pending-force-update-status-flag nil))
+                  (setq eide-i-menu-update-request-pending-force-update-status-flag nil))
               (unless (string-equal eide-current-buffer eide-current-buffer-temp)
                 (eide-windows-select-menu-window)
                 (goto-char (point-min))
@@ -753,17 +754,16 @@ Arguments:
           ;; Go back to "current window"
           (select-window l-window)))
     (progn
-      (setq eide-windows-menu-update-request-pending-flag t)
       ;; Force rebuild flag must not be changed if already set
-      (unless eide-windows-menu-update-request-pending-force-rebuild-flag
+      (unless eide-i-menu-update-request-pending-force-rebuild-flag
         (if p-force-rebuild-flag
-            (setq eide-windows-menu-update-request-pending-force-rebuild-flag t)
+            (setq eide-i-menu-update-request-pending-force-rebuild-flag t)
           (when (or (not (member eide-current-buffer eide-menu-files-list))
                     (not (member (buffer-name (window-buffer (selected-window))) eide-menu-files-list)))
-            (setq eide-windows-menu-update-request-pending-force-rebuild-flag t))))
+            (setq eide-i-menu-update-request-pending-force-rebuild-flag t))))
       ;; Force update status flag must not be changed if already set
       (when p-force-update-status-flag
-        (setq eide-windows-menu-update-request-pending-force-update-status-flag t)))))
+        (setq eide-i-menu-update-request-pending-force-update-status-flag t)))))
 
 (defun eide-menu-build-files-lists ()
   "Build the lists of buffers (open files, grep results, cscope results, and man

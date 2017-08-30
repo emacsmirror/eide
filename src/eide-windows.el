@@ -28,9 +28,6 @@
 (defvar eide-windows-output-window nil)
 
 (defvar eide-windows-ide-windows-visible-flag nil)
-(defvar eide-windows-menu-update-request-pending-flag nil)
-(defvar eide-windows-menu-update-request-pending-force-rebuild-flag nil)
-(defvar eide-windows-menu-update-request-pending-force-update-status-flag nil)
 
 (defvar eide-windows-default-output-buffer-name "*results*")
 (defvar eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
