@@ -103,6 +103,14 @@
 (defvar eide-project-debug-program-2 nil)
 (defvar eide-project-compile-error-old-path-regexp nil)
 (defvar eide-project-compile-error-new-path-string nil)
+(defvar eide-project-compile-error-old-path-regexp-1 nil)
+(defvar eide-project-compile-error-new-path-string-1 nil)
+(defvar eide-project-compile-error-old-path-regexp-2 nil)
+(defvar eide-project-compile-error-new-path-string-2 nil)
+(defvar eide-project-compile-error-old-path-regexp-3 nil)
+(defvar eide-project-compile-error-new-path-string-3 nil)
+(defvar eide-project-compile-error-old-path-regexp-4 nil)
+(defvar eide-project-compile-error-new-path-string-4 nil)
 (defvar eide-project-tags-exclude nil)
 (defvar eide-project-cscope-exclude-files nil)
 (defvar eide-project-cscope-exclude-dirs nil)
@@ -1144,17 +1152,35 @@ current workspace."
                                         'eide-project-debug-program-2)
 
     (insert "# In the compilation buffer, in the clickable filenames displayed when warnings or errors occur,\n")
-    (insert "# you can replace all occurrences of 'compile_error_old_path_regexp' (a regular expression)\n")
-    (insert "# with 'compile_error_new_path_string'\n")
+    (insert "# you can replace all occurrences of 'compile_error_old_path_regexp_x' (a regular expression)\n")
+    (insert "# with 'compile_error_new_path_string_x' (x is the compile command number).\n")
     (insert "# It can be useful if the sources are copied to another place before being compiled,\n")
     (insert "# or if you need to modify a relative path.\n")
     (insert "# In both cases, you want to be able to open the right file when selecting an error.\n")
-    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp"
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp_1"
                                         eide-custom-project-default-compile-error-old-path-regexp
-                                        'eide-project-compile-error-old-path-regexp)
-    (eide-i-project-rebuild-config-line "compile_error_new_path_string"
+                                        'eide-project-compile-error-old-path-regexp-1)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string_1"
                                         eide-custom-project-default-compile-error-new-path-string
-                                        'eide-project-compile-error-new-path-string)
+                                        'eide-project-compile-error-new-path-string-1)
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp_2"
+                                        eide-custom-project-default-compile-error-old-path-regexp
+                                        'eide-project-compile-error-old-path-regexp-2)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string_2"
+                                        eide-custom-project-default-compile-error-new-path-string
+                                        'eide-project-compile-error-new-path-string-2)
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp_3"
+                                        eide-custom-project-default-compile-error-old-path-regexp
+                                        'eide-project-compile-error-old-path-regexp-3)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string_3"
+                                        eide-custom-project-default-compile-error-new-path-string
+                                        'eide-project-compile-error-new-path-string-3)
+    (eide-i-project-rebuild-config-line "compile_error_old_path_regexp_4"
+                                        eide-custom-project-default-compile-error-old-path-regexp
+                                        'eide-project-compile-error-old-path-regexp-4)
+    (eide-i-project-rebuild-config-line "compile_error_new_path_string_4"
+                                        eide-custom-project-default-compile-error-new-path-string
+                                        'eide-project-compile-error-new-path-string-4)
 
     (insert "# Space separated list of patterns (files or directories) to exclude when creating tags.\n")
     (insert "# Each <pattern> adds an option --exclude=<pattern> to ctags command.\n")
@@ -1209,12 +1235,7 @@ current workspace."
       (insert-buffer-substring eide-project-config-target-buffer)
       (save-buffer))
     ;; Close temporary buffer
-    (kill-buffer eide-project-config-target-buffer))
-  (if (string-equal eide-project-compile-error-old-path-regexp "")
-      ;; Remove hook if present
-      (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
-    ;; Add hook if not present
-    (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
+    (kill-buffer eide-project-config-target-buffer)))
 
 (defun eide-project-open-config-file ()
   "Display project file (full frame)."
@@ -1286,24 +1307,56 @@ Argument:
   "Compile project (1st compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
+    (if (string-equal eide-project-compile-error-old-path-regexp-1 "")
+        ;; Remove hook if present
+        (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+      (progn
+        (setq eide-project-compile-error-old-path-regexp eide-project-compile-error-old-path-regexp-1)
+        (setq eide-project-compile-error-new-path-string eide-project-compile-error-new-path-string-1)
+        ;; Add hook if not present
+        (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
     (eide-i-project-compile eide-project-compile-command-1)))
 
 (defun eide-project-compile-2 ()
   "Compile project (2nd compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
+    (if (string-equal eide-project-compile-error-old-path-regexp-2 "")
+        ;; Remove hook if present
+        (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+      (progn
+        (setq eide-project-compile-error-old-path-regexp eide-project-compile-error-old-path-regexp-2)
+        (setq eide-project-compile-error-new-path-string eide-project-compile-error-new-path-string-2)
+        ;; Add hook if not present
+        (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
     (eide-i-project-compile eide-project-compile-command-2)))
 
 (defun eide-project-compile-3 ()
   "Compile project (3rd compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
+    (if (string-equal eide-project-compile-error-old-path-regexp-3 "")
+        ;; Remove hook if present
+        (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+      (progn
+        (setq eide-project-compile-error-old-path-regexp eide-project-compile-error-old-path-regexp-3)
+        (setq eide-project-compile-error-new-path-string eide-project-compile-error-new-path-string-3)
+        ;; Add hook if not present
+        (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
     (eide-i-project-compile eide-project-compile-command-3)))
 
 (defun eide-project-compile-4 ()
   "Compile project (4th compile command)."
   (interactive)
   (when eide-project-commands-enabled-flag
+    (if (string-equal eide-project-compile-error-old-path-regexp-4 "")
+        ;; Remove hook if present
+        (remove-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)
+      (progn
+        (setq eide-project-compile-error-old-path-regexp eide-project-compile-error-old-path-regexp-4)
+        (setq eide-project-compile-error-new-path-string eide-project-compile-error-new-path-string-4)
+        ;; Add hook if not present
+        (add-hook 'compilation-filter-hook 'eide-i-project-replace-filename-path-in-compilation-hook)))
     (eide-i-project-compile eide-project-compile-command-4)))
 
 (defun eide-project-run-1 ()
