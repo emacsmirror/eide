@@ -337,7 +337,6 @@ Argument:
           (desktop-save-mode -1)
           ;; Close all buffers
           (desktop-clear)
-          (setq desktop-dirname nil)
           (eide-menu-update t)
           (eide-windows-show-ide-windows))
         (eide-i-project-update-internal-projects-list)
@@ -410,21 +409,30 @@ Arguments:
       (ad-deactivate 'switch-to-buffer)
       ;; No need to check windows layout for every restored buffer
       (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook))
-    (if desktop-dirname
+    (if (and desktop-save-mode desktop-dirname)
         ;; A desktop is already loaded: switch to the new one.
-        ;; desktop-change-dir saves the desktop, close all buffers, and read the new desktop.
+        ;; Save and release the previous desktop, close all buffers, and read the new desktop.
         (desktop-change-dir eide-root-directory)
       (progn
-        ;; Enable desktop save mode: desktop is read and will be saved automatically on exit.
+        ;; Enable desktop save mode: desktop will be read at the end of init
+        ;; (if p-startup-flag), and will be saved automatically on exit.
         (desktop-save-mode 1)
         ;; Desktop must be saved without asking (if .emacs.desktop does not exist)
         (setq desktop-save t)
-        ;; Set desktop directory (set to nil when desktop save mode is disabled)
-        (setq desktop-dirname eide-root-directory)
-        (unless (or p-startup-flag p-creation-flag)
-          ;; It is necessary to close all buffers before loading the new desktop.
-          (desktop-clear)
-          (desktop-read eide-root-directory))))
+        (if p-startup-flag
+            ;; desktop-path default value is ("~/.emacs.d/" "~").
+            ;; If a desktop is present in one of these directories, it will be loaded
+            ;; instead of the one in the current directory.
+            ;; To prevent this, it is necessary to set desktop-path to the current root
+            ;; directory. NB: It must not be set to nil either, because in that case it
+            ;; will also search for a desktop file in ~/.emacs.d/.
+            (setq desktop-path (list eide-root-directory))
+          (if p-creation-flag
+              (setq desktop-dirname eide-root-directory)
+            (progn
+              ;; It is necessary to close all buffers before loading the new desktop.
+              (desktop-clear)
+              (desktop-read eide-root-directory))))))
     (unless p-startup-flag
       (ad-activate 'switch-to-buffer)
       (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
@@ -516,8 +524,7 @@ Arguments:
                     (unless eide-no-desktop-option
                       (desktop-save-mode -1)
                       ;; Close all buffers
-                      (desktop-clear)
-                      (setq desktop-dirname nil))))
+                      (desktop-clear))))
                 (eide-menu-update t))
               ;; Restore keys, now that eide-project-name is set.
               (eide-keys-configure-for-editor)
@@ -799,11 +806,11 @@ Argument:
     ;; Delete desktop file and disable automatic saving
     (when eide-no-desktop-option
       ;; desktop-remove needs desktop-save-mode to be enabled
+      ;; and desktop-dirname to be set
       (desktop-save-mode 1)
       (setq desktop-dirname eide-root-directory))
     (desktop-remove)
     (desktop-save-mode -1)
-    (setq desktop-dirname nil)
     ;; Update frame title and menu (project is inactive now)
     (eide-i-project-update-frame-title)
     (eide-menu-update t)
@@ -819,7 +826,7 @@ Argument:
           (not eide-project-symbols-flag)
           (and eide-search-tags-available-flag
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
-      (let ((l-old-root-directory eide-root-directory))
+      (progn
         (call-interactively 'dired)
         ;; Set root directory (expand-file-name replaces ~ with /home/<user>)
         (setq eide-root-directory (expand-file-name default-directory))
@@ -829,9 +836,8 @@ Argument:
           ;; Exit project mode: clear project name and disable desktop
           (setq eide-project-name nil)
           (unless eide-no-desktop-option
-            (desktop-save l-old-root-directory t)
-            (desktop-save-mode -1)
-            (setq desktop-dirname nil))
+            (desktop-save desktop-dirname t)
+            (desktop-save-mode -1))
           ;; Update key bindings (no more project)
           (eide-keys-configure-for-editor))
         (eide-menu-update t))
