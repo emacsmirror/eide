@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright (C) 2008-2016 Cédric Marie
+;; Copyright (C) 2008-2018 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -670,16 +670,22 @@ Argument:
     (eide-windows-show-ide-windows))
   (select-window eide-windows-output-window))
 
-(defun eide-windows-is-file-special-p (l-buffer-name)
+(defun eide-windows-is-file-special-p (p-buffer-name)
   "Test if the file is special or not. A special file must not be displayed.
 Special files are: tags, cscope files, and emacs-ide hidden files.
 Argument:
-- l-buffer-name: buffer name."
-  (or (string-equal l-buffer-name "TAGS")
-      (string-equal l-buffer-name "cscope.files")
-      (string-equal l-buffer-name "cscope.out")
-      (string-equal l-buffer-name eide-project-config-file)
-      (string-equal l-buffer-name eide-project-notes-file)))
+- p-buffer-name: buffer name."
+  ;; Remove possible <xxx> at the end of the buffer name
+  (let ((l-buffer-file-name (buffer-file-name (get-buffer p-buffer-name))))
+    (if l-buffer-file-name
+        (let ((l-file-name-nondirectory (file-name-nondirectory l-buffer-file-name)))
+          (or (string-equal l-file-name-nondirectory "TAGS")
+              (string-equal l-file-name-nondirectory "cscope.files")
+              (string-equal l-file-name-nondirectory "cscope.out")
+              (string-equal l-file-name-nondirectory eide-project-config-file)
+              (string-equal l-file-name-nondirectory eide-project-notes-file)))
+      ;; A buffer that is not visiting a file is not "special"
+      nil)))
 
 (defun eide-windows-skip-unwanted-buffers-in-source-window ()
   "Parse buffers list until an appropriate buffer is found, that can be displayed,
@@ -792,7 +798,7 @@ and display it. Current buffer is kept if correct."
       ;; Close "help", customization, or projects list
       ;; NB: In customization, exit button does not work...
       (kill-this-buffer)
-    (if (string-equal (buffer-name) eide-project-config-file)
+    (if (equal (current-buffer) eide-project-config-buffer)
         ;; Display another buffer (other than ".emacs-ide-project.cfg")
         (progn
           (save-buffer)

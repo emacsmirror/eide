@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2018 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -140,12 +140,8 @@ Argument:
                 (when eide-menu-local-vc-modified-status-flag
                   ;; At least one buffer is modified
                   (setq l-buffer-vc-modified-flag t)
-                  ;; Get file name from buffer name (remove <n> if present)
-                  (let ((l-index (string-match "<[0-9]+>$" l-buffer)) (l-file-name nil))
-                    (if l-index
-                        (setq l-file-name (substring l-buffer 0 l-index))
-                      (setq l-file-name l-buffer))
-                    (setq l-vc-modified-files-list (concat l-vc-modified-files-list " " l-file-name)))))))))
+                  ;; Get file name from buffer name (remove <xxx> if present)
+                  (setq l-vc-modified-files-list (concat l-vc-modified-files-list " " (file-name-nondirectory buffer-file-name)))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       ;; "Edit" action list
       (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)

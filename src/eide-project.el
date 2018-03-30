@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright (C) 2008-2017 Cédric Marie
+;; Copyright (C) 2008-2018 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -55,6 +55,7 @@
 
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
 (defvar eide-project-notes-file  ".emacs-ide-project.txt")
+(defvar eide-project-config-buffer nil)
 
 (defvar eide-project-current-workspace 1)
 (defvar eide-project-current-projects-list nil)
@@ -303,6 +304,26 @@ has already been called."
     ;; Desktop has not been read: read it now.
     (desktop-read eide-root-directory)))
 
+(defun eide-i-project-clean-desktop-hook ()
+  "Hook to be called after a desktop was read, to remove unwanted buffers."
+  (dolist (l-buffer (buffer-list))
+    (with-current-buffer l-buffer
+      (if (or (equal major-mode 'dired-mode)
+              (equal major-mode 'Buffer-menu-mode))
+          ;; The buffer displays the content of a directory, or the list of the buffers:
+          ;; let's close it.
+          (kill-buffer l-buffer)
+        (when buffer-file-name
+        ;; The buffer is visiting a file
+          (let ((l-file-name-nondirectory (file-name-nondirectory buffer-file-name)))
+            (when (or (string-equal l-file-name-nondirectory eide-project-config-file)
+                      (string-equal l-file-name-nondirectory "TAGS"))
+              (let ((l-file-name-directory (file-name-directory buffer-file-name)))
+                (unless (string-equal l-file-name-directory eide-root-directory)
+                  ;; The file is not in the root directory, it is a project file
+                  ;; from another project: let's close it.
+                  (kill-buffer l-buffer))))))))))
+
 (defun eide-i-project-update-frame-title ()
   "Update frame title with project name (or root directory if no project)."
   (if eide-project-name
@@ -327,6 +348,7 @@ Argument:
         (setq eide-project-projects-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
         ;; Restore initial root directory
         (setq eide-project-name nil)
+        (setq eide-project-config-buffer nil)
         (setq eide-root-directory eide-root-directory-at-startup)
         ;; Clear the project selected for comparison
         (setq eide-compare-other-project-name nil)
@@ -366,11 +388,6 @@ Arguments:
   ;; (exclude patterns for tags and cscope list of files, for example).
   ;; It is necessary to rebuild - or simply create - the config file now.
   ;; In case of creation, it will use the default values from customization.
-
-  ;; Close any existing config file, to make sure we will use the right one
-  (when (get-buffer eide-project-config-file)
-    (kill-buffer eide-project-config-file))
-  ;; Rebuild or create project file
   (eide-project-rebuild-config-file)
 
   ;; Tags and cscope list of files creation is started as soon as possible,
@@ -437,9 +454,6 @@ Arguments:
       (ad-activate 'switch-to-buffer)
       (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
-  ;; Close any existing TAGS file, to make sure we will use the right one
-  (when (get-buffer "TAGS")
-    (kill-buffer "TAGS"))
   ;; Use tags-table-list instead of tags-file-name because when switching to
   ;; another project, Emacs asks either to append or to overwrite tags file
   ;; name in the list, and we want to overwrite without asking
@@ -449,13 +463,6 @@ Arguments:
   (when eide-search-use-cscope-flag
     (cscope-set-initial-directory eide-root-directory))
 
-  ;; Close any existing config file, to make sure we will use the right one.
-  ;; It was opened and rebuilt at the beginning, but the loading of the desktop
-  ;; might have replaced it with another one.
-  (when (get-buffer eide-project-config-file)
-    (kill-buffer eide-project-config-file))
-  ;; Open config file (already rebuilt at the beginning)
-  (find-file-noselect (concat eide-root-directory eide-project-config-file))
   ;; Add the project to current workspace
   (eide-project-add-in-list)
   ;; Update frame title
@@ -521,6 +528,7 @@ Arguments:
                   (progn
                     ;; There is no project in this directory
                     (setq eide-project-name nil)
+                    (setq eide-project-config-buffer nil)
                     (unless eide-no-desktop-option
                       (desktop-save-mode -1)
                       ;; Close all buffers
@@ -568,7 +576,7 @@ Arguments:
 - p-default-value: config default value.
 - p-var: variable in which the value should be saved."
   (let ((l-value nil))
-    (with-current-buffer eide-project-config-file
+    (with-current-buffer eide-project-config-buffer
       (setq l-value (eide-i-project-get-config-value-if-defined p-parameter)))
     (unless l-value
       (setq l-value p-default-value))
@@ -637,6 +645,7 @@ Argument:
 
 (defun eide-project-init ()
   "Initialize project."
+  (add-hook 'desktop-after-read-hook 'eide-i-project-clean-desktop-hook)
   (when (and eide-open-project-at-startup
              (file-exists-p (concat eide-root-directory eide-project-config-file)))
     (eide-i-project-load t nil)
@@ -795,6 +804,7 @@ Argument:
     ;; Stop the creation of tags and cscope list of files and remove these files
     (eide-project-stop-and-remove-tags-and-cscope)
     (setq eide-project-name nil)
+    (setq eide-project-config-buffer nil)
     (kill-buffer eide-project-config-file)
     ;; Remove project files
     (let ((l-filename (concat eide-root-directory eide-project-config-file)))
@@ -835,6 +845,7 @@ Argument:
         (when eide-project-name
           ;; Exit project mode: clear project name and disable desktop
           (setq eide-project-name nil)
+          (setq eide-project-config-buffer nil)
           (unless eide-no-desktop-option
             (desktop-save desktop-dirname t)
             (desktop-save-mode -1))
@@ -1058,12 +1069,10 @@ current workspace."
 (defun eide-project-rebuild-config-file ()
   "Update project file."
   (save-current-buffer
-    ;; Define target config file
+    ;; Open config file
+    (setq eide-project-config-buffer (find-file-noselect (concat eide-root-directory eide-project-config-file)))
+    ;; Create target config buffer
     (setq eide-project-config-target-buffer (concat eide-project-config-file "_temp"))
-
-    ;; Open these config files
-    (unless (get-buffer eide-project-config-file)
-      (find-file-noselect (concat eide-root-directory eide-project-config-file)))
     (get-buffer-create eide-project-config-target-buffer)
     (set-buffer eide-project-config-target-buffer)
     (erase-buffer)
@@ -1075,7 +1084,7 @@ current workspace."
     (insert "# --> To restore the default value of a parameter, delete the line\n")
     (insert "#     (project configuration file is rebuilt when you exit this page).\n\n")
 
-    (with-current-buffer eide-project-config-file
+    (with-current-buffer eide-project-config-buffer
       (setq eide-project-name (eide-i-project-get-config-value-if-defined "project_name")))
     (when (or (not eide-project-name) (string-equal eide-project-name ""))
       ;; Get project name from directory:
@@ -1235,8 +1244,8 @@ current workspace."
                                         'eide-project-grep-exclude-dirs)
 
     ;; Replace source file by target buffer if different
-    (unless (equal (compare-buffer-substrings eide-project-config-file nil nil eide-project-config-target-buffer nil nil) 0)
-      (set-buffer eide-project-config-file)
+    (unless (equal (compare-buffer-substrings eide-project-config-buffer nil nil eide-project-config-target-buffer nil nil) 0)
+      (set-buffer eide-project-config-buffer)
       (erase-buffer)
       (insert-buffer-substring eide-project-config-target-buffer)
       (save-buffer))
@@ -1260,6 +1269,7 @@ current workspace."
   (eide-i-project-set-colors-for-config)
   (eide-keys-configure-for-special-buffer)
   (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-config-file))
+  (setq eide-project-config-buffer (current-buffer))
   ;; Don't show trailing whitespace in this buffer
   ;; (there is a space at the end of line when the value is empty)
   (setq show-trailing-whitespace nil)

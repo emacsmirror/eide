@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright (C) 2008-2017 Cédric Marie
+;; Copyright (C) 2008-2018 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -781,9 +781,8 @@ pages)."
                    (eide-windows-is-file-special-p l-buffer-name)))
           ;; This is a "useful" buffer
           (with-current-buffer l-buffer-name
-            (if (or (equal major-mode 'dired-mode)
-                    (equal major-mode 'Buffer-menu-mode))
-                (kill-buffer l-buffer-name)
+            (unless (or (equal major-mode 'dired-mode)
+                        (equal major-mode 'Buffer-menu-mode))
               (setq eide-menu-files-list (cons l-buffer-name eide-menu-files-list))))
         ;; This is a "*..." buffer (or a special file that should be ignored)
         (if (string-match "^\*grep.*" l-buffer-name)
