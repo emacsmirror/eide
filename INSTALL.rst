@@ -1,22 +1,22 @@
-= Instructions for installing Emacs-IDE
+=====================================
+Instructions for installing Emacs-IDE
+=====================================
 
 You just have to create the package and install it.
 
-[source,sh]
-----
-$ ./build-package
-$ ./install-package
-----
+.. code::
+
+  $ ./build-package
+  $ ./install-package
 
 The package is installed in ~/.emacs.d/elpa/eide-<version> directory.
 
 You must add the following lines in your ~/.emacs:
 
-[source,lisp]
-----
-(package-initialize)
-(eide-start)
-----
+.. code::
+
+  (package-initialize)
+  (eide-start)
 
 NB:
 

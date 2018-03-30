@@ -1,12 +1,14 @@
-= Emacs-IDE
+=========
+Emacs-IDE
+=========
 
-[horizontal]
-Version:: 2.1.2+
-Homepage:: http://emacs-ide.tuxfamily.org/
+:Version: 2.1.2+
+:Homepage: http://emacs-ide.tuxfamily.org/
 
-== License
+License
+=======
 
-Copyright (C) 2008-2017 Cédric Marie <cedric@hjuvi.lautre.net>
+Copyright (C) 2008-2018 Cédric Marie <cedric@hjuvi.lautre.net>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -21,7 +23,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-== Description
+Description
+===========
 
 Emacs-IDE (eide) is a package for Emacs that provides IDE features (Integrated
 Development Environment).
@@ -34,35 +37,38 @@ shortcuts, and project management.
 It is suitable for almost all languages (as long as they are supported by
 Ctags). Cscope provides additional browsing facility for C/C++ files.
 
-== Information
+Information
+===========
 
-[horizontal]
-Programming language:: Emacs Lisp
-License:: GPLv3 or later
-Dependencies:: Emacs, Ctags, Cscope.
-Supported OS:: GNU/Linux
+:Programming language: Emacs Lisp
+:License: GPLv3 or later
+:Dependencies: Emacs, Ctags, Cscope.
+:Supported OS: GNU/Linux
 
-== Instructions
+Instructions
+============
 
 When you launch Emacs, it should look like this:
 
- +-----------------------------------------+---------------+
- |                                         |               |
- |                                         |               |
- |       "source" window                   | "menu" window |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- |                                         |               |
- +-----------------------------------------+---------------+
- |                                                         |
- |               "output" window                           |
- |                                                         |
- +---------------------------------------------------------+
+::
+
+  +-----------------------------------------+---------------+
+  |                                         |               |
+  |                                         |               |
+  |       "source" window                   | "menu" window |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  |                                         |               |
+  +-----------------------------------------+---------------+
+  |                                                         |
+  |               "output" window                           |
+  |                                                         |
+  +---------------------------------------------------------+
 
 If you click on right button over "source" window, all other windows are
 closed. Click again to get them back.
@@ -70,9 +76,11 @@ closed. Click again to get them back.
 Instructions are available in "Help" page: click on right button over "menu"
 window, and select "Help" in popup menu.
 
-== Configuration
+Configuration
+=============
 
-=== Options provided in customization
+Options provided in customization
+---------------------------------
 
 Emacs-IDE provides some options in customization. To edit them, click on right
 button over "menu" window, and select "Customize" in popup menu.
@@ -91,7 +99,8 @@ category provide options that override standard Emacs behaviour:
 To save your settings, click on "Save for future sessions", and click on right
 button to exit customization.
 
-=== Options provided by themes
+Options provided by themes
+--------------------------
 
 Two kind of themes are provided by Emacs-IDE:
 
@@ -110,7 +119,8 @@ following themes:
 * eide-display
 * eide-settings
 
-== Quick start
+Quick start
+===========
 
 The directory from which Emacs is launched stands as the root directory. You
 can change it during the session: click on right button over "menu" window, and
