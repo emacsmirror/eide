@@ -40,8 +40,8 @@ Ctags). Cscope provides additional browsing facility for C/C++ files.
 Information
 ===========
 
-:Programming language: Emacs Lisp
 :License: GPLv3 or later
+:Programming language: Emacs Lisp
 :Dependencies: Emacs, Ctags, Cscope.
 :Supported OS: GNU/Linux
 
