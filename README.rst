@@ -3,7 +3,7 @@ Emacs-IDE
 =========
 
 :Version: 2.1.2+
-:Homepage: http://emacs-ide.tuxfamily.org/
+:Homepage: https://eide.frama.io/
 
 License
 =======
