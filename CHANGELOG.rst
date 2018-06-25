@@ -2,6 +2,21 @@
 Changelog of Emacs-IDE
 ======================
 
+Unreleased (Git master branch)
+==============================
+
+Changed
+-------
+
+* In the project configuration, use a specific "source file path replacement" option for each compile command
+
+Fixed
+-----
+
+* When selecting a project with an empty desktop, the "source" window displays the menu
+* When loading a project at startup (with --eide-op option), if a global desktop file is present in ~ or ~/.emacs.d, it is loaded instead of the one of the project
+* The buffer names become inconsistent when the buffers are renamed dynamically with a "<directory>" suffix
+
 Version 2.1.2 (2017-04-20)
 ==========================
 
