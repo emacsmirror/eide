@@ -2,7 +2,7 @@
 Emacs-IDE
 =========
 
-:Version: 2.1.2+
+:Version: 2.1.3 (2018-06-26)
 :Homepage: https://eide.frama.io/
 
 License

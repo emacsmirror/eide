@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2018 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.lautre.net>
-;; Version: 2.1.2
+;; Version: 2.1.3
 ;; URL: https://eide.frama.io/
 
 ;; This file is not part of GNU Emacs.
