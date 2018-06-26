@@ -2,6 +2,11 @@
 Changelog of Emacs-IDE
 ======================
 
+Unreleased (Git master branch)
+==============================
+
+Nothing yet...
+
 Version 2.1.3 (2018-06-26)
 ==========================
 
