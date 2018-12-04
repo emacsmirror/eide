@@ -5,7 +5,10 @@ Changelog of Emacs-IDE
 Unreleased (Git master branch)
 ==============================
 
-Nothing yet...
+Fixed
+-----
+
+* The windows layout is broken when the "menu" or "output" window is split (C-x 2 or 3) or set full frame (C-x 1) (These commands should be disabled for these windows)
 
 Version 2.1.3 (2018-06-26)
 ==========================

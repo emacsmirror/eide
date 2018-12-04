@@ -570,6 +570,9 @@ windows)."
     (setq buffer-read-only t)
     ;; This window should be used for this buffer only
     (set-window-dedicated-p eide-windows-menu-window t)
+    ;; Disable some actions on this window (because they would break the layout)
+    (set-window-parameter eide-windows-menu-window 'split-window 'ignore)
+    (set-window-parameter eide-windows-menu-window 'delete-other-windows 'ignore)
     ;; "Output" window
     (select-window eide-windows-output-window)
     (setq window-min-height 2)
@@ -577,6 +580,9 @@ windows)."
         ;; Always make sure that this default buffer exists
         (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
       (switch-to-buffer eide-windows-output-window-buffer))
+    ;; Disable some actions on this window (because they would break the layout)
+    (set-window-parameter eide-windows-output-window 'split-window 'ignore)
+    (set-window-parameter eide-windows-output-window 'delete-other-windows 'ignore)
 
     ;; Enable switch-to-buffer advice again
     (ad-activate 'switch-to-buffer)
