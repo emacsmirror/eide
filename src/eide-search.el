@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2019 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -119,7 +119,8 @@ Arguments:
           (setq eide-search-cscope-update-database-request-pending-flag t))
       (if (boundp 'cscope-option-do-not-update-database)
           (setq cscope-option-do-not-update-database eide-search-user-cscope-do-not-update-database)
-        (setq cscope-do-not-update-database eide-search-user-cscope-do-not-update-database)))))
+        (if (boundp 'cscope-do-not-update-database)
+            (setq cscope-do-not-update-database eide-search-user-cscope-do-not-update-database))))))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -160,7 +161,8 @@ Arguments:
   (when eide-search-use-cscope-flag
     (if (boundp 'cscope-option-do-not-update-database)
         (setq eide-search-user-cscope-do-not-update-database cscope-option-do-not-update-database)
-      (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database))))
+      (if (boundp 'cscope-do-not-update-database)
+          (setq eide-search-user-cscope-do-not-update-database cscope-do-not-update-database)))))
 
 (defun eide-search-set-tags-and-cscope-state (p-state-flag)
   "Disable/enable tags and cscope functions."
@@ -347,11 +349,13 @@ Argument:
                         (progn
                           (if (boundp 'cscope-option-do-not-update-database)
                               (setq cscope-option-do-not-update-database nil)
-                            (setq cscope-do-not-update-database nil))
+                            (if (boundp 'cscope-do-not-update-database)
+                                (setq cscope-do-not-update-database nil)))
                           (setq eide-search-cscope-update-database-request-pending-flag nil))
                       (if (boundp 'cscope-option-do-not-update-database)
                           (setq cscope-option-do-not-update-database t)
-                        (setq cscope-do-not-update-database t))))
+                        (if (boundp 'cscope-do-not-update-database)
+                            (setq cscope-do-not-update-database t)))))
                   (cscope-find-this-symbol p-symbol)
                   (with-current-buffer "*cscope*"
                     (rename-buffer l-result-buffer-name t)
