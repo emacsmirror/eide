@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright (C) 2008-2018 Cédric Marie
+;; Copyright (C) 2008-2019 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -314,7 +314,7 @@ has already been called."
           ;; let's close it.
           (kill-buffer l-buffer)
         (when buffer-file-name
-        ;; The buffer is visiting a file
+          ;; The buffer is visiting a file
           (let ((l-file-name-nondirectory (file-name-nondirectory buffer-file-name)))
             (when (or (string-equal l-file-name-nondirectory eide-project-config-file)
                       (string-equal l-file-name-nondirectory "TAGS"))
@@ -460,7 +460,8 @@ Arguments:
   (setq tags-table-list (list (concat eide-root-directory "TAGS")))
 
   ;; Set cscope root directory
-  (when eide-search-use-cscope-flag
+  (when (and eide-search-use-cscope-flag
+             (fboundp 'cscope-set-initial-directory))
     (cscope-set-initial-directory eide-root-directory))
 
   ;; Add the project to current workspace
