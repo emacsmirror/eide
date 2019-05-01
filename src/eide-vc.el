@@ -1,6 +1,6 @@
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
-;; Copyright (C) 2010-2015 Cédric Marie
+;; Copyright (C) 2010-2019 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -33,7 +33,7 @@
 ;; ----------------------------------------------------------------------------
 
 (defcustom eide-custom-show-vc-status 'auto "Show version control status of files in menu."
-  :tag "Show svn status"
+  :tag "Show version control status"
   :type '(choice (const :tag "Never" nil)
                  (const :tag "Always" t)
                  (const :tag "If root directory is registered in a version control system (SVN or Git)" auto))
