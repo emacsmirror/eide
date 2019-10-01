@@ -1,6 +1,6 @@
 ;;; eide-keys.el --- Emacs-IDE: Keys
 
-;; Copyright (C) 2008-2015 Cédric Marie
+;; Copyright (C) 2008-2019 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -53,7 +53,6 @@
            (function-item :tag "Back from definition (tag)" eide-search-back-from-tag)
            (function-item :tag "Go to definition (tag)" eide-search-find-tag-without-prompt)
            (function-item :tag "Go to definition (tag) (with prompt)" eide-search-find-tag-with-prompt)
-           (function-item :tag "Go to alternate definition (tag)" eide-search-find-alternate-tag)
            (function-item :tag "Find symbol (cscope)" eide-search-find-symbol-without-prompt)
            (function-item :tag "Find symbol (cscope) (with prompt)" eide-search-find-symbol-with-prompt)
            (function-item :tag "Grep in whole project" eide-search-grep-global-without-prompt)
@@ -83,7 +82,7 @@
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-keys)
-(defcustom eide-custom-key-shift-f1 'eide-search-find-alternate-tag "Shift-F1 key."
+(defcustom eide-custom-key-shift-f1 nil "Shift-F1 key."
   :tag "Shift-F1"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys

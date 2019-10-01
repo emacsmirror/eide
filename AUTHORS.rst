@@ -3,7 +3,7 @@ Credits for Emacs-IDE
 =====================
 
 :Author:
-  Cédric Marie <cedric@hjuvi.lautre.net>
+  Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 :Contributor:
   Cédric Chépied (git support, local installation)

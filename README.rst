@@ -8,7 +8,7 @@ Emacs-IDE
 License
 =======
 
-Copyright (C) 2008-2019 Cédric Marie <cedric@hjuvi.lautre.net>
+Copyright (C) 2008-2019 Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -42,7 +42,7 @@ Information
 
 :License: GPLv3 or later
 :Programming language: Emacs Lisp
-:Dependencies: Emacs, Ctags, Cscope.
+:Dependencies: Emacs (>= 25.1), Ctags, Cscope.
 :Supported OS: GNU/Linux
 
 Instructions

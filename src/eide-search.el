@@ -19,7 +19,7 @@
 
 (provide 'eide-search)
 
-(require 'etags)
+(require 'xref)
 
 (require 'eide-config)
 (require 'eide-menu)
@@ -49,8 +49,6 @@
 ;; TAGS: Ctags file
 ;; cscope.files, cscope.output: Cscope files
 (defvar eide-search-grep-exclude-options "--devices=skip --exclude-dir=.svn --exclude-dir=.git --exclude=*.d --exclude=*.o.cmd --exclude=*.map --exclude=*.ref --exclude=*.new --exclude=.emacs.desktop --exclude=TAGS --exclude=cscope.files --exclude=cscope.out ")
-
-(defvar eide-search-tag-string nil)
 
 ;; Shell command for creating tags
 (defvar eide-search-create-tags-command "rm -f TAGS ; ctags -eR --links=no ")
@@ -147,9 +145,18 @@ Arguments:
     (setq eide-search-cscope-creation-in-progress-flag nil)
     (message "Creating cscope list of files... done")))
 
+(defun eide-i-search-force-xref-etags-mode ()
+  "Force xref etags mode."
+  (xref-etags-mode t))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-search-init ()
+  ;; Add Emacs-Lisp mode hook to force xref etags mode (to avoid finding
+  ;; definitions in ~/.emacs.d)
+  (add-hook 'emacs-lisp-mode-hook 'eide-i-search-force-xref-etags-mode))
 
 (defun eide-search-apply-customization ()
   "Apply search customization."
@@ -228,7 +235,7 @@ Arguments:
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
     (eide-windows-select-source-window nil)
-    (call-interactively 'pop-tag-mark)
+    (xref-pop-marker-stack)
     (eide-menu-update nil)))
 
 (defun eide-search-find-tag (p-string)
@@ -236,10 +243,7 @@ Arguments:
 Argument:
 - p-string: symbol."
   (if eide-search-tags-available-flag
-      (progn
-        (eide-windows-select-source-window nil)
-        (find-tag p-string)
-        (recenter))
+      (xref-find-definitions p-string)
     (message eide-search-tags-not-ready-string)))
 
 (defun eide-search-find-tag-without-prompt ()
@@ -247,11 +251,9 @@ Argument:
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
     (if eide-search-tags-available-flag
-        (progn
-          ;; Save string in order to call eide-search-find-alternate-tag later on
-          (setq eide-search-tag-string (find-tag-default))
-          (when eide-search-tag-string
-            (eide-search-find-tag eide-search-tag-string)))
+        (let ((l-string (xref-backend-identifier-at-point (xref-find-backend))))
+          (when l-string
+            (xref-find-definitions l-string)))
       (message eide-search-tags-not-ready-string))))
 
 (defun eide-search-find-tag-with-prompt ()
@@ -259,28 +261,7 @@ Argument:
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
     (if eide-search-tags-available-flag
-        (progn
-          (eide-windows-select-source-window nil)
-          (call-interactively 'find-tag)
-          ;; Saving string is necessary for calling eide-search-find-alternate-tag
-          ;; later on... but there is no completion!
-          ;;(setq eide-search-tag-string (read-string "Go to symbol definition: "))
-          ;;(if (string-equal eide-search-tag-string "")
-          ;;  (message "Cannot find empty symbol...")
-          ;;  (eide-search-find-tag eide-search-tag-string))
-          (recenter))
-      (message eide-search-tags-not-ready-string))))
-
-(defun eide-search-find-alternate-tag ()
-  "Go to alternate definition of previously searched symbol."
-  (interactive)
-  (when eide-search-tags-and-cscope-enabled-flag
-    (if eide-search-tags-available-flag
-        (progn
-          (eide-windows-select-source-window nil)
-          (call-interactively 'pop-tag-mark)
-          (find-tag eide-search-tag-string t)
-          (recenter))
+        (call-interactively 'xref-find-definitions)
       (message eide-search-tags-not-ready-string))))
 
 (defun eide-search-update-cscope-status ()

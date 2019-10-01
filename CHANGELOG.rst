@@ -5,6 +5,15 @@ Changelog of Emacs-IDE
 Unreleased (Git master branch)
 ==============================
 
+Changed
+-------
+
+* As of Emacs version 25.1, etags API is deprecated and should be replaced with xref API
+
+  - Use xref instead of etags
+  - Require Emacs version >= 25.1 in "install-package" script
+  - Discard "find alternate tag" function (which was mapped on "Shift-F1"), because xref displays all definitions to choose from, when several are available
+
 Fixed
 -----
 
