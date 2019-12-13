@@ -1,6 +1,6 @@
 ;;; eide-dark-theme.el --- Emacs-IDE: Dark color theme
 
-;; Copyright (C) 2014 Cédric Marie
+;; Copyright (C) 2014-2019 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,8 +32,7 @@
  '(font-lock-string-face ((t (:background "gray15" :foreground "gray90"))))
  '(font-lock-type-face ((t (:foreground "medium sea green"))))
  '(font-lock-variable-name-face ((t (:foreground "dark orange"))))
- '(fringe ((t (:background "black"))))
- '(mode-line ((t (:background "gray")))))
+ '(fringe ((t (:background "black")))))
 
 ;;;###autoload
 (when load-file-name
