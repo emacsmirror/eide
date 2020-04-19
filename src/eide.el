@@ -1,10 +1,10 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright (C) 2008-2019 Cédric Marie
+;; Copyright (C) 2008-2020 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.1.3
-;; URL: https://eide.frama.io/
+;; URL: https://eide.hjuvi.fr.eu.org/
 
 ;; This file is not part of GNU Emacs.
 
@@ -34,7 +34,7 @@
 ;; It is suitable for almost all languages (as long as they are supported by
 ;; Ctags). Cscope provides additional browsing facility for C/C++ files.
 
-;; Homepage: https://eide.frama.io/
+;; Homepage: https://eide.hjuvi.fr.eu.org/
 
 ;;; Code:
 

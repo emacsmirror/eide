@@ -14,6 +14,8 @@ Changed
   - Require Emacs version >= 25.1 in "install-package" script
   - Discard "find alternate tag" function (which was mapped on "Shift-F1"), because xref displays all definitions to choose from, when several are available
 
+* Remove the customization of the mode-line background color, in eide-dark theme, because it made the text for the selected window difficult to read
+
 Fixed
 -----
 

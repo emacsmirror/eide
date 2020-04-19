@@ -3,12 +3,12 @@ Emacs-IDE
 =========
 
 :Version: 2.1.3+
-:Homepage: https://eide.frama.io/
+:Homepage: https://eide.hjuvi.fr.eu.org/
 
 License
 =======
 
-Copyright (C) 2008-2019 Cédric Marie <cedric@hjuvi.fr.eu.org>
+Copyright (C) 2008-2020 Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
