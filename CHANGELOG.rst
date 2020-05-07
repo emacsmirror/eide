@@ -20,6 +20,7 @@ Fixed
 -----
 
 * The windows layout is broken when the "menu" or "output" window is split (C-x 2 or 3) or set full frame (C-x 1) (These commands should be disabled for these windows)
+* Alt-Enter key binding (to show/hide IDE windows) is ignored in terminal mode
 
 Version 2.1.3 (2018-06-26)
 ==========================
