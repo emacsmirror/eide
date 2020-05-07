@@ -2,7 +2,7 @@
 Emacs-IDE
 =========
 
-:Version: 2.2.0 (2020-05-08)
+:Version: 2.2.0+
 :Homepage: https://eide.hjuvi.fr.eu.org/
 
 License
