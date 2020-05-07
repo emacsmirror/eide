@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2020 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Version: 2.1.3
+;; Version: 2.2.0
 ;; URL: https://eide.hjuvi.fr.eu.org/
 
 ;; This file is not part of GNU Emacs.

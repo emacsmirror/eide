@@ -1,1 +1,1 @@
-(define-package "eide" "2.1.3" "IDE interface")
+(define-package "eide" "2.2.0" "IDE interface")

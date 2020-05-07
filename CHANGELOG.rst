@@ -2,8 +2,8 @@
 Changelog of Emacs-IDE
 ======================
 
-Unreleased (Git master branch)
-==============================
+Version 2.2.0 (2020-05-08)
+==========================
 
 Changed
 -------
