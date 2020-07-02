@@ -1,6 +1,6 @@
 ;;; eide-help.el --- Emacs-IDE: Help page
 
-;; Copyright (C) 2009-2018 Cédric Marie
+;; Copyright (C) 2009-2020 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -274,10 +274,6 @@ In your project root directory, several files are created:
   If you delete any parameter in this file, it will be restored with default
   value.
 
-- .emacs-ide-project.txt:
-  It can be used to write notes about the project, it is not used by Emacs.
-  It is created empty.
-
 If you have created a project with symbols:
 
 - TAGS:
@@ -288,9 +284,6 @@ If you have created a project with symbols:
 
 To edit project configuration ('.emacs-ide-project.cfg'), open project popup
 menu and select 'Project configuration'.
-
-To edit project notes ('.emacs-ide-project.txt'), open project popup menu and
-select 'Project notes'.
 ")
 
   (eide-i-help-insert-header-2 "Open an existing project")

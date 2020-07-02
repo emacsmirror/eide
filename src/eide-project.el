@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright (C) 2008-2019 Cédric Marie
+;; Copyright (C) 2008-2020 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -54,7 +54,6 @@
 (defvar eide-root-directory-at-startup eide-root-directory)
 
 (defvar eide-project-config-file ".emacs-ide-project.cfg")
-(defvar eide-project-notes-file  ".emacs-ide-project.txt")
 (defvar eide-project-config-buffer nil)
 
 (defvar eide-project-current-workspace 1)
@@ -410,12 +409,6 @@ Arguments:
             (unless (file-exists-p (concat eide-root-directory "cscope.out"))
               (setq eide-search-cscope-update-database-request-pending-flag t)))
         (eide-search-create-cscope-list-of-files))))
-
-  (unless (file-exists-p (concat eide-root-directory eide-project-notes-file))
-    ;; Create empty project notes file
-    (with-current-buffer (find-file-noselect (concat eide-root-directory eide-project-notes-file))
-      (save-buffer)
-      (kill-this-buffer)))
 
   ;; Update version control show status
   (eide-vc-update-show-vc-status)
@@ -807,11 +800,8 @@ Argument:
     (setq eide-project-name nil)
     (setq eide-project-config-buffer nil)
     (kill-buffer eide-project-config-file)
-    ;; Remove project files
+    ;; Remove project config file
     (let ((l-filename (concat eide-root-directory eide-project-config-file)))
-      (if (file-exists-p l-filename)
-          (delete-file l-filename)))
-    (let ((l-filename (concat eide-root-directory eide-project-notes-file)))
       (if (file-exists-p l-filename)
           (delete-file l-filename)))
     ;; Delete desktop file and disable automatic saving
@@ -1275,15 +1265,6 @@ current workspace."
   ;; (there is a space at the end of line when the value is empty)
   (setq show-trailing-whitespace nil)
   (goto-char (point-min)))
-
-(defun eide-project-open-notes-file ()
-  "Display project notes file (full frame)."
-  (interactive)
-  (eide-windows-hide-ide-windows)
-  (eide-windows-save-and-unbuild-layout)
-  (eide-i-project-set-colors-for-config)
-  (eide-keys-configure-for-special-buffer)
-  (eide-windows-find-file-without-advice (concat eide-root-directory eide-project-notes-file)))
 
 (defun eide-project-get-full-command (p-command)
   "Get full command (init command + compile/run command).

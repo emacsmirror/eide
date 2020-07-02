@@ -5,7 +5,10 @@ Changelog of Emacs-IDE
 Unreleased (Git master branch)
 ==============================
 
-Nothing yet...
+Removed
+-------
+
+* Remove "project notes" file (.emacs-ide-project.txt) because it is not really useful
 
 Version 2.2.0 (2020-05-08)
 ==========================

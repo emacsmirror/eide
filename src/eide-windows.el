@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright (C) 2008-2018 Cédric Marie
+;; Copyright (C) 2008-2020 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -286,13 +286,8 @@ window."
             p-buffer)
         (progn
           (if (eide-windows-is-file-special-p l-buffer-name)
-              (progn
-                ;; Do not display special files
-                (when (string-equal l-buffer-name eide-project-notes-file)
-                  ;; Project notes file should not be opened with switch-to-buffer advice
-                  (kill-buffer l-buffer-name))
-                ;; Return the current buffer
-                (current-buffer))
+              ;; Return the current buffer
+              (current-buffer)
             (progn
               (setq l-window (eide-i-windows-get-window-for-buffer l-buffer-name))
               (if l-window
@@ -688,8 +683,7 @@ Argument:
           (or (string-equal l-file-name-nondirectory "TAGS")
               (string-equal l-file-name-nondirectory "cscope.files")
               (string-equal l-file-name-nondirectory "cscope.out")
-              (string-equal l-file-name-nondirectory eide-project-config-file)
-              (string-equal l-file-name-nondirectory eide-project-notes-file)))
+              (string-equal l-file-name-nondirectory eide-project-config-file)))
       ;; A buffer that is not visiting a file is not "special"
       nil)))
 
@@ -859,11 +853,7 @@ and display it. Current buffer is kept if correct."
           (setq eide-project-old-cscope-exclude-files-value nil)
           (setq eide-project-old-cscope-exclude-dirs-value nil)
           ;; This buffer must not be closed
-          (switch-to-buffer eide-current-buffer))
-      (when (string-equal (buffer-name) eide-project-notes-file)
-        ;; Close ".emacs-ide-project.txt"
-        (save-buffer)
-        (kill-buffer eide-project-notes-file))))
+          (switch-to-buffer eide-current-buffer))))
   (eide-display-set-colors-for-files)
   (eide-keys-configure-for-editor)
   (when eide-menu-browsing-mode-flag
@@ -1000,10 +990,6 @@ on previous state)."
 (define-key-after eide-menu-keymap [eide-project-open-config-file]
   '(menu-item "Project configuration"
               eide-project-open-config-file
-              :visible eide-project-name))
-(define-key-after eide-menu-keymap [eide-project-open-notes-file]
-  '(menu-item "Project notes"
-              eide-project-open-notes-file
               :visible eide-project-name))
 
 (define-key-after eide-menu-keymap [sep-project-config] '(menu-item "--" nil :visible eide-project-name))
