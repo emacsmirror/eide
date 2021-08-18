@@ -1,6 +1,6 @@
 ;;; eide-display.el --- Emacs-IDE: Display (color themes)
 
-;; Copyright (C) 2013-2015 Cédric Marie
+;; Copyright © 2013-2021 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +19,6 @@
 
 (provide 'eide-display)
 
-(require 'eide-help)
 (require 'eide-menu)
 (require 'eide-project)
 
@@ -102,8 +101,7 @@
     (setq eide-display-background-color (face-background 'default))
     (setq eide-display-foreground-color (face-foreground 'default))
     (eide-menu-apply-color-theme)
-    (eide-project-apply-color-theme)
-    (eide-help-apply-color-theme)))
+    (eide-project-apply-color-theme)))
 
 (defun eide-display-set-colors-for-files ()
   "Set colors for edition mode."

@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
-;; Copyright (C) 2008-2018 Cédric Marie
+;; Copyright © 2008-2021 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -97,7 +97,7 @@ Argument:
   "Display a message.
 Argument:
 - p-string: message."
-  (x-popup-dialog t (cons p-string eide-message-dialog)))
+  (x-popup-dialog t (cons p-string eide-message-dialog) t))
 
 (defun eide-popup-open-menu-for-directory ()
   "Open a popup menu related to selected directory."

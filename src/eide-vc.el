@@ -1,6 +1,6 @@
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
-;; Copyright (C) 2010-2019 Cédric Marie
+;; Copyright © 2010-2021 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

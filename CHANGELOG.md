@@ -151,14 +151,11 @@ The version number changed to 2.0.0 because:
 ### Added
 
 * Add the possibility to customize F1-F12 keys.
-* Add filters in the project configuration to exclude files and directories:
-  - when creating tags.
-  - when creating cscope list of files.
-  - when searching with grep.
-  Add new commands to temporary disable these filters.
+* Add filters in the project configuration to exclude files and directories
+  when searching with tags, cscope, or grep.
+  Add new commands to temporarily disable these filters.
   Tags and cscope list of files are automatically updated when the filters are
   modified (or disabled/enabled).
-
 * Show the keyboard shortcuts in the global popup menu.
 
 ### Changed

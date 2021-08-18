@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright (C) 2008-2020 Cédric Marie
+;; Copyright © 2008-2021 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -1068,9 +1068,9 @@ on previous state)."
 (define-key-after eide-menu-keymap [eide-config-customize-themes]
   '(menu-item "Customize themes"
               eide-config-customize-themes))
-(define-key-after eide-menu-keymap [eide-help-open]
-  '(menu-item "Help"
-              eide-help-open))
+(define-key-after eide-menu-keymap [eide-about-open]
+  '(menu-item "About"
+              eide-about-open))
 
 ;; Add to menu bar
 ;;(define-key-after global-map [menu-bar eide-menu] (cons "Emacs-IDE" eide-menu-keymap))

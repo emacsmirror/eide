@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright (C) 2008-2020 Cédric Marie
+;; Copyright © 2008-2021 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.2.0
@@ -51,7 +51,6 @@
 (require 'eide-compare)
 (require 'eide-config)
 (require 'eide-edit)
-(require 'eide-help)
 (require 'eide-keys)
 (require 'eide-menu)
 (require 'eide-popup)
@@ -59,6 +58,8 @@
 (require 'eide-search)
 (require 'eide-vc)
 (require 'eide-windows)
+
+(defvar eide-version "2.2.0+")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)
@@ -77,6 +78,10 @@
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-about-open ()
+  "Display a popup with the version of the package."
+  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://eide.hjuvi.fr.eu.org/")))
 
 (defun eide-shell-open ()
   "Open a shell."
