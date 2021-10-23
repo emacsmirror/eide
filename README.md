@@ -13,14 +13,14 @@ It is suitable for almost all languages (as long as they are supported by
 
 * **Version**: 2.2.0+
 * **Homepage**: <https://eide.hjuvi.fr.eu.org/>
-* **License**: [GPLv3 or later]
+* **License**: [GPL-3.0-or-later]
 * **Programming language**: [Emacs Lisp]
 * **Dependencies**: [Emacs] (>= 25.1), [Ctags], [Cscope]
 
 [Emacs]: https://www.gnu.org/software/emacs/
 [Ctags]: http://ctags.sourceforge.net/
 [Cscope]: http://cscope.sourceforge.net/
-[GPLv3 or later]: https://www.gnu.org/licenses/gpl-3.0.html
+[GPL-3.0-or-later]: https://www.gnu.org/licenses/gpl-3.0.html
 [Emacs Lisp]: https://www.gnu.org/software/emacs/manual/elisp.html
 
 ## License
@@ -153,7 +153,7 @@ Emacs-IDE provides two color themes (`eide-dark` and `eide-light`).
     directory of the current source file.
   - Over other windows, it pastes the clipboard (standard behaviour).
 
-* `Shift` + `Mouse wheel up/down` scrolls right/left.
+* `Shift-Mouse wheel up/down` scrolls right/left.
 
 ### Configuration
 
@@ -168,8 +168,8 @@ settings" category, if disabled.
 While other categories provide Emacs-IDE related options, "Emacs settings"
 category provide options that override standard Emacs behaviour:
 
-* F1-F12 key bindings, in order to provide easy access to basic IDE features
-  (tags, cscope, grep, compilation...).
+* `F1`-`F12` key bindings, in order to provide easy access to basic IDE
+  features (tags, cscope, grep, compilation...).
 * Cscope update policy, in order to add an automatic mode that will update the
   database only when a file is modified in Emacs.
 
@@ -327,56 +327,49 @@ and will be applied to all files for which it is allowed.
 
 #### Standard key bindings
 
-| Key | Action |
-|-----|--------|
-| `Ctrl` + `x`, `Ctrl` + `f` | Load a file or open a directory (file browsing) |
-| `Ctrl` + `x`, `Ctrl` + `s` | Save current file |
-| `Ctrl` + `s` | Search |
-| `Alt` + `%` | Replace |
-| `Ctrl` + `_` | Undo |
-| `Ctrl` + `g` | Cancel the current command (if Emacs is frozen) |
+* `Control-x Control-f`: Load a file or open a directory (file browsing)
+* `Control-x Control-s`: Save current file
+* `Control-s`: Search
+* `Alt-%`: Replace
+* `Control-_`: Undo
+* `Control-g`: Cancel the current command (if Emacs is frozen)
 
 #### New key bindings
 
 Emacs-IDE defines a few key bindings:
+* `Alt-←/↓/→` or `Control-left/middle/right click`: Cut/copy/paste
+* `Alt-Enter` or `right click` in a "source" window: Hide/show IDE windows
+  ("menu" and "output")
+* `Control-Alt-Enter`: Enter/exit the project list
 
-| Key | Action |
-|-----|--------|
-| `Alt` + `←`/`↓`/`→` or `Ctrl` + `left/middle/right click` | Cut/copy/paste |
-| `Alt` + `Enter` or `right click` in a "source" window | Hides/shows IDE windows ("menu" and "output") |
-| `Ctrl` + `Alt` + `Enter` | Enter/exit the project list |
-
-If you press `Alt` + `Enter` to show the "menu" window, it forces the cursor
-focus on "menu" window. You can select a file with `Enter`, and fold/unfold
-symbols with `Space`. Press `Alt` + `Enter` again to hide the "menu" window and
+If you press `Alt-Enter` to show the "menu" window, it forces the cursor focus
+on the "menu" window. You can select a file with `Enter`, and fold/unfold
+symbols with `Space`. Press `Alt-Enter` again to hide the "menu" window and
 force the focus on the source file again.
 
 #### New key bindings for F1-F12
 
-NB: `F1`-`F12` key bindings can be customized. The default bindings are shown
-below.
+`F1`-`F12` key bindings can be customized. The default bindings are:
 
-| Key | Action |
-|-----|--------|
-| `F1` | Back from symbol definition |
-| `F2` | Go to symbol definition (at cursor position, or selected text if any) |
-| `Shift` + `F2` | Go to symbol definition (prompt for symbol) |
-| `F3` | Search symbol in whole project at cursor position |
-| `Shift` + `F3` | Search symbol in whole project (prompt for symbol) |
-| `F4` | Search string in whole project at cursor position |
-| `Shift` + `F4` | Search string in whole project (prompt for string) |
-| `F6` | Search string in current directory at cursor position |
-| `Shift` + `F6` | Search string in current directory (prompt for string) |
-| `F5` | Reload all buffers (and update display) |
-| `Shift` + `F5` | Close current buffer |
-| `F7` | Go to previous instance (grep) / error (compilation output) |
-| `F8` | Go to next instance (grep) / error (compilation output) |
-| `F9` | Compile (1) |
-| `Shift` + `F9` | Compile (2) |
-| `F10` | Run (1) |
-| `Shift` + `F10` | Run (2) |
-| `F11` | Toggle the fullscreen mode |
-| `F12` | Open a shell |
+* `F1`: Back from symbol definition
+* `F2`: Go to symbol definition (at cursor position, or selected text if any)
+* `Shift-F2`: Go to symbol definition (prompt for symbol)
+* `F3`: Search symbol in whole project at cursor position
+* `Shift-F3`: Search symbol in whole project (prompt for symbol)
+* `F4`: Search string in whole project at cursor position
+* `Shift-F4`: Search string in whole project (prompt for string)
+* `F6`: Search string in current directory at cursor position
+* `Shift-F6`: Search string in current directory (prompt for string)
+* `F5`: Reload all buffers (and update display)
+* `Shift-F5`: Close current buffer
+* `F7`: Go to previous instance (grep) / error (compilation output)
+* `F8`: Go to next instance (grep) / error (compilation output)
+* `F9`: Compile (1)
+* `Shift-F9`: Compile (2)
+* `F10`: Run (1)
+* `Shift-F10`: Run (2)
+* `F11`: Toggle the fullscreen mode
+* `F12`: Open a shell
 
 NB: Additional compile commands (Compile (3) and Compile (4)) - as well as
 debug commands - are not available from the keyboard, but only from project
@@ -384,35 +377,29 @@ popup menu.
 
 #### New key bindings in "menu" window
 
-| Key | Action |
-|-----|--------|
-| `Enter` | Open file / Go to symbol |
-| `Space` | Fold/unfold symbols |
+* `Enter`: Open file / Go to symbol
+* `Space`: Fold/unfold symbols
 
 #### New key bindings in the project list
 
-| Key | Action |
-|-----|--------|
-| `Enter` | Open project |
-| `Space` | Select/unselect project for comparison |
-| `Backspace` | Remove project from workspace |
+* `Enter`: Open project
+* `Space`: Select/unselect project for comparison
+* `Backspace`: Remove project from workspace
 
 #### Standard and new key bindings in a diff session
 
 Let's consider that the diff session displays `file A` on the left and `file B`
 on the right.
 
-| Key | Action |
-|-----|--------|
-| `a` (and also `F1`) | Copy highlighted region `file A` --> `file B` |
-| `b` (and also `F2`) | Copy highlighted region `file A` <-- `file B` |
-| `wa` | Save `file A` |
-| `wb` | Save `file B` |
-| `!` (and also `F5`) | Update diffs |
-| `Backspace` (and also `F7`) | Go to previous diff |
-| `Space` (and also `F8`) | Go to next diff |
-| `?` | Display help |
-| `q` (and also `Right click`) | Quit (y/yes to confirm) |
+* `a` (and also `F1`): Copy highlighted region `file A` --> `file B`
+* `b` (and also `F2`): Copy highlighted region `file A` <-- `file B`
+* `w a`: Save `file A`
+* `w b`: Save `file B`
+* `!` (and also `F5`): Update diffs
+* `Backspace` (and also `F7`): Go to previous diff
+* `Space` (and also `F8`): Go to next diff
+* `?`: Display help
+* `q` (and also `right click`): Quit (y/yes to confirm)
 
 ## Support
 
