@@ -362,8 +362,8 @@ force the focus on the source file again.
 * `Shift-F6`: Search string in current directory (prompt for string)
 * `F5`: Reload all buffers (and update display)
 * `Shift-F5`: Close current buffer
-* `F7`: Go to previous instance (grep) / error (compilation output)
-* `F8`: Go to next instance (grep) / error (compilation output)
+* `F7`: Go to previous instance (cscope/grep) / error (compilation output)
+* `F8`: Go to next instance (cscope/grep) / error (compilation output)
 * `F9`: Compile (1)
 * `Shift-F9`: Compile (2)
 * `F10`: Run (1)

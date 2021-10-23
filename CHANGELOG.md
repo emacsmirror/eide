@@ -1,6 +1,10 @@
-# Changelog for Eide
+# Changelog for Emacs-IDE (eide)
 
 ## Unreleased
+
+### Added
+
+* Browse through cscope results with F7/F8.
 
 ### Removed
 

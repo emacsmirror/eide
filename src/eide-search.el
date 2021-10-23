@@ -341,6 +341,7 @@ Argument:
                     (cscope-find-this-symbol p-symbol))
                   (with-current-buffer "*cscope*"
                     (rename-buffer l-result-buffer-name t)
+                    (setq cscope-output-buffer-name l-result-buffer-name)
                     (setq eide-windows-output-window-buffer l-result-buffer-name))
                   (eide-menu-build-files-lists))
               (eide-search-view-output-buffer l-result-buffer-name))
@@ -492,31 +493,41 @@ Argument:
           (message "Cannot grep empty string...")
         (eide-search-grep-global l-string)))))
 
-(defun eide-search-grep-go-to-previous ()
-  "Go to previous grep match (or compilation error)."
+(defun eide-search-go-to-previous ()
+  "Go to the previous cscope/grep result or compilation error."
   (interactive)
   (when eide-search-grep-enabled-flag
-    (previous-error)
+    (if (string-prefix-p "*cscope*: " eide-windows-output-window-buffer)
+        (if (fboundp 'cscope-history-backward-line)
+            (cscope-history-backward-line)
+          (when (fboundp 'cscope-prev-symbol)
+            (cscope-prev-symbol)))
+      (previous-error))
     (unless eide-windows-ide-windows-visible-flag
       ;; Close grep window (appears automatically with previous-error)
       (delete-other-windows))
-    (recenter)
     ;; Update menu because a new file may have been opened
     (eide-menu-update nil)
-    (eide-windows-select-source-window nil)))
+    (eide-windows-select-source-window nil)
+    (recenter)))
 
-(defun eide-search-grep-go-to-next ()
-  "Go to next grep match (or compilation error)."
+(defun eide-search-go-to-next ()
+  "Go to the next cscope/grep result or compilation error."
   (interactive)
   (when eide-search-grep-enabled-flag
-    (next-error)
+    (if (string-prefix-p "*cscope*: " eide-windows-output-window-buffer)
+        (if (fboundp 'cscope-history-forward-line)
+            (cscope-history-forward-line)
+          (when (fboundp 'cscope-next-symbol)
+            (cscope-next-symbol)))
+      (next-error))
     (unless eide-windows-ide-windows-visible-flag
       ;; Close grep window (appears automatically with next-error)
       (delete-other-windows))
-    (recenter)
     ;; Update menu because a new file may have been opened
     (eide-menu-update nil)
-    (eide-windows-select-source-window nil)))
+    (eide-windows-select-source-window nil)
+    (recenter)))
 
 (defun eide-search-read-man (p-args)
   "Read man page.

@@ -61,8 +61,8 @@
            (function-item :tag "Grep in current directory (with prompt)" eide-search-grep-local-with-prompt)
            (function-item :tag "Update all files" eide-menu-update-buffers)
            (function-item :tag "Close current file" eide-menu-kill-buffer)
-           (function-item :tag "Go to previous grep result or compilation error" eide-search-grep-go-to-previous)
-           (function-item :tag "Go to next grep result or compilation error" eide-search-grep-go-to-next)
+           (function-item :tag "Go to previous cscope/grep result or compilation error" eide-search-go-to-previous)
+           (function-item :tag "Go to next cscope/grep result or compilation error" eide-search-go-to-next)
            (function-item :tag "Compile (1)" eide-project-compile-1)
            (function-item :tag "Compile (2)" eide-project-compile-2)
            (function-item :tag "Compile (3)" eide-project-compile-3)
@@ -148,7 +148,7 @@
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-keys)
-(defcustom eide-custom-key-f7 'eide-search-grep-go-to-previous "F7 key."
+(defcustom eide-custom-key-f7 'eide-search-go-to-previous "F7 key."
   :tag "F7"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
@@ -160,7 +160,7 @@
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-keys)
-(defcustom eide-custom-key-f8 'eide-search-grep-go-to-next "F8 key."
+(defcustom eide-custom-key-f8 'eide-search-go-to-next "F8 key."
   :tag "F8"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
