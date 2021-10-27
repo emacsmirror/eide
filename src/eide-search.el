@@ -341,7 +341,8 @@ Argument:
                     (cscope-find-this-symbol p-symbol))
                   (with-current-buffer "*cscope*"
                     (rename-buffer l-result-buffer-name t)
-                    (setq cscope-output-buffer-name l-result-buffer-name)
+                    (when (boundp 'cscope-output-buffer-name)
+                      (setq cscope-output-buffer-name l-result-buffer-name))
                     (setq eide-windows-output-window-buffer l-result-buffer-name))
                   (eide-menu-build-files-lists))
               (eide-search-view-output-buffer l-result-buffer-name))
