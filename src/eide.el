@@ -95,7 +95,7 @@
 ;;;###autoload
 (defun eide-start ()
   "Start Emacs-IDE."
-  (if (>= emacs-major-version 24)
+  (if (>= emacs-major-version 25)
       (progn
         (unless (file-directory-p "~/.emacs.d/eide")
           (if (file-directory-p "~/.emacs-ide")
@@ -115,6 +115,6 @@
         (eide-windows-init)
         ;; Start with "editor" mode
         (eide-keys-configure-for-editor))
-    (message "Failed to start Emacs-IDE (requires Emacs version >= 24)")))
+    (message "Failed to start Emacs-IDE (requires Emacs version >= 25)")))
 
 ;;; eide.el ends here
