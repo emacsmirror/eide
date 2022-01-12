@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -613,7 +613,10 @@ current buffer."
     ;; Don't show trailing whitespace in this buffer
     ;; (there is a space at the end of every line, because of properties)
     (setq show-trailing-whitespace nil)
-    (setq buffer-read-only t)))
+    (setq buffer-read-only t))
+  ;; Don't ask for a confirmation when updating buffers (with F5 for example),
+  ;; that would be very annoying...
+  (setq revert-without-query (quote (".*"))))
 
 (defun eide-menu-set-update-state (p-state-flag)
   "Disable/enable update of buffers."

@@ -1,6 +1,6 @@
 ;;; eide-config.el --- Emacs-IDE: Customization
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -76,7 +76,10 @@
   (when eide-config-ready
     (eide-display-apply-emacs-settings)
     (eide-search-apply-customization)
-    (eide-keys-apply-emacs-settings)))
+    (eide-keys-apply-emacs-settings)
+    (eide-windows-apply-emacs-settings)
+    (eide-edit-apply-emacs-settings)
+    (eide-compare-apply-emacs-settings)))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -84,13 +87,15 @@
 
 (defun eide-config-init ()
   "Config initialization: save Emacs settings."
-  ;; custom-theme-load-path requires Emacs 24
   (add-to-list 'custom-theme-load-path "/usr/share/emacs/site-lisp/")
   (add-to-list 'custom-theme-load-path "/usr/local/share/emacs/site-lisp/")
   (add-to-list 'custom-theme-load-path "~/.emacs.d/site-lisp")
   (eide-display-save-emacs-settings)
   (eide-search-save-emacs-settings)
-  (eide-keys-save-emacs-settings))
+  (eide-keys-save-emacs-settings)
+  (eide-windows-save-emacs-settings)
+  (eide-edit-save-emacs-settings)
+  (eide-compare-save-emacs-settings))
 
 (defun eide-config-apply ()
   "Apply config."
@@ -127,8 +132,8 @@
   (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
   (setq eide-windows-themes-edited-flag t)
   ;; customize-themes doesn't seem to be working properly
-  ;; when selecting multiple themes.
-  ;;(customize-themes))
-  (customize-option 'custom-enabled-themes))
+  ;; when selecting multiple themes, but now we're using it only
+  ;; for a single color theme.
+  (customize-themes))
 
 ;;; eide-config.el ends here

@@ -25,7 +25,7 @@ It is suitable for almost all languages (as long as they are supported by
 
 ## License
 
-Copyright © 2008-2021 Cédric Marie <cedric@hjuvi.fr.eu.org>
+Copyright © 2008-2022 Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -159,42 +159,61 @@ Emacs-IDE provides two color themes (`eide-dark` and `eide-light`).
 
 #### Options provided in customization
 
+##### Emacs-IDE group
+
 Emacs-IDE provides some options in customization. To edit them, click on right
 button over "menu" window, and select "Customize" in popup menu.
+
 At top level, you will find categories, and one specific option - called
-"Override Emacs settings" - that can globally disable all options in "Emacs
-settings" category, if disabled.
+"Override Emacs settings" - that is enabled by default. If you disable it, all
+options under "Emacs settings" category will be globally disabled. If you keep
+it enabled, you can still disable any specific option under "Emacs settings".
 
 While other categories provide Emacs-IDE related options, "Emacs settings"
-category provide options that override standard Emacs behaviour:
+category provides options that override standard Emacs behaviour.
+
+##### "Emacs settings" options
+
+Some standard Emacs settings are overridden because it really makes sense to
+change these settings when Emacs-IDE is used. Most of them are features for
+coding, and are part of what Emacs-IDE aims at providing. Some of them could
+just be considered as personal preferences, yet I believe they help for a
+better integration of Emacs-IDE, and get rid of some disturbing options that
+for some reason were chosen as the default behaviour of Emacs.
+
+The modified standard variables are explicitly mentioned in the customization.
+Besides basic variables, overridden settings are:
 
 * `F1`-`F12` key bindings, in order to provide easy access to basic IDE
   features (tags, cscope, grep, compilation...).
-* Cscope update policy, in order to add an automatic mode that will update the
-  database only when a file is modified in Emacs.
+* Cscope update policy (`cscope-option-do-not-update-database` function), in
+  order to add an automatic mode that will update the database only when a file
+  is modified in Emacs.
 
 To save your settings, click on "Save for future sessions", and click on right
 button to exit customization.
 
-#### Options provided by themes
+A few standard settings are also overridden without any option to avoid it,
+because keeping the default behaviour would be very annoying when using
+Emacs-IDE:
+
+* `inhibit-startup-screen t`
+* `tags-revert-without-query t`
+* `tags-case-fold-search nil`
+* `gdb-many-windows t`
+* `revert-without-query (quote (".*"))`
+
+#### Color themes
 
 Emacs-IDE provides two color themes (`eide-dark` and `eide-light`).
 
-It also provides themes to customize some standard Emacs settings. I would
-recommend enabling the themes to Emacs beginners, because they enable useful
-options for coding and disable a few disturbing options. This is very
-subjective of course, but I believe that these settings can be useful for
-anyone. Advanced Emacs users may prefer to use their own customization.
+To select one of these themes, or any other available theme, click on right
+button over "menu" window, and select "Customize themes" in popup menu.
 
-To enable these themes, click on right button over "menu" window, and select
-"Customize themes" in popup menu.
-You can add one of the color themes (`eide-dark` or `eide-light`), and any of
-the following themes:
+Then you can select the theme you want.
 
-* `eide-browsing`
-* `eide-coding`
-* `eide-display`
-* `eide-settings`
+To save your choice, click on "Save theme settings", and click on right button
+to exit theme customization.
 
 ### Workspaces and projects
 
@@ -213,6 +232,7 @@ code tree, or just launch Emacs and then open project popup menu to change the
 root directory.
 
 Then open project popup menu and select:
+
 * "Create a project in this directory" if you want to create a full project
   with tags and cscope databases for code browsing.
 * "Create a project without tags/cscope symbols in this directory" if you
@@ -248,6 +268,7 @@ value.
 #### Open an existing project
 
 To open an existing project, you can:
+
 * either launch Emacs from your project root directory, with --eide-op option
   (op = open project)
 * or launch Emacs, open project popup menu, select 'Change root directory' if
@@ -264,6 +285,7 @@ To update tags or cscope database, open project popup menu and select
 the appropriate update action.
 
 When the code is changed:
+
 * Tags database (`TAGS`) needs to be updated.
 * Cscope database (`cscope.out`) needs to be updated if 'Emacs settings >
   Search > Update of cscope database' option value is either 'Never (only on
@@ -271,6 +293,7 @@ When the code is changed:
   file has been modified outside Emacs).
 
 When a file is added or deleted:
+
 * Tags database (`TAGS`) needs to be updated.
 * Cscope list of files (`cscope.files`) needs to be updated (`cscope.out` will
   be updated automatically on next search).
@@ -287,6 +310,7 @@ When switching to the original file, `file` becomes `file.new`, and `file.ref`
 becomes `file`.
 
 File popup menu actions:
+
 * Backup original file (REF) to work on a copy (NEW): Create a copy of `file`
   (`file.ref`), and set read/write permission on `file`.
 * Switch to REF file: Switch to the original version (`file.ref`).
@@ -297,12 +321,14 @@ File popup menu actions:
 * Compare REF and NEW files: Compare the original and the modified files.
 
 File name colour:
+
 * green when the modified file is used.
 * red when the original file is used.
 
 #### Other actions on files
 
 File popup menu actions:
+
 * Set read/write: Set read/write permission on the file.
 * Set read only: Set read only permission on the file.
 * Untabify and indent: "Clean" the file (turn tabs into spaces and indent).
@@ -312,6 +338,7 @@ If "Show version control status" option is set:
 * svn revert / git checkout
 
 File name colour:
+
 * black when the file is read/write.
 * grey when the file is read only.
 * blue when the file is modified (version control).
@@ -337,6 +364,7 @@ and will be applied to all files for which it is allowed.
 #### New key bindings
 
 Emacs-IDE defines a few key bindings:
+
 * `Alt-←/↓/→` or `Control-left/middle/right click`: Cut/copy/paste
 * `Alt-Enter` or `right click` in a "source" window: Hide/show IDE windows
   ("menu" and "output")

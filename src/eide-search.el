@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,6 +19,7 @@
 
 (provide 'eide-search)
 
+(require 'etags)
 (require 'xref)
 
 (require 'eide-config)
@@ -86,10 +87,10 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defgroup eide-search nil "Update of cscope database."
+(defgroup eide-override-search nil "Search settings."
   :tag "Search"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-update-cscope-database 'auto "Update of cscope database. Update is necessary when the code has changed. You can update on every search (cscope default behaviour), only on user request, or automatically when a buffer has been edited or refreshed."
+(defcustom eide-custom-update-cscope-database 'auto "Update of cscope database (cscope-option-do-not-update-database). Update is necessary when the code has changed. You can update on every search (cscope default behaviour), only on user request, or automatically when a buffer has been edited or refreshed."
   :tag "Update of cscope database"
   :type '(choice (const :tag "Don't override" ignore)
                  (const :tag "Always (on every search)" t)
@@ -97,7 +98,7 @@
                  (const :tag "When a buffer has been edited or refreshed" auto))
   :set 'eide-i-search-custom-set-cscope-update
   :initialize 'custom-initialize-default
-  :group 'eide-search)
+  :group 'eide-override-search)
 
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
@@ -156,7 +157,12 @@ Arguments:
 (defun eide-search-init ()
   ;; Add Emacs-Lisp mode hook to force xref etags mode (to avoid finding
   ;; definitions in ~/.emacs.d)
-  (add-hook 'emacs-lisp-mode-hook 'eide-i-search-force-xref-etags-mode))
+  (add-hook 'emacs-lisp-mode-hook 'eide-i-search-force-xref-etags-mode)
+  ;; Don't ask when TAGS file needs to be reloaded
+  (setq tags-revert-without-query t)
+  ;; Tags search should always be case sensitive, otherwise you might reach the
+  ;; definition of another symbol.
+  (setq tags-case-fold-search nil))
 
 (defun eide-search-apply-customization ()
   "Apply search customization."

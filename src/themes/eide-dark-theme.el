@@ -1,6 +1,6 @@
 ;;; eide-dark-theme.el --- Emacs-IDE: Dark color theme
 
-;; Copyright (C) 2014-2019 Cédric Marie
+;; Copyright © 2014-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 ;;; Code:
 
 (deftheme eide-dark
-  "Emacs-IDE dark color theme")
+  "Emacs-IDE (eide) dark color theme")
 
 (custom-theme-set-faces
  'eide-dark

@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.2.0
@@ -107,6 +107,7 @@
         ;; Emacs settings must be saved before the desktop is loaded, because it
         ;; reads some variables that might be overridden by local values in buffers.
         (eide-config-init)
+        (eide-display-init)
         ;; Add Emacs-Lisp mode hook (in eide-search-init) before the desktop is
         ;; loaded (in eide-project-init)
         (eide-search-init)

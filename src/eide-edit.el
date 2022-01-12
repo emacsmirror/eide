@@ -1,6 +1,6 @@
 ;;; eide-edit.el --- Emacs-IDE: Clean and edit files (REF/NEW)
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,9 +21,44 @@
 
 (require 'eide-popup)
 
+(defvar eide-edit-user-make-backup-files nil)
+(defvar eide-edit-user-large-file-warning-threshold nil)
+
+(defgroup eide-override-edit nil "Edit settings."
+  :tag "Edit"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-disable-backup-files t "Disable backup files (~ suffix) (make-backup-files nil)."
+  :tag "Disable backup files"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Disable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-edit)
+(defcustom eide-custom-disable-large-file-warning t "Disable warning when opening large files (large-file-warning-threshold nil)."
+  :tag "Disable large file warning"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Disable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-edit)
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-edit-save-emacs-settings ()
+  "Save Emacs settings (for edit)."
+  (setq eide-edit-user-make-backup-files make-backup-files)
+  (setq eide-edit-user-large-file-warning-threshold large-file-warning-threshold))
+
+(defun eide-edit-apply-emacs-settings ()
+  "Apply Emacs settings (for edit)."
+  (if (and eide-custom-override-emacs-settings eide-custom-disable-backup-files)
+      (setq make-backup-files nil)
+    (setq make-backup-files eide-edit-user-make-backup-files))
+  (if (and eide-custom-override-emacs-settings eide-custom-disable-large-file-warning)
+      (setq large-file-warning-threshold nil)
+    (setq large-file-warning-threshold eide-edit-user-large-file-warning-threshold)))
 
 (defun eide-edit-get-buffer-status ()
   "Get current buffer status (\"nofile\", \"ref\", \"new\" or \"\")."

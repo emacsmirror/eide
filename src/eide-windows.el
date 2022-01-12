@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -54,7 +54,7 @@
      ;; 2) Reuse "*Completions*" window if already displayed
      ;; 3) Otherwise, open a new window at bottom
      (eide-i-windows-save-output-window-height display-buffer-reuse-window display-buffer-at-bottom))
-    ("\\*Customize .*\\*"
+    ("\\*Custom.*"
      (display-buffer-same-window))
     ("\\*compilation\\*"
      (eide-i-windows-display-compilation-buffer-function))
@@ -69,6 +69,12 @@
     (".*"
      (eide-i-windows-display-buffer-in-source-window-function))))
 
+(defvar eide-windows-user-scroll-conservatively 0)
+(defvar eide-windows-user-scroll-preserve-screen-position nil)
+(defvar eide-windows-user-mouse-wheel-progressive-speed nil)
+
+(defvar eide-windows-user-compilation-scroll-output nil)
+
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
@@ -81,6 +87,24 @@
   :tag "Menu window height"
   :type '(choice (const half) (const full))
   :group 'eide-windows)
+
+(defgroup eide-override-windows nil "Windows settings."
+  :tag "Windows"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-smooth-scrolling t "Configure smooth scrolling (scroll-conservatively 1, scroll-preserve-screen-position t, mouse-wheel-progressive-speed nil)."
+  :tag "Configure smooth scrolling"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Enable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-windows)
+(defcustom eide-custom-compilation-scroll-output t "Enable the scrolling of compilation output (compilation-scroll-output t)."
+  :tag "Scrolling of compilation output"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Enable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-windows)
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -482,6 +506,33 @@ before gdb builds its own."
   "Initialize windows."
   (add-hook 'window-setup-hook 'eide-i-windows-window-setup-hook))
 
+(defun eide-windows-save-emacs-settings ()
+  "Save Emacs settings (for windows)."
+  (setq eide-windows-user-scroll-conservatively scroll-conservatively)
+  (setq eide-windows-user-scroll-preserve-screen-position scroll-preserve-screen-position)
+  (setq eide-windows-user-mouse-wheel-progressive-speed mouse-wheel-progressive-speed)
+  (setq eide-windows-user-compilation-scroll-output compilation-scroll-output))
+
+(defun eide-windows-apply-emacs-settings ()
+  "Apply Emacs settings (for windows)."
+  (if (and eide-custom-override-emacs-settings eide-custom-smooth-scrolling)
+      (progn
+        ;; Configure a "smooth" scrolling (the default behaviour is really disturbing...)
+        (setq scroll-conservatively 1)
+        (setq scroll-preserve-screen-position t)
+        ;; Disable mouse wheel progressive speed (which makes you scroll too fast and
+        ;; can sometimes make it really difficult to just reach the place you're
+        ;; trying to reach!...)
+        (setq mouse-wheel-progressive-speed nil))
+    (progn
+      (setq scroll-conservatively eide-windows-user-scroll-conservatively)
+      (setq scroll-preserve-screen-position eide-windows-user-scroll-preserve-screen-position)
+      (setq mouse-wheel-progressive-speed eide-windows-user-mouse-wheel-progressive-speed)))
+  (if (and eide-custom-override-emacs-settings eide-custom-compilation-scroll-output)
+      ;; Make the compilation window scroll to follow the output
+      (setq compilation-scroll-output t)
+    (setq compilation-scroll-output eide-windows-user-compilation-scroll-output)))
+
 (defun eide-windows-configuration-change-hook ()
   "Update IDE layout internal information (status and window objects) if
 necessary when the window configuration is changed. It is useful when an old
@@ -784,7 +835,7 @@ and display it. Current buffer is kept if correct."
 (defun eide-windows-switch-to-editor-mode ()
   "Switch to editor mode and build the layout."
   (interactive)
-  (when (string-match "^\*Customize.*" (buffer-name))
+  (when (string-match "^\*Custom.*" (buffer-name))
     (ad-activate 'switch-to-buffer)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (when eide-windows-themes-edited-flag
@@ -793,7 +844,7 @@ and display it. Current buffer is kept if correct."
       (eide-display-apply-color-theme)
       (setq eide-windows-themes-edited-flag nil)))
   (if (or (string-equal (buffer-name) "*Help*")
-          (string-match "^\*Customize.*" (buffer-name))
+          (string-match "^\*Custom.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
       ;; Close "help", customization, or projects list
       ;; NB: In customization, exit button does not work...

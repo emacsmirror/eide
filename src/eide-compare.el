@@ -1,6 +1,6 @@
 ;;; eide-compare.el --- Emacs-IDE: Comparison of files with ediff
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -34,6 +34,8 @@
 (defvar eide-compare-buffer-name nil)
 (defvar eide-compare-current-point nil)
 (defvar eide-compare-other-buffer-name nil)
+
+(defvar eide-compare-user-ediff-split-window-function nil)
 
 ;; Ediff
 (copy-face 'default 'ediff-even-diff-face-A)
@@ -69,6 +71,17 @@
 (copy-face 'default 'ediff-fine-diff-face-B)
 (set-face-background 'ediff-fine-diff-face-B "plum")
 (set-face-foreground 'ediff-fine-diff-face-B "black")
+
+(defgroup eide-override-compare nil "Compare settings."
+  :tag "Compare"
+  :group 'eide-emacs-settings)
+(defcustom eide-custom-diff-side-by-side t "Compare buffers side-by-side (ediff-split-window-function 'split-window-horizontally)."
+  :tag "Compare buffers side-by-side"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Side-by-side" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-compare)
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -150,6 +163,16 @@ Arguments:
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-compare-save-emacs-settings ()
+  "Save Emacs settings (for compare)."
+  (setq eide-compare-user-ediff-split-window-function ediff-split-window-function))
+
+(defun eide-compare-apply-emacs-settings ()
+  "Apply Emacs settings (for compare)."
+  (if (and eide-custom-override-emacs-settings eide-custom-diff-side-by-side)
+      (setq ediff-split-window-function 'split-window-horizontally)
+    (setq ediff-split-window-function eide-compare-user-ediff-split-window-function)))
 
 (defun eide-compare-select-another-project (p-project-name p-project-directory)
   "Select another project for comparison. Unselect it if both arguments are nil.

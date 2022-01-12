@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -655,7 +655,9 @@ Argument:
       (add-hook 'emacs-startup-hook 'eide-i-project-force-desktop-read-hook)))
   ;; Add C/C++ mode hook to set C style according to project configuration
   (add-hook 'c-mode-hook 'eide-i-project-set-c-style-hook)
-  (add-hook 'c++-mode-hook 'eide-i-project-set-c-style-hook))
+  (add-hook 'c++-mode-hook 'eide-i-project-set-c-style-hook)
+  ;; Enable the layout for gdb
+  (gdb-many-windows t))
 
 (defun eide-project-set-commands-state (p-state-flag)
   "Disable/enable project commands."

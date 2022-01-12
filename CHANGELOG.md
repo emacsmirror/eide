@@ -6,6 +6,22 @@
 
 * Browse through cscope results with F7/F8.
 
+### Changed
+
+* Move overridden Emacs settings back to the customization. In version 2.0.0,
+  these settings were moved to themes, but it turned out to be a bad idea.
+  They are now enabled by default, and can be disabled in the customization.
+  Only the color themes are kept (eide-dark and eide-light).
+  The reasons for this change are:
+  - At first installation, it is not really convenient to manually add themes.
+  - When themes are disabled, their settings are kept and saved explicitly in
+    ~/.emacs.
+  - Themes are rarely used for such settings, the main usage is for colors.
+* Use customize-themes to choose a color theme by simply selecting a theme in a
+  list with checkboxes, without having to enter the name manually. The manual
+  method was used because customize-themes failed at selecting multiple themes,
+  but this is not required anymore, since themes are used only for colors now.
+
 ### Removed
 
 * Remove "project notes" file (.emacs-ide-project.txt) because it is not really

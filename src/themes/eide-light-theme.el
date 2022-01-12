@@ -1,6 +1,6 @@
 ;;; eide-light-theme.el --- Emacs-IDE: Light color theme
 
-;; Copyright (C) 2014 Cédric Marie
+;; Copyright © 2014-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 ;;; Code:
 
 (deftheme eide-light
-  "Emacs-IDE light color theme")
+  "Emacs-IDE (eide) light color theme")
 
 (custom-theme-set-faces
  'eide-light
