@@ -21,6 +21,10 @@
   list with checkboxes, without having to enter the name manually. The manual
   method was used because customize-themes failed at selecting multiple themes,
   but this is not required anymore, since themes are used only for colors now.
+* Change the default behaviour to indent with spaces (indent-tabs-mode nil),
+  with a new option in Emacs settings group. Most languages now recommend to
+  use spaces instead of tabs, so this should be the default. Tabs mode is
+  preserved for some major modes that require it, such as GNUmakefile.
 
 ### Removed
 

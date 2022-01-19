@@ -23,6 +23,7 @@
 
 (defvar eide-edit-user-make-backup-files nil)
 (defvar eide-edit-user-large-file-warning-threshold nil)
+(defvar eide-edit-user-indent-tabs-mode nil)
 
 (defgroup eide-override-edit nil "Edit settings."
   :tag "Edit"
@@ -41,6 +42,13 @@
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
+(defcustom eide-custom-indent-with-spaces t "Indent with spaces instead of tabulations by default (indent-tabs-mode nil)."
+  :tag "Indent with spaces"
+  :type '(choice (const :tag "Don't override" nil)
+                 (const :tag "Enable" t))
+  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :initialize 'custom-initialize-default
+  :group 'eide-override-edit)
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -49,7 +57,8 @@
 (defun eide-edit-save-emacs-settings ()
   "Save Emacs settings (for edit)."
   (setq eide-edit-user-make-backup-files make-backup-files)
-  (setq eide-edit-user-large-file-warning-threshold large-file-warning-threshold))
+  (setq eide-edit-user-large-file-warning-threshold large-file-warning-threshold)
+  (setq eide-edit-user-indent-tabs-mode indent-tabs-mode))
 
 (defun eide-edit-apply-emacs-settings ()
   "Apply Emacs settings (for edit)."
@@ -58,7 +67,10 @@
     (setq make-backup-files eide-edit-user-make-backup-files))
   (if (and eide-custom-override-emacs-settings eide-custom-disable-large-file-warning)
       (setq large-file-warning-threshold nil)
-    (setq large-file-warning-threshold eide-edit-user-large-file-warning-threshold)))
+    (setq large-file-warning-threshold eide-edit-user-large-file-warning-threshold))
+  (if (and eide-custom-override-emacs-settings eide-custom-indent-with-spaces)
+      (setq-default indent-tabs-mode nil)
+    (setq-default indent-tabs-mode eide-edit-user-indent-tabs-mode)))
 
 (defun eide-edit-get-buffer-status ()
   "Get current buffer status (\"nofile\", \"ref\", \"new\" or \"\")."
