@@ -11,8 +11,8 @@ shortcuts, and project management.
 It is suitable for almost all languages (as long as they are supported by
 [Ctags]). [Cscope] provides additional browsing facility for C/C++ files.
 
-* **Version**: 2.2.0+
-* **Homepage**: <https://eide.hjuvi.fr.eu.org/>
+* **Version**: 2.3.0
+* **Homepage**: <https://forge.chapril.org/hjuvi/eide>
 * **License**: [GPL-3.0-or-later]
 * **Programming language**: [Emacs Lisp]
 * **Dependencies**: [Emacs] (>= 25.1), [Ctags], [Cscope]

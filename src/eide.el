@@ -3,8 +3,8 @@
 ;; Copyright © 2008-2022 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Version: 2.2.0
-;; URL: https://eide.hjuvi.fr.eu.org/
+;; Version: 2.3.0
+;; URL: https://forge.chapril.org/hjuvi/eide
 
 ;; This file is not part of GNU Emacs.
 
@@ -34,7 +34,7 @@
 ;; It is suitable for almost all languages (as long as they are supported by
 ;; Ctags). Cscope provides additional browsing facility for C/C++ files.
 
-;; Homepage: https://eide.hjuvi.fr.eu.org/
+;; Homepage: https://forge.chapril.org/hjuvi/eide
 
 ;;; Code:
 
@@ -59,7 +59,7 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-version "2.2.0+")
+(defvar eide-version "2.3.0")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)
@@ -81,7 +81,7 @@
 
 (defun eide-about-open ()
   "Display a popup with the version of the package."
-  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://eide.hjuvi.fr.eu.org/")))
+  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://forge.chapril.org/hjuvi/eide")))
 
 (defun eide-shell-open ()
   "Open a shell."
