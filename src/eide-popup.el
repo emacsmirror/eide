@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
-;; Copyright © 2008-2021 Cédric Marie
+;; Copyright © 2008-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -112,7 +112,7 @@ Argument:
     (eide-i-popup-menu-init)
     (eide-i-popup-menu-add-action "Close all files from this directory" (concat "(eide-menu-directory-close \"" l-directory-name "\")") t)
 
-    (let ((l-buffer-read-only-flag nil) (l-buffer-read-write-flag nil)
+    (let ((l-buffer-rw-flag t)
           (l-buffer-status-none-flag nil) (l-buffer-status-new-flag nil) (l-buffer-status-ref-flag nil)
           (l-vc-backend nil) (l-buffer-vc-modified-flag nil) (l-vc-modified-files-list ""))
       ;; Parse list of open files, and find the ones located in this
@@ -124,9 +124,8 @@ Argument:
           (with-current-buffer l-buffer
             (unless (string-equal eide-menu-local-edit-status "nofile")
               ;; Check all properties
-              (if buffer-read-only
-                  (setq l-buffer-read-only-flag t)
-                (setq l-buffer-read-write-flag t))
+              (when buffer-read-only
+                (setq l-buffer-rw-flag nil))
               (if (string-equal eide-menu-local-edit-status "")
                   (setq l-buffer-status-none-flag t)
                 (if (string-equal eide-menu-local-edit-status "new")
@@ -144,8 +143,6 @@ Argument:
                   (setq l-vc-modified-files-list (concat l-vc-modified-files-list " " (file-name-nondirectory buffer-file-name)))))))))
       ;; Actions are enabled only if it can apply to one buffer at least
       ;; "Edit" action list
-      (eide-i-popup-menu-add-action "Set all files read/write" (concat "(eide-edit-action-on-directory 'eide-edit-set-rw \"" l-directory-name "\")") l-buffer-read-only-flag)
-      (eide-i-popup-menu-add-action "Set all files read only" (concat "(eide-edit-action-on-directory 'eide-edit-set-r \"" l-directory-name "\")") l-buffer-read-write-flag)
       (eide-i-popup-menu-add-action "Backup original files (REF) to work on copies (NEW)" (concat "(eide-edit-action-on-directory 'eide-edit-make-ref-file \"" l-directory-name "\")") l-buffer-status-none-flag)
       (eide-i-popup-menu-add-action "Switch to REF files" (concat "(eide-edit-action-on-directory 'eide-edit-use-ref-file \"" l-directory-name "\")") l-buffer-status-new-flag)
       (eide-i-popup-menu-add-action "Discard REF files" (concat "(eide-edit-action-on-directory 'eide-edit-discard-ref-file \"" l-directory-name "\" \"discard all REF files\")") l-buffer-status-new-flag)
@@ -155,8 +152,8 @@ Argument:
       (eide-i-popup-menu-close-action-list "Edit")
 
       ;; "Clean" action list
-      (eide-i-popup-menu-add-action "Untabify and indent all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-untabify-and-indent \"" l-directory-name "\" \"untabify and indent all read/write files\")") l-buffer-read-write-flag)
-      (eide-i-popup-menu-add-action "Delete trailing spaces in all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-delete-trailing-spaces \"" l-directory-name "\" \"delete trailing spaces in all read/write files\")") l-buffer-read-write-flag)
+      (eide-i-popup-menu-add-action "Untabify and indent all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-untabify-and-indent \"" l-directory-name "\" \"untabify and indent all read/write files\")") l-buffer-rw-flag)
+      (eide-i-popup-menu-add-action "Delete trailing spaces in all read/write files" (concat "(eide-edit-action-on-directory 'eide-edit-delete-trailing-spaces \"" l-directory-name "\" \"delete trailing spaces in all read/write files\")") l-buffer-rw-flag)
       (eide-i-popup-menu-close-action-list "Clean")
 
       ;; VC action list
@@ -198,9 +195,6 @@ Argument:
     ;; "Edit" action list
     (eide-i-popup-menu-add-action "Close" (concat "(eide-menu-file-close \"" l-buffer "\")") t)
     (unless (string-equal l-buffer-status "nofile")
-      (if l-buffer-rw-flag
-          (eide-i-popup-menu-add-action "Set read only" (concat "(eide-edit-action-on-file 'eide-edit-set-r \"" l-buffer "\")") t)
-        (eide-i-popup-menu-add-action "Set read/write" (concat "(eide-edit-action-on-file 'eide-edit-set-rw \"" l-buffer "\")") t))
       (if (string-equal l-buffer-status "ref")
           (eide-i-popup-menu-add-action "Switch to NEW file" (concat "(eide-edit-action-on-file 'eide-edit-use-new-file \"" l-buffer "\")") t)
         (if (string-equal l-buffer-status "new")

@@ -97,20 +97,6 @@ Argument:
         (make-local-variable 'eide-menu-local-edit-status)
         (setq eide-menu-local-edit-status (eide-edit-get-buffer-status))))))
 
-(defun eide-edit-set-rw ()
-  "Set write permission for current file."
-  (when buffer-read-only
-    ;; chmod +w (add -w-------, i.e. w for user)
-    (set-file-modes buffer-file-name (logior (file-modes buffer-file-name) 128))
-    (revert-buffer)))
-
-(defun eide-edit-set-r ()
-  "Unset write permission for current file."
-  (unless buffer-read-only
-    ;; chmod -w (remove -w-------, i.e. w for user)
-    (set-file-modes buffer-file-name (logxor (file-modes buffer-file-name) 128))
-    (revert-buffer)))
-
 (defun eide-edit-make-ref-file ()
   "Create \".ref\" version of current file, use \".new\", and set write
 permission for it."

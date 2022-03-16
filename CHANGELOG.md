@@ -1,5 +1,12 @@
 # Changelog for Emacs-IDE (eide)
 
+## Unreleased
+
+### Removed
+
+* Remove actions to set files read/write or read only, because it is not really
+  useful anymore (any source code is now always read/write).
+
 ## Version 2.3.0 (2022-01-19)
 
 ### Added
