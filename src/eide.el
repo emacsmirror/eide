@@ -4,7 +4,7 @@
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.3.0
-;; URL: https://forge.chapril.org/hjuvi/eide
+;; URL: https://forge.chalec.org/hjuvi/eide
 
 ;; This file is not part of GNU Emacs.
 
@@ -34,7 +34,7 @@
 ;; It is suitable for almost all languages (as long as they are supported by
 ;; Ctags). Cscope provides additional browsing facility for C/C++ files.
 
-;; Homepage: https://forge.chapril.org/hjuvi/eide
+;; Homepage: https://forge.chalec.org/hjuvi/eide
 
 ;;; Code:
 
@@ -81,7 +81,7 @@
 
 (defun eide-about-open ()
   "Display a popup with the version of the package."
-  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://forge.chapril.org/hjuvi/eide")))
+  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://forge.chalec.org/hjuvi/eide")))
 
 (defun eide-shell-open ()
   "Open a shell."
