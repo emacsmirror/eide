@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Emacs-IDE package creation
+# Emacs-IDE package uninstallation for the user
 
-# Copyright © 2014-2022 Cédric Marie
+# Copyright © 2022 Cédric Marie
 
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -18,12 +18,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 VERSION=2.3.0
-rm -rf eide-$VERSION eide-$VERSION.tar
 
-printf "\033[1mCopy source files to package directory\033[0m\n"
-mkdir eide-$VERSION
-cp -v src/*.el src/themes/*.el eide-$VERSION
-printf "\n\033[1mCreate package archive\033[0m\n"
-tar -cvf eide-$VERSION.tar eide-$VERSION
-rm -rf eide-$VERSION
-printf "\n\033[1;32mPackage: eide-$VERSION.tar\033[0m\n"
+printf "\033[1mRemove eide-$VERSION.tar\033[0m\n"
+rm -vf eide-$VERSION.tar
+
+printf "\n\033[1mRemove ~/.emacs.d/elpa/eide-$VERSION\033[0m\n"
+rm -vrf ~/.emacs.d/elpa/eide-$VERSION
+
+if grep -q \(eide-start\) ~/.emacs; then
+    printf "\nYou must remove (eide-start) from your ~/.emacs\n"
+else
+    printf "\nNothing more to do:\n"
+    printf "(eide-start) is not present in your ~/.emacs\n"
+fi

@@ -12,7 +12,7 @@ It is suitable for almost all languages (as long as they are supported by
 [Ctags]). [Cscope] provides additional browsing facility for C/C++ files.
 
 * **Version**: 2.3.0
-* **Homepage**: <https://forge.chalec.org/hjuvi/eide>
+* **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
 * **License**: [GPL-3.0-or-later]
 * **Programming language**: [Emacs Lisp]
 * **Dependencies**: [Emacs] (>= 25.1), [Ctags], [Cscope]
@@ -47,8 +47,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 From the source code, you can create the package (.tar file) and install it:
 
 ```
-$ ./build-package
-$ ./install-package
+$ ./user-install.sh
 ```
 
 The package is installed in `~/.emacs.d/elpa/eide-<version>` directory.
@@ -68,6 +67,14 @@ NB:
   number will be loaded.
 * If you're installing a development version, the package version number is not
   relevant.
+
+If you want to uninstall the package, just execute this other script:
+
+```
+$ ./user-uninstall.sh
+```
+
+And remove `(eide-start)` from your `~/.emacs`.
 
 ### Using Melpa
 
