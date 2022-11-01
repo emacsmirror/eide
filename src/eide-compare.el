@@ -75,7 +75,9 @@
 (defgroup eide-override-compare nil "Compare settings."
   :tag "Compare"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-diff-side-by-side t "Compare buffers side-by-side (ediff-split-window-function 'split-window-horizontally)."
+(defcustom eide-custom-diff-side-by-side t
+  "Compare buffers side-by-side (ediff-split-window-function
+'split-window-horizontally)."
   :tag "Compare buffers side-by-side"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Side-by-side" t))

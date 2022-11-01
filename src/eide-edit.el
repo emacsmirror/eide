@@ -28,21 +28,24 @@
 (defgroup eide-override-edit nil "Edit settings."
   :tag "Edit"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-disable-backup-files t "Disable backup files (~ suffix) (make-backup-files nil)."
+(defcustom eide-custom-disable-backup-files t
+  "Disable backup files (~ suffix) (make-backup-files nil)."
   :tag "Disable backup files"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
-(defcustom eide-custom-disable-large-file-warning t "Disable warning when opening large files (large-file-warning-threshold nil)."
+(defcustom eide-custom-disable-large-file-warning t
+  "Disable warning when opening large files (large-file-warning-threshold nil)."
   :tag "Disable large file warning"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
-(defcustom eide-custom-indent-with-spaces t "Indent with spaces instead of tabulations by default (indent-tabs-mode nil)."
+(defcustom eide-custom-indent-with-spaces t
+  "Indent with spaces instead of tabulations by default (indent-tabs-mode nil)."
   :tag "Indent with spaces"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))

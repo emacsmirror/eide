@@ -1,6 +1,6 @@
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
-;; Copyright © 2010-2021 Cédric Marie
+;; Copyright © 2010-2022 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,7 +32,8 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-show-vc-status 'auto "Show version control status of files in menu."
+(defcustom eide-custom-show-vc-status 'auto
+  "Show version control status of files in menu."
   :tag "Show version control status"
   :type '(choice (const :tag "Never" nil)
                  (const :tag "Always" t)
@@ -40,7 +41,9 @@
   :set 'eide-i-vc-custom-set-show-vc-status
   :initialize 'custom-initialize-default
   :group 'eide-version-control)
-(defcustom eide-custom-vc-diff-command "" "Version control diff command (svn diff --diff-cmd=<command>, git difftool -y --extcmd=<command>). Use default (svn diff, git diff) if empty."
+(defcustom eide-custom-vc-diff-command ""
+  "Version control diff command (svn diff --diff-cmd=<command>, git difftool -y
+--extcmd=<command>). Use default (svn diff, git diff) if empty."
   :tag "Version control diff command"
   :type 'string
   :set 'eide-i-vc-custom-set-vc-diff-command

@@ -76,145 +76,169 @@
 (defgroup eide-override-keys nil "Keys settings."
   :tag "Keys"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-key-f1 'eide-search-back-from-tag "F1 key."
+(defcustom eide-custom-key-f1 'eide-search-back-from-tag
+  "F1 key."
   :tag "F1"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f1 nil "Shift-F1 key."
+(defcustom eide-custom-key-shift-f1 nil
+  "Shift-F1 key."
   :tag "Shift-F1"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f2 'eide-search-find-tag-without-prompt "F2 key."
+(defcustom eide-custom-key-f2 'eide-search-find-tag-without-prompt
+  "F2 key."
   :tag "F2"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f2 'eide-search-find-tag-with-prompt "Shift-F2 key."
+(defcustom eide-custom-key-shift-f2 'eide-search-find-tag-with-prompt
+  "Shift-F2 key."
   :tag "Shift-F2"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f3 'eide-search-find-symbol-without-prompt "F3 key."
+(defcustom eide-custom-key-f3 'eide-search-find-symbol-without-prompt
+  "F3 key."
   :tag "F3"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f3 'eide-search-find-symbol-with-prompt "Shift-F3 key."
+(defcustom eide-custom-key-shift-f3 'eide-search-find-symbol-with-prompt
+  "Shift-F3 key."
   :tag "Shift-F3"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f4 'eide-search-grep-global-without-prompt "F4 key."
+(defcustom eide-custom-key-f4 'eide-search-grep-global-without-prompt
+  "F4 key."
   :tag "F4"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f4 'eide-search-grep-global-with-prompt "Shift-F4 key."
+(defcustom eide-custom-key-shift-f4 'eide-search-grep-global-with-prompt
+  "Shift-F4 key."
   :tag "Shift-F4"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f5 'eide-menu-update-buffers "F5 key."
+(defcustom eide-custom-key-f5 'eide-menu-update-buffers
+  "F5 key."
   :tag "F5"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f5 'eide-menu-kill-buffer "Shift-F5 key."
+(defcustom eide-custom-key-shift-f5 'eide-menu-kill-buffer
+  "Shift-F5 key."
   :tag "Shift-F5"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f6 'eide-search-grep-local-without-prompt "F6 key."
+(defcustom eide-custom-key-f6 'eide-search-grep-local-without-prompt
+  "F6 key."
   :tag "F6"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f6 'eide-search-grep-local-with-prompt "Shift-F6 key."
+(defcustom eide-custom-key-shift-f6 'eide-search-grep-local-with-prompt
+  "Shift-F6 key."
   :tag "Shift-F6"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f7 'eide-search-go-to-previous "F7 key."
+(defcustom eide-custom-key-f7 'eide-search-go-to-previous
+  "F7 key."
   :tag "F7"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f7 nil "Shift-F7 key."
+(defcustom eide-custom-key-shift-f7 nil
+  "Shift-F7 key."
   :tag "Shift-F7"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f8 'eide-search-go-to-next "F8 key."
+(defcustom eide-custom-key-f8 'eide-search-go-to-next
+  "F8 key."
   :tag "F8"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f8 nil "Shift-F8 key."
+(defcustom eide-custom-key-shift-f8 nil
+  "Shift-F8 key."
   :tag "Shift-F8"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f9 'eide-project-compile-1 "F9 key."
+(defcustom eide-custom-key-f9 'eide-project-compile-1
+  "F9 key."
   :tag "F9"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f9 'eide-project-compile-2 "Shift-F9 key."
+(defcustom eide-custom-key-shift-f9 'eide-project-compile-2
+  "Shift-F9 key."
   :tag "Shift-F9"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f10 'eide-project-run-1 "F10 key."
+(defcustom eide-custom-key-f10 'eide-project-run-1
+  "F10 key."
   :tag "F10"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f10 'eide-project-run-2 "Shift-F10 key."
+(defcustom eide-custom-key-shift-f10 'eide-project-run-2
+  "Shift-F10 key."
   :tag "Shift-F10"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f11 'eide-windows-toggle-frame-fullscreen-mode "F11 key."
+(defcustom eide-custom-key-f11 'eide-windows-toggle-frame-fullscreen-mode
+  "F11 key."
   :tag "F11"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f11 nil "Shift-F11 key."
+(defcustom eide-custom-key-shift-f11 nil
+  "Shift-F11 key."
   :tag "Shift-F11"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-f12 'eide-shell-open "F12 key."
+(defcustom eide-custom-key-f12 'eide-shell-open
+  "F12 key."
   :tag "F12"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys
   :initialize 'custom-initialize-default
   :group 'eide-override-keys)
-(defcustom eide-custom-key-shift-f12 nil "Shift-F12 key."
+(defcustom eide-custom-key-shift-f12 nil
+  "Shift-F12 key."
   :tag "Shift-F12"
   :type eide-keys-custom-choice
   :set 'eide-i-config-set-keys

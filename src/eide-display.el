@@ -55,13 +55,17 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-color-theme nil "Color theme for Emacs-IDE specific faces (menu, help, and list of projects). If 'auto', it will be set according to Emacs-IDE color theme for source code (light if none is enabled)."
+(defcustom eide-custom-color-theme nil
+  "Color theme for Emacs-IDE specific faces (menu, help, and list of projects). If
+'auto', it will be set according to Emacs-IDE color theme for source code
+(light if none is enabled)."
   :tag "Color theme for Emacs-IDE specific faces (menu, help, and list of projects)"
   :type '(choice (const :tag "auto" nil) (const dark) (const light))
   :set '(lambda (param value) (set-default param value) (eide-display-apply-color-theme))
   :initialize 'custom-initialize-default
   :group 'eide-display)
-(defcustom eide-custom-start-maximized t "Start with maximized frame."
+(defcustom eide-custom-start-maximized t
+  "Start with maximized frame."
   :tag "Start with maximized frame"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
@@ -70,28 +74,35 @@
 (defgroup eide-override-display nil "Sound/display settings."
   :tag "Sound/display"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-disable-beeping t "Disable beeping (or screen flashing with \"visible bell\") (ring-bell-function 'ignore)."
+(defcustom eide-custom-disable-beeping t
+  "Disable beeping (or screen flashing with \"visible bell\") (ring-bell-function
+'ignore)."
   :tag "Disable beeping / screen flashing"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
-(defcustom eide-custom-disable-bars t "Disable the menu-bar and the tool-bar (menu-bar-mode nil, tool-bar-mode nil)."
+(defcustom eide-custom-disable-bars t
+  "Disable the menu-bar and the tool-bar (menu-bar-mode nil, tool-bar-mode nil)."
   :tag "Disable the menu-bar and the tool-bar"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
-(defcustom eide-custom-add-cursor-position-info t "Add information about the cursor position (line-number-mode t, column-number-mode t, which-function-mode t) and highlight matching parentheses (show-paren-mode t)."
+(defcustom eide-custom-add-cursor-position-info t
+  "Add information about the cursor position (line-number-mode t,
+column-number-mode t, which-function-mode t) and highlight matching parentheses
+(show-paren-mode t)."
   :tag "Add information about the cursor position"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
-(defcustom eide-custom-show-trailing-whitespace t "Show trailing whitespace (show-trailing-whitespace t)."
+(defcustom eide-custom-show-trailing-whitespace t
+  "Show trailing whitespace (show-trailing-whitespace t)."
   :tag "Show trailing whitespace"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))

@@ -149,105 +149,132 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-number-of-workspaces 2 "Number of workspaces (each workspace has got its own list of projects)."
+(defcustom eide-custom-number-of-workspaces 2
+  "Number of workspaces (each workspace has got its own list of projects)."
   :tag "Number of workspaces"
   :type '(choice (const 1) (const 2) (const 3) (const 4) (const 5) (const 6) (const 7) (const 8))
   :set 'eide-i-project-custom-set-number-of-workspaces
   :initialize 'custom-initialize-default
   :group 'eide-project)
-(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t "Support ANSI escape code in compilation buffer."
+(defcustom eide-custom-support-ansi-escape-code-in-compilation-buffer t
+  "Support ANSI escape code in compilation buffer."
   :tag "Support ANSI escape code in compilation buffer"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
   :set 'eide-i-project-set-support-for-ansi-escape-code-in-compilation-buffer
   :initialize 'custom-initialize-default
   :group 'eide-project)
-(defcustom eide-custom-project-default-c-style "" "Default C style."
+(defcustom eide-custom-project-default-c-style ""
+  "Default C style."
   :tag "Default C style"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-init-command "" "This command is called before all 'compile' and 'run' commands."
+(defcustom eide-custom-project-default-init-command ""
+  "This command is called before all 'compile' and 'run' commands."
   :tag "Default init command"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-1 "" "Default compile command (1)."
+(defcustom eide-custom-project-default-compile-command-1 ""
+  "Default compile command (1)."
   :tag "Default compile command (1)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-2 "" "Default compile command (2)."
+(defcustom eide-custom-project-default-compile-command-2 ""
+  "Default compile command (2)."
   :tag "Default compile command (2)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-3 "" "Default compile command (3)."
+(defcustom eide-custom-project-default-compile-command-3 ""
+  "Default compile command (3)."
   :tag "Default compile command (3)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-command-4 "" "Default compile command (4)."
+(defcustom eide-custom-project-default-compile-command-4 ""
+  "Default compile command (4)."
   :tag "Default compile command (4)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-run-command-1 "" "Default run command (1)."
+(defcustom eide-custom-project-default-run-command-1 ""
+  "Default run command (1)."
   :tag "Default run command (1)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-run-command-2 "" "Default run command (2)."
+(defcustom eide-custom-project-default-run-command-2 ""
+  "Default run command (2)."
   :tag "Default run command (2)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-debug-command "" "Default debug command."
+(defcustom eide-custom-project-default-debug-command ""
+  "Default debug command."
   :tag "Default debug command"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-debug-program-1 "" "Default debug program (1)."
+(defcustom eide-custom-project-default-debug-program-1 ""
+  "Default debug program (1)."
   :tag "Default debug program (1)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-debug-program-2 "" "Default debug program (2)."
+(defcustom eide-custom-project-default-debug-program-2 ""
+  "Default debug program (2)."
   :tag "Default debug program (2)"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-error-old-path-regexp "" "Default compile error old path regexp (used to modify the path of filenames in the compilation buffer)."
+(defcustom eide-custom-project-default-compile-error-old-path-regexp ""
+  "Default compile error old path regexp (used to modify the path of filenames in
+the compilation buffer)."
   :tag "Default compile error old path regexp"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-compile-error-new-path-string "" "Default compile error new path string (used to modify the path of filenames in the compilation buffer)."
+(defcustom eide-custom-project-default-compile-error-new-path-string ""
+  "Default compile error new path string (used to modify the path of filenames in
+the compilation buffer)."
   :tag "Default compile error new path string"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-tags-exclude "" "Default space separated list of patterns (files or directories) to exclude when creating tags."
+(defcustom eide-custom-project-default-tags-exclude ""
+  "Default space separated list of patterns (files or directories) to exclude when
+creating tags."
   :tag "Default tags exclude patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-cscope-exclude-files "" "Default space separated list of files patterns to exclude when creating cscope list of files."
+(defcustom eide-custom-project-default-cscope-exclude-files ""
+  "Default space separated list of files patterns to exclude when creating cscope
+list of files."
   :tag "Default cscope exclude files patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-cscope-exclude-dirs "" "Default space separated list of directories patterns to exclude when creating cscope list of files."
+(defcustom eide-custom-project-default-cscope-exclude-dirs ""
+  "Default space separated list of directories patterns to exclude when creating
+cscope list of files."
   :tag "Default cscope exclude directories patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-grep-exclude-files "" "Default space separated list of files patterns to exclude when searching with grep."
+(defcustom eide-custom-project-default-grep-exclude-files ""
+  "Default space separated list of files patterns to exclude when searching with
+grep."
   :tag "Default grep exclude files patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
-(defcustom eide-custom-project-default-grep-exclude-dirs "" "Default space separated list of directories patterns to exclude when searching with grep."
+(defcustom eide-custom-project-default-grep-exclude-dirs ""
+  "Default space separated list of directories patterns to exclude when searching
+with grep."
   :tag "Default grep exclude directories patterns"
   :type 'string
   :set '(lambda (param value) (set-default param value))

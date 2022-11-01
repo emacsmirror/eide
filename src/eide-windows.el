@@ -79,11 +79,13 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-menu-window-position 'right "Menu window position."
+(defcustom eide-custom-menu-window-position 'right
+  "Menu window position."
   :tag "Menu window position"
   :type '(choice (const left) (const right))
   :group 'eide-windows)
-(defcustom eide-custom-menu-window-height 'half "Menu window height."
+(defcustom eide-custom-menu-window-height 'half
+  "Menu window height."
   :tag "Menu window height"
   :type '(choice (const half) (const full))
   :group 'eide-windows)
@@ -91,14 +93,17 @@
 (defgroup eide-override-windows nil "Windows settings."
   :tag "Windows"
   :group 'eide-emacs-settings)
-(defcustom eide-custom-smooth-scrolling t "Configure smooth scrolling (scroll-conservatively 1, scroll-preserve-screen-position t, mouse-wheel-progressive-speed nil)."
+(defcustom eide-custom-smooth-scrolling t
+  "Configure smooth scrolling (scroll-conservatively 1,
+scroll-preserve-screen-position t, mouse-wheel-progressive-speed nil)."
   :tag "Configure smooth scrolling"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
   :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-windows)
-(defcustom eide-custom-compilation-scroll-output t "Enable the scrolling of compilation output (compilation-scroll-output t)."
+(defcustom eide-custom-compilation-scroll-output t
+  "Enable the scrolling of compilation output (compilation-scroll-output t)."
   :tag "Scrolling of compilation output"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
@@ -136,7 +141,8 @@ Arguments:
   nil)
 
 (defun eide-i-windows-display-compilation-buffer-function (p-buffer p-alist)
-  "Action function for display-buffer, for compilation buffer (to display in output window).
+  "Action function for display-buffer, for compilation buffer (to display in
+output window).
 Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
@@ -149,7 +155,8 @@ Arguments:
   eide-windows-output-window)
 
 (defun eide-i-windows-display-shell-buffer-function (p-buffer p-alist)
-  "Action function for display-buffer, for shell buffer (to display in output window).
+  "Action function for display-buffer, for shell buffer (to display in output
+window).
 Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."
@@ -162,7 +169,8 @@ Arguments:
   eide-windows-output-window)
 
 (defun eide-i-windows-display-man-buffer-function (p-buffer p-alist)
-  "Action function for display-buffer, for man page buffer (to display in output window).
+  "Action function for display-buffer, for man page buffer (to display in output
+window).
 Arguments:
 - p-buffer: buffer.
 - p-alist: action alist."

@@ -97,14 +97,16 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-menu-use-specific-background-color t "Use a specific background color (depending on color theme) in menu."
+(defcustom eide-custom-menu-use-specific-background-color t
+  "Use a specific background color (depending on color theme) in menu."
   :tag "Use a specific background color in menu"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
   :set '(lambda (param value) (set-default param value) (eide-menu-update-background-color))
   :initialize 'custom-initialize-default
   :group 'eide-menu)
-(defcustom eide-custom-menu-insert-blank-line-between-directories nil "Insert a blank line between directories in menu."
+(defcustom eide-custom-menu-insert-blank-line-between-directories nil
+  "Insert a blank line between directories in menu."
   :tag "Insert a blank line between directories in menu"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
@@ -182,7 +184,8 @@ Arguments:
 Arguments:
 - p-buffer-name: buffer name.
 - p-update-flag (optional): t for update, nil for first insertion.
-- p-update-symbols-flag (optional): update unfolded status and symbols list if unfolded."
+- p-update-symbols-flag (optional): update unfolded status and symbols list if
+  unfolded."
   (let ((buffer-read-only nil) (l-imenu-elements-list nil)
         (l-unfolded-symbols-folders-list nil) (l-highlighted-symbols-list nil)
         (l-buffer-rw-flag t) (l-buffer-modified-flag nil)
@@ -805,7 +808,8 @@ pages)."
         (eide-i-menu-insert-project-name)))))
 
 (defun eide-menu-update-current-buffer ()
-  "Update the \"modified\" status and the list of symbols of the current buffer, in \"menu\" buffer."
+  "Update the \"modified\" status and the list of symbols of the current buffer,
+in \"menu\" buffer."
   (save-current-buffer
     (let ((l-buffer (buffer-name)))
       ;; eide-menu-local-edit-status update is useful when a new buffer is saved
