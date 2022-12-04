@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+* When loading a project (either with --eide-op option, or with "Load the
+  project present in this directory" in the menu), automatically switch to its
+  workspace, if it is already present in one of them.
+
 ### Removed
 
 * Remove actions to set files read/write or read only, because it is not really

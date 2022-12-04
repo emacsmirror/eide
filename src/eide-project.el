@@ -662,6 +662,28 @@ Argument:
              (not (string-equal eide-project-c-style "")))
     (c-set-style eide-project-c-style)))
 
+(defun eide-i-project-switch-to-project-workspace ()
+  "If the project is present in a workspace, switch to this workspace."
+  (save-current-buffer
+    (let ((l-workspace-number 1))
+      (while (<= l-workspace-number eide-custom-number-of-workspaces)
+        ;; For every workspace, check if the project is present
+        (let ((l-projects-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number) "/projects-list"))
+              (l-projects-list-buffer nil))
+          (setq l-projects-list-buffer (find-file-noselect l-projects-list-file))
+          (with-current-buffer l-projects-list-buffer
+            (goto-char (point-min))
+            (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
+                (progn
+                  ;; The project has been found in this workspace, let's switch to it
+                  (setq eide-project-current-workspace l-workspace-number)
+                  (setq eide-project-projects-file l-projects-list-file)
+                  (eide-i-project-update-internal-projects-list)
+                  ;; Stop searching, exit from the loop...
+                  (setq l-workspace-number (+ eide-custom-number-of-workspaces 1)))
+              (setq l-workspace-number (+ l-workspace-number 1))))
+          (kill-buffer l-projects-list-buffer))))))
+
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
 ;; ----------------------------------------------------------------------------
@@ -671,6 +693,7 @@ Argument:
   (add-hook 'desktop-after-read-hook 'eide-i-project-clean-desktop-hook)
   (when (and eide-open-project-at-startup
              (file-exists-p (concat eide-root-directory eide-project-config-file)))
+    (eide-i-project-switch-to-project-workspace)
     (eide-i-project-load t nil)
     ;; When Emacs-IDE is loaded from a file after init ("emacs -l file.el"),
     ;; the desktop is not read, because after-init-hook has already been called.
@@ -814,6 +837,7 @@ Argument:
         ;; Hide IDE windows in order to save their sizes
         ;; before desktop-clear closes them
         (eide-windows-hide-ide-windows)
+        (eide-i-project-switch-to-project-workspace)
         (eide-i-project-load nil nil)
         ;; Restore IDE windows
         (eide-windows-show-ide-windows)
