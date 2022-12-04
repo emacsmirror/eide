@@ -7,6 +7,14 @@
 * Remove actions to set files read/write or read only, because it is not really
   useful anymore (any source code is now always read/write).
 
+### Fixed
+
+* When switching to another workspace, close the open files only if a project
+  is loaded, because this project (which is already part of the previous
+  workspace) is not supposed to be part of the new workspace. Otherwise, keep
+  them open, so that the user can create a new project with these files, in the
+  workspace he just chose.
+
 ## Version 2.3.0 (2022-01-19)
 
 ### Added
