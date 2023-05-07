@@ -9,7 +9,7 @@ dedicated windows (source files, menu, and ouput), convenient keyboard
 shortcuts, and project management.
 
 It is suitable for almost all languages (as long as they are supported by
-[Ctags]). [Cscope] provides additional browsing facility for C/C++ files.
+[Ctags]). [Cscope] provides additional browsing facility for C/C++/Java files.
 
 * **Version**: 2.3.0
 * **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
@@ -25,7 +25,7 @@ It is suitable for almost all languages (as long as they are supported by
 
 ## License
 
-Copyright © 2008-2022 Cédric Marie <cedric@hjuvi.fr.eu.org>
+Copyright © 2008-2023 Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 This program is free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -129,8 +129,8 @@ A workspace is a collection of projects. You can use different workspaces if
 you don't want to mix some projects in the same list.
 
 A project is defined by its root directory. When you create a project, tags and
-cscope list of files (if any C/C++ file) are built for the whole source tree,
-unless you decide to create a project without symbols.
+cscope list of files (if any C/C++/Java file) are built for the whole source
+tree, unless you decide to create a project without symbols.
 In project configuration, you can define commands for compilation, execution,
 and debug. The list of open files is saved on exit and restored when you open
 the project again (using emacs-desktop).
@@ -269,7 +269,7 @@ In your project root directory, several files are created:
 If you have created a project with symbols:
 
 * `TAGS`: Tags database.
-* `cscope.files`: Cscope list of files (C/C++ files).
+* `cscope.files`: Cscope list of files (C/C++/Java files).
 * `cscope.out`: Cscope database.
 
 #### Project configuration

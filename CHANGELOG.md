@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+* Add Cscope support for Java files.
+
 ### Changed
 
 * When loading a project (either with --eide-op option, or with "Load the

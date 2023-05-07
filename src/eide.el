@@ -1,6 +1,6 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright © 2008-2022 Cédric Marie
+;; Copyright © 2008-2023 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.3.0
@@ -32,7 +32,7 @@
 ;; convenient keyboard shortcuts, and project management.
 
 ;; It is suitable for almost all languages (as long as they are supported by
-;; Ctags). Cscope provides additional browsing facility for C/C++ files.
+;; Ctags). Cscope provides additional browsing facility for C/C++/Java files.
 
 ;; Homepage: https://software.hjuvi.fr.eu.org/eide/
 

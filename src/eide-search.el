@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright © 2008-2022 Cédric Marie
+;; Copyright © 2008-2023 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -57,7 +57,7 @@
 ;; Shell command for creating cscope.files
 ;; -type f: excludes links
 ;; cscope.out will be generated on next search
-(defvar eide-search-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" \\) ")
+(defvar eide-search-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" -o -name \"*.java\" \\) ")
 ;; cscope -bR
 
 (defvar eide-search-cscope-files-flag nil)
@@ -72,7 +72,7 @@
 (defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
 (defvar eide-search-cscope-missing-string "Cannot use cscope: xcscope.el is missing")
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
-(defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++ file in this project...")
+(defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++/Java file in this project...")
 
 (defvar eide-search-user-cscope-do-not-update-database nil)
 
