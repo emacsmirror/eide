@@ -1,6 +1,6 @@
 ;;; eide-config.el --- Emacs-IDE: Customization
 
-;; Copyright © 2008-2022 Cédric Marie
+;; Copyright © 2008-2023 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -58,6 +58,10 @@ group."
 
 (defgroup eide-menu nil "Menu colors and display."
   :tag "Menu colors and display"
+  :group 'eide)
+
+(defgroup eide-search nil "Code browsing."
+  :tag "Code browsing"
   :group 'eide)
 
 (defgroup eide-version-control nil "Version control facilities in menu."

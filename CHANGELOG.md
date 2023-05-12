@@ -4,7 +4,9 @@
 
 ### Added
 
-* Add Cscope support for Java files.
+* Add an option to customize the list of file extensions to be parsed by
+  Cscope, in addition to .c, .h, .cpp, and .hh (C/C++ files). The default value
+  includes .java (Java), .py (Python), .rs (Rust) and .go (Go).
 
 ### Changed
 

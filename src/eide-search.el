@@ -54,11 +54,12 @@
 ;; Shell command for creating tags
 (defvar eide-search-create-tags-command "rm -f TAGS ; ctags -eR --links=no ")
 
-;; Shell command for creating cscope.files
+;; Base of the shell command for creating cscope.files (includes C/C++ files)
 ;; -type f: excludes links
+(defvar eide-search-create-cscope-command-base "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\" -o -name \"*.cpp\" -o -name \"*.hh\" ")
+;; The full command (will be based on eide-custom-cscope-extra-file-extension-list)
+(defvar eide-search-create-cscope-command nil)
 ;; cscope.out will be generated on next search
-(defvar eide-search-create-cscope-command "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\"  -o -name \"*.cpp\" -o -name \"*.hh\" -o -name \"*.java\" \\) ")
-;; cscope -bR
 
 (defvar eide-search-cscope-files-flag nil)
 
@@ -72,7 +73,7 @@
 (defvar eide-search-tags-not-ready-string "Tags are not available (creation in progress...)")
 (defvar eide-search-cscope-missing-string "Cannot use cscope: xcscope.el is missing")
 (defvar eide-search-cscope-not-ready-string "Cscope list of files is not available (creation in progress...)")
-(defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no C/C++/Java file in this project...")
+(defvar eide-search-cscope-no-file-string "Cannot use cscope: There is no supported file in this project...")
 
 (defvar eide-search-user-cscope-do-not-update-database nil)
 
@@ -86,6 +87,15 @@
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
+
+(defcustom eide-custom-cscope-extra-file-extension-list ".java .py .rs .go"
+  "Space separated list of extra supported file extensions for Cscope (in
+addition to .c, .h, .cpp, and .hh)."
+  :tag "List of Cscope extra supported file extensions"
+  :type 'string
+  :set 'eide-i-search-custom-set-cscope-extra-file-extension-list
+  :initialize 'custom-initialize-default
+  :group 'eide-search)
 
 (defgroup eide-override-search nil "Search settings."
   :tag "Search"
@@ -107,6 +117,21 @@ been edited or refreshed."
 ;; ----------------------------------------------------------------------------
 ;; CUSTOMIZATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
+
+(defun eide-i-search-custom-set-cscope-extra-file-extension-list (param value)
+  "Set the list of extra supported file extensions for Cscope (in addition to
+C/C++ files).
+Arguments:
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (when eide-config-ready
+    (let ((l-find-options ""))
+      ;; Create a string with -o -name options (for find command)
+      (setq l-find-options (mapconcat (function (lambda(x) (concat "-o -name \"*" x "\""))) (split-string value) " "))
+      (setq eide-search-create-cscope-command (concat eide-search-create-cscope-command-base l-find-options " \\)")))
+    (when (and eide-search-use-cscope-flag eide-search-cscope-available-flag)
+      (eide-search-create-cscope-list-of-files))))
 
 (defun eide-i-search-custom-set-cscope-update (param value)
   "Set cscope update.
@@ -171,6 +196,7 @@ Arguments:
 (defun eide-search-apply-customization ()
   "Apply search customization."
   (when eide-search-use-cscope-flag
+    (eide-i-search-custom-set-cscope-extra-file-extension-list 'eide-custom-cscope-extra-file-extension-list eide-custom-cscope-extra-file-extension-list)
     (eide-i-search-custom-set-cscope-update 'eide-custom-update-cscope-database eide-custom-update-cscope-database)))
 
 (defun eide-search-save-emacs-settings ()

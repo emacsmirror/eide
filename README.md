@@ -5,11 +5,11 @@ Emacs-IDE (eide) is a package for [Emacs] that provides IDE features
 
 Although most of these features are already available in Emacs, the purpose of
 this package is to integrate them into a user-friendly interface, with
-dedicated windows (source files, menu, and ouput), convenient keyboard
-shortcuts, and project management.
+dedicated windows (source files, menu and ouput), convenient keyboard shortcuts
+and project management.
 
-It is suitable for almost all languages (as long as they are supported by
-[Ctags]). [Cscope] provides additional browsing facility for C/C++/Java files.
+It is suitable for almost all languages. The browsing features are provided by
+[Ctags] and [Cscope].
 
 * **Version**: 2.3.0
 * **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
@@ -129,8 +129,16 @@ A workspace is a collection of projects. You can use different workspaces if
 you don't want to mix some projects in the same list.
 
 A project is defined by its root directory. When you create a project, tags and
-cscope list of files (if any C/C++/Java file) are built for the whole source
-tree, unless you decide to create a project without symbols.
+cscope list of files are built for the whole source tree, unless you decide to
+create a project without symbols.
+
+Tags are built for all supported languages. Cscope was designed for C language,
+but is in fact suitable for C++ and many other languages. The project homepage
+mentions Java. The recursive command for building the Cscope database
+(`cscope -bR`) only parses C/C++ files. To avoid this limitation, Emacs-IDE
+builds the list of files itself, and includes the following extra languages:
+Java, Python, Rust and Go. This can be customized.
+
 In project configuration, you can define commands for compilation, execution,
 and debug. The list of open files is saved on exit and restored when you open
 the project again (using emacs-desktop).
@@ -269,7 +277,7 @@ In your project root directory, several files are created:
 If you have created a project with symbols:
 
 * `TAGS`: Tags database.
-* `cscope.files`: Cscope list of files (C/C++/Java files).
+* `cscope.files`: Cscope list of files.
 * `cscope.out`: Cscope database.
 
 #### Project configuration
