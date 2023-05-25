@@ -2,7 +2,7 @@
 
 # Emacs-IDE package installation for the user
 
-# Copyright © 2014-2022 Cédric Marie
+# Copyright © 2014-2023 Cédric Marie
 
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=2.3.0
+VERSION=2.3.1
 
 # Emacs version >= 25 is required
 printf "\033[1mCheck Emacs version >= 25\033[0m\n"

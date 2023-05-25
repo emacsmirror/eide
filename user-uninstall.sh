@@ -2,7 +2,7 @@
 
 # Emacs-IDE package uninstallation for the user
 
-# Copyright © 2022 Cédric Marie
+# Copyright © 2022-2023 Cédric Marie
 
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=2.3.0
+VERSION=2.3.1
 
 printf "\033[1mRemove eide-$VERSION.tar\033[0m\n"
 rm -vf eide-$VERSION.tar

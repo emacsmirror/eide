@@ -3,7 +3,7 @@
 ;; Copyright © 2008-2023 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; URL: https://software.hjuvi.fr.eu.org/eide/
 
 ;; This file is not part of GNU Emacs.
@@ -59,7 +59,7 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-version "2.3.0")
+(defvar eide-version "2.3.1")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)

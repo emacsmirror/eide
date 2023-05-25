@@ -11,7 +11,7 @@ and project management.
 It is suitable for almost all languages. The browsing features are provided by
 [Ctags] and [Cscope].
 
-* **Version**: 2.3.0
+* **Version**: 2.3.1
 * **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
 * **License**: [GPL-3.0-or-later]
 * **Programming language**: [Emacs Lisp]
