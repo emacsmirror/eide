@@ -8,28 +8,28 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of
-;; the License, or (at your option) any later version.
+;; This program is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the Free
+;; Software Foundation, either version 3 of the License, or (at your option)
+;; any later version.
 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program. If not, see <http://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Emacs-IDE (eide) is a package for Emacs that provides IDE features
 ;; (Integrated Development Environment).
 
-;; Although most of these features are already available in Emacs,
-;; the purpose of this package is to integrate them into a user-friendly
-;; interface, with dedicated windows (source files, menu and ouput),
-;; convenient keyboard shortcuts and project management.
+;; Although most of these features are already available in Emacs, the purpose
+;; of this package is to integrate them into a user-friendly interface, with
+;; dedicated windows (source files, menu and ouput), convenient keyboard
+;; shortcuts and project management.
 
 ;; It is suitable for almost all languages.
 ;; The browsing features are provided by Ctags and Cscope.
