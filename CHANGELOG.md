@@ -1,5 +1,14 @@
 # Changelog for Emacs-IDE (eide)
 
+## Unreleased
+
+### Fixed
+
+* When switching to another project, all result buffers are closed, but an
+  empty buffer with the name of the last displayed result buffer is created.
+  Make sure not to create it, and switch to the default "*results*" buffer
+  instead.
+
 ## Version 2.3.1 (2023-05-25)
 
 ### Added

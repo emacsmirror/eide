@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2024 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -630,7 +630,8 @@ windows)."
     ;; "Output" window
     (select-window eide-windows-output-window)
     (setq window-min-height 2)
-    (if (string-equal eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
+    (if (or (string-equal eide-windows-output-window-buffer eide-windows-default-output-buffer-name)
+            (not (get-buffer eide-windows-output-window-buffer)))
         ;; Always make sure that this default buffer exists
         (switch-to-buffer (get-buffer-create eide-windows-default-output-buffer-name))
       (switch-to-buffer eide-windows-output-window-buffer))

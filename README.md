@@ -25,7 +25,7 @@ It is suitable for almost all languages. The browsing features are provided by
 
 ## License
 
-Copyright © 2008-2023 Cédric Marie <cedric@hjuvi.fr.eu.org>
+Copyright © 2008-2024 Cédric Marie <cedric@hjuvi.fr.eu.org>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

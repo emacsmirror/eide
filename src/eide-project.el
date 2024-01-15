@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2024 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -46,8 +46,8 @@
 ;; take advantage of this new feature in the future, it is disabled for now.
 (setq desktop-restore-frames nil)
 
-;; Preserve "menu" buffer from desktop-clear
-(setq desktop-clear-preserve-buffers (cons "\\*Menu\\*" desktop-clear-preserve-buffers))
+;; Preserve "menu" buffer and default "*results*" buffer from desktop-clear
+(setq desktop-clear-preserve-buffers (append (list "\\*Menu\\*" "\\*results\\*") desktop-clear-preserve-buffers))
 
 ;; expand-file-name replaces ~ with /home/<user>
 (defvar eide-root-directory (expand-file-name default-directory))
