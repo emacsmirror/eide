@@ -2,7 +2,7 @@
 
 # Emacs-IDE package installation for the user
 #
-# Copyright © 2014-2023 Cédric Marie
+# Copyright © 2014-2024 Cédric Marie
 #
 # This file is part of Emacs-IDE.
 #
@@ -21,21 +21,6 @@
 
 VERSION=2.3.1
 
-# Emacs version >= 25 is required
-printf "\033[1mCheck Emacs version >= 25\033[0m\n"
-emacs_major_version=`emacs --version | grep -m1 "GNU Emacs" | cut -d" " -f3 | cut -d"." -f1`
-if [ "${emacs_major_version}" != "" ]; then
-  if [ "${emacs_major_version}" -gt "24" ]; then
-    printf "OK (${emacs_major_version})\n"
-  else
-    printf "\033[1;31mFAILED: Your version of Emacs (${emacs_major_version}) is not supported (version >= 25 is required)\033[0m\n"
-    exit 1
-  fi
-else
-  printf "\033[1;31mFAILED: Can't find Emacs version\033[0m\n"
-  exit 1
-fi
-
 # Create the package (.tar file)
 rm -rf eide-$VERSION eide-$VERSION.tar
 printf "\n\033[1mCopy source files to package directory\033[0m\n"
@@ -49,7 +34,9 @@ rm -rf eide-$VERSION
 printf "\n\033[1mInstall package eide-$VERSION.tar\033[0m\n"
 # --batch: don't use interactive display (implies -q: don't load ~/.emacs)
 # --execute: execute package-install-file command
-if emacs --batch --execute "(package-install-file \"$PWD/eide-$VERSION.tar\")" ; then
+# With Emacs 26.1, (package-initialize) is necessary when Emacs version requirement is defined in
+# eide-pkg.el (otherwise, it fails with the message: package.el is not yet initialized!)
+if emacs --batch --execute "(progn (package-initialize) (package-install-file \"$PWD/eide-$VERSION.tar\"))" ; then
   printf "\nInstallation successful (version $VERSION)\n"
 else
   printf "\n\033[1;31mInstallation failed\033[0m\n"

@@ -15,7 +15,7 @@ It is suitable for almost all languages. The browsing features are provided by
 * **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
 * **License**: [GPL-3.0-or-later]
 * **Programming language**: [Emacs Lisp]
-* **Dependencies**: [Emacs] (>= 25.1), [Ctags], [Cscope]
+* **Dependencies**: [Emacs] (>= 26.1), [Ctags], [Cscope]
 
 [Emacs]: https://www.gnu.org/software/emacs/
 [Ctags]: https://ctags.sourceforge.net/

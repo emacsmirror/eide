@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+* Require Emacs 26.1 (released in 2018) instead of 25.1.
+
 ### Fixed
 
 * When switching to another project, all result buffers are closed, but an
@@ -9,6 +13,9 @@
   Make sure not to create it, and switch to the default "*results*" buffer
   instead.
 * Fix some new warnings with Emacs 29.1.
+* Declare the minimum version of Emacs in eide-pkg.el, so that it can be
+  checked when the package is installed, and not only when using
+  user-install.sh script.
 
 ## Version 2.3.1 (2023-05-25)
 
