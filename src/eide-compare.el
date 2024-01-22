@@ -1,6 +1,6 @@
 ;;; eide-compare.el --- Emacs-IDE: Comparison of files with ediff
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2024 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -77,7 +77,7 @@
   :group 'eide-emacs-settings)
 (defcustom eide-custom-diff-side-by-side t
   "Compare buffers side-by-side (ediff-split-window-function
-'split-window-horizontally)."
+\\='split-window-horizontally)."
   :tag "Compare buffers side-by-side"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Side-by-side" t))

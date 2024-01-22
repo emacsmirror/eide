@@ -1,6 +1,6 @@
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2024 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -271,7 +271,11 @@ Arguments:
   (interactive)
   (when eide-search-tags-and-cscope-enabled-flag
     (eide-windows-select-source-window nil)
-    (xref-pop-marker-stack)
+    (if (fboundp 'xref-go-back)
+        (xref-go-back)
+      ;; xref-pop-marker-stack is obsolete since Emacs 29.1
+      (when (fboundp 'xref-pop-marker-stack)
+        (xref-pop-marker-stack)))
     (eide-menu-update nil)))
 
 (defun eide-search-find-tag (p-string)

@@ -171,7 +171,7 @@
   :set '(lambda (param value) (set-default param value))
   :group 'eide-project)
 (defcustom eide-custom-project-default-init-command ""
-  "This command is called before all 'compile' and 'run' commands."
+  "This command is called before all \\='compile\\=' and \\='run\\=' commands."
   :tag "Default init command"
   :type 'string
   :set '(lambda (param value) (set-default param value))

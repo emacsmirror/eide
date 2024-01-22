@@ -8,6 +8,7 @@
   empty buffer with the name of the last displayed result buffer is created.
   Make sure not to create it, and switch to the default "*results*" buffer
   instead.
+* Fix some new warnings with Emacs 29.1.
 
 ## Version 2.3.1 (2023-05-25)
 

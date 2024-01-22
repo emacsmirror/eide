@@ -1,6 +1,6 @@
 ;;; eide-display.el --- Emacs-IDE: Display (color themes)
 
-;; Copyright © 2013-2023 Cédric Marie
+;; Copyright © 2013-2024 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -57,7 +57,7 @@
 
 (defcustom eide-custom-color-theme nil
   "Color theme for Emacs-IDE specific faces (menu, help, and list of projects). If
-'auto', it will be set according to Emacs-IDE color theme for source code
+\\='auto\\=', it will be set according to Emacs-IDE color theme for source code
 (light if none is enabled)."
   :tag "Color theme for Emacs-IDE specific faces (menu, help, and list of projects)"
   :type '(choice (const :tag "auto" nil) (const dark) (const light))
@@ -76,7 +76,7 @@
   :group 'eide-emacs-settings)
 (defcustom eide-custom-disable-beeping t
   "Disable beeping (or screen flashing with \"visible bell\") (ring-bell-function
-'ignore)."
+\\='ignore)."
   :tag "Disable beeping / screen flashing"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
