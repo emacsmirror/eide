@@ -72,6 +72,7 @@
 (defvar eide-windows-user-scroll-conservatively 0)
 (defvar eide-windows-user-scroll-preserve-screen-position nil)
 (defvar eide-windows-user-mouse-wheel-progressive-speed nil)
+(defvar eide-windows-user-mouse-wheel-scroll-amount 0)
 
 (defvar eide-windows-user-compilation-scroll-output nil)
 
@@ -95,7 +96,8 @@
   :group 'eide-emacs-settings)
 (defcustom eide-custom-smooth-scrolling t
   "Configure smooth scrolling (scroll-conservatively 1,
-scroll-preserve-screen-position t, mouse-wheel-progressive-speed nil)."
+scroll-preserve-screen-position t, mouse-wheel-progressive-speed nil,
+mouse-wheel-scroll-amount (3 ...))."
   :tag "Configure smooth scrolling"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
@@ -519,6 +521,7 @@ before gdb builds its own."
   (setq eide-windows-user-scroll-conservatively scroll-conservatively)
   (setq eide-windows-user-scroll-preserve-screen-position scroll-preserve-screen-position)
   (setq eide-windows-user-mouse-wheel-progressive-speed mouse-wheel-progressive-speed)
+  (setq eide-windows-user-mouse-wheel-scroll-amount mouse-wheel-scroll-amount)
   (setq eide-windows-user-compilation-scroll-output compilation-scroll-output))
 
 (defun eide-windows-apply-emacs-settings ()
@@ -531,11 +534,15 @@ before gdb builds its own."
         ;; Disable mouse wheel progressive speed (which makes you scroll too fast and
         ;; can sometimes make it really difficult to just reach the place you're
         ;; trying to reach!...)
-        (setq mouse-wheel-progressive-speed nil))
+        (setq mouse-wheel-progressive-speed nil)
+        ;; When progressive speed is disabled, the scrolling is too slow if mouse wheel scroll
+        ;; amount is only 1.
+        (setcar mouse-wheel-scroll-amount 3))
     (progn
       (setq scroll-conservatively eide-windows-user-scroll-conservatively)
       (setq scroll-preserve-screen-position eide-windows-user-scroll-preserve-screen-position)
-      (setq mouse-wheel-progressive-speed eide-windows-user-mouse-wheel-progressive-speed)))
+      (setq mouse-wheel-progressive-speed eide-windows-user-mouse-wheel-progressive-speed)
+      (setq mouse-wheel-scroll-amount eide-windows-user-mouse-wheel-scroll-amount)))
   (if (and eide-custom-override-emacs-settings eide-custom-compilation-scroll-output)
       ;; Make the compilation window scroll to follow the output
       (setq compilation-scroll-output t)
