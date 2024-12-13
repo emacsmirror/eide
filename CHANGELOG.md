@@ -7,6 +7,8 @@
 * Require Emacs 26.1 (released in 2018) instead of 25.1.
 * When eide-custom-smooth-scrolling option is enabled, increase
   mouse-wheel-scroll-amount to 3, otherwise the scrolling is too slow.
+* When displaying the project list, detect all nonexistent directories, and
+  suggest removing them from the list.
 
 ### Fixed
 

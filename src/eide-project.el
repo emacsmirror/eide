@@ -952,32 +952,41 @@ finished yet), and delete these files."
       (goto-char (point-min))
       (forward-line)
       (while (not (eobp))
-        (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
+        (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))) (l-discard-project nil))
           (forward-line -1)
-          ;; Upgrade from version 2.1.0
-          (let ((l-line-end-pos (line-end-position)))
-            (when (not (= (char-before l-line-end-pos) 32))
-              (save-excursion
-                (end-of-line)
-                (insert " ")
-                (setq l-save-list t))))
-          (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
-              (progn
-                ;; Current project (can't be selected)
-                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
-                (setq l-current-project-marker (point-marker)))
-            (if (and eide-compare-other-project-name
-                     (string-equal l-project-dir eide-compare-other-project-directory))
-                ;; Project selected for comparison
+          (when (not (file-directory-p l-project-dir))
+            ;; The root directory of the project doesn't exist anymore
+            ;; Ask the user if it must be removed from the list
+            (when (y-or-n-p (concat "Directory " l-project-dir " doesn't exist. Do you want to remove it from the list?"))
+              (delete-region (point) (progn (forward-line 2) (point)))
+              (setq l-save-list t)
+              (setq l-discard-project t)
+              (forward-line 1)))
+          (when (not l-discard-project)
+            ;; Upgrade from version 2.1.0
+            (let ((l-line-end-pos (line-end-position)))
+              (when (not (= (char-before l-line-end-pos) 32))
+                (save-excursion
+                  (end-of-line)
+                  (insert " ")
+                  (setq l-save-list t))))
+            (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
                 (progn
-                  (setq eide-project-comparison-project-point (point))
-                  (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
-              ;; Other projects
-              (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
-          (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
-          (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
-          (push l-project-dir eide-project-current-projects-list)
-          (forward-line 3)))
+                  ;; Current project (can't be selected)
+                  (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
+                  (setq l-current-project-marker (point-marker)))
+              (if (and eide-compare-other-project-name
+                       (string-equal l-project-dir eide-compare-other-project-directory))
+                  ;; Project selected for comparison
+                  (progn
+                    (setq eide-project-comparison-project-point (point))
+                    (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
+                ;; Other projects
+                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
+            (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
+            (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
+            (push l-project-dir eide-project-current-projects-list)
+            (forward-line 3))))
       (if l-save-list
           ;; Save the buffer (upgrade from version 2.1.0)
           (save-buffer)
@@ -1068,7 +1077,7 @@ current workspace."
 (defun eide-project-remove-selected-project ()
   "Remove the project on current line from current workspace."
   (interactive)
-  (when (y-or-n-p "Do you really want to remove this project? ")
+  (when (y-or-n-p "Do you really want to remove this project?")
     (let ((buffer-read-only nil))
       (forward-line)
       (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
