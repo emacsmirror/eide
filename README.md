@@ -266,7 +266,7 @@ Then open project popup menu and select:
 The project is automatically added to the project list of the current
 workspace.
 To open your project in future sessions, click on right button over "menu"
-window, select "Display projects list", and select your project.
+window, select "Display project list", and select your project.
 
 In your project root directory, several files are created:
 
@@ -298,7 +298,7 @@ To open an existing project, you can:
   (op = open project)
 * or launch Emacs, open project popup menu, select 'Change root directory' if
   necessary, then select 'Load the project present in this directory'.
-* or launch Emacs, open project popup menu, and select 'Display projects list'
+* or launch Emacs, open project popup menu, and select 'Display project list'
   in order to choose the project.
   NB: If your project is not in the list, use one the the previous methods. The
   project will be automatically added to the project list of the current

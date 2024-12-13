@@ -20,6 +20,7 @@
 * Declare the minimum version of Emacs in eide-pkg.el, so that it can be
   checked when the package is installed, and not only when using
   user-install.sh script.
+* Fix English expression "projects list" (should be "project list").
 
 ## Version 2.3.1 (2023-05-25)
 

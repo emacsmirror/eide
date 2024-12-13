@@ -57,7 +57,7 @@
 (defvar eide-project-config-buffer nil)
 
 (defvar eide-project-current-workspace 1)
-(defvar eide-project-current-projects-list nil)
+(defvar eide-project-current-project-list nil)
 
 (defvar eide-project-name nil)
 
@@ -68,7 +68,7 @@
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
 
-(defvar eide-project-projects-file "~/.emacs.d/eide/workspace1/projects-list")
+(defvar eide-project-list-file "~/.emacs.d/eide/workspace1/projects-list")
 (defvar eide-project-projects-buffer-name "*Emacs-IDE projects*")
 
 (defvar eide-project-comparison-project-point nil)
@@ -125,7 +125,7 @@
 (make-face 'eide-project-config-value-face)
 (make-face-bold 'eide-project-config-parameter-face)
 
-;; Projects list
+;; Project list
 (make-face 'eide-project-project-name-face)
 (make-face-bold 'eide-project-project-name-face)
 (make-face 'eide-project-project-current-name-face)
@@ -311,17 +311,17 @@ Arguments:
   "Create directories and files for workspaces, if missing."
   (let ((l-workspace-number 1))
     (while (<= l-workspace-number eide-custom-number-of-workspaces)
-      (let ((l-workspace-dir nil) (l-projects-list-file nil))
+      (let ((l-workspace-dir nil) (l-project-list-file nil))
         (setq l-workspace-dir (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number)))
-        (setq l-projects-list-file (concat l-workspace-dir "/projects-list"))
+        (setq l-project-list-file (concat l-workspace-dir "/projects-list"))
         (unless (file-directory-p l-workspace-dir)
           (make-directory l-workspace-dir))
-        (unless (file-exists-p l-projects-list-file)
-          (with-current-buffer (find-file-noselect l-projects-list-file)
+        (unless (file-exists-p l-project-list-file)
+          (with-current-buffer (find-file-noselect l-project-list-file)
             (save-buffer)
             (kill-this-buffer))))
       (setq l-workspace-number (+ l-workspace-number 1))))
-  (eide-i-project-update-internal-projects-list))
+  (eide-i-project-update-internal-project-list))
 
 (defun eide-i-project-force-desktop-read-hook ()
   "Hook to be called at startup, to force to read the desktop when after-init-hook
@@ -370,8 +370,8 @@ Argument:
                (or (not eide-search-use-cscope-flag) eide-search-cscope-available-flag)))
       (when (<= p-workspace-number eide-custom-number-of-workspaces)
         (setq eide-project-current-workspace p-workspace-number)
-        ;; Change projects list file
-        (setq eide-project-projects-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+        ;; Change the project list file
+        (setq eide-project-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
         ;; If a project is loaded, close it before switching to the new workspace
         (when eide-project-name
           ;; Restore initial root directory
@@ -389,7 +389,7 @@ Argument:
             (desktop-clear)
             (eide-menu-update t)
             (eide-windows-show-ide-windows)))
-        (eide-i-project-update-internal-projects-list)
+        (eide-i-project-update-internal-project-list)
         ;; Update default directory if current buffer is not visiting a file
         (unless buffer-file-name
           (setq default-directory eide-root-directory)))
@@ -400,7 +400,7 @@ Argument:
 - close all files,
 - load the project desktop,
 - check project information (tags, cscope, configuration),
-- add the project (or update its name) in projects list,
+- add the project (or update its name) in the project list,
 - update frame title,
 - close some temporary buffers.
 Arguments:
@@ -492,7 +492,7 @@ Arguments:
   (eide-i-project-update-frame-title)
 
   (unless p-creation-flag
-    ;; Kill projects list in case it is present in desktop
+    ;; Kill the project list in case it is present in desktop
     (when (get-buffer eide-project-projects-buffer-name)
       (kill-buffer eide-project-projects-buffer-name))
     ;; Close temporary buffers from ediff sessions (if emacs has been closed during
@@ -509,14 +509,14 @@ Arguments:
     ;; Set current buffer
     (setq eide-current-buffer (buffer-name))))
 
-(defun eide-i-project-update-internal-projects-list ()
-  ;; Create internal projects list
-  (setq eide-project-current-projects-list nil)
-  (with-current-buffer (find-file-noselect eide-project-projects-file)
+(defun eide-i-project-update-internal-project-list ()
+  ;; Create internal project list
+  (setq eide-project-current-project-list nil)
+  (with-current-buffer (find-file-noselect eide-project-list-file)
     (goto-char (point-min))
     (forward-line)
     (while (not (eobp))
-      (push (buffer-substring-no-properties (point) (line-end-position)) eide-project-current-projects-list)
+      (push (buffer-substring-no-properties (point) (line-end-position)) eide-project-current-project-list)
       (forward-line 2))
     (kill-this-buffer)))
 
@@ -530,7 +530,7 @@ Arguments:
       (let ((l-project-dir (progn (beginning-of-line) (forward-line) (buffer-substring-no-properties (point) (line-end-position)))))
         (if (file-directory-p l-project-dir)
             (progn
-              ;; Close projects list (so that it can be modified by another Emacs session)
+              ;; Close the project list (so that it can be modified by another Emacs session)
               (kill-this-buffer)
               ;; Restore editor configuration
               ;; NB: Keys are restored later, because we need to know if a project
@@ -560,9 +560,9 @@ Arguments:
               ;; Restore keys, now that eide-project-name is set.
               (eide-keys-configure-for-editor)
               (eide-windows-show-ide-windows))
-          (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from current workspace?")
+          (when (y-or-n-p "This directory does not exist anymore... Do you want to remove this project from the current workspace?")
             (let ((buffer-read-only nil))
-              (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+              (setq eide-project-current-project-list (remove l-project-dir eide-project-current-project-list))
               (when (string-equal l-project-dir eide-compare-other-project-directory)
                 ;; Clear the project selected for comparison
                 (setq eide-compare-other-project-name nil)
@@ -668,21 +668,21 @@ Argument:
     (let ((l-workspace-number 1))
       (while (<= l-workspace-number eide-custom-number-of-workspaces)
         ;; For every workspace, check if the project is present
-        (let ((l-projects-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number) "/projects-list"))
-              (l-projects-list-buffer nil))
-          (setq l-projects-list-buffer (find-file-noselect l-projects-list-file))
-          (with-current-buffer l-projects-list-buffer
+        (let ((l-project-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number) "/projects-list"))
+              (l-project-list-buffer nil))
+          (setq l-project-list-buffer (find-file-noselect l-project-list-file))
+          (with-current-buffer l-project-list-buffer
             (goto-char (point-min))
             (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
                 (progn
                   ;; The project has been found in this workspace, let's switch to it
                   (setq eide-project-current-workspace l-workspace-number)
-                  (setq eide-project-projects-file l-projects-list-file)
-                  (eide-i-project-update-internal-projects-list)
+                  (setq eide-project-list-file l-project-list-file)
+                  (eide-i-project-update-internal-project-list)
                   ;; Stop searching, exit from the loop...
                   (setq l-workspace-number (+ eide-custom-number-of-workspaces 1)))
               (setq l-workspace-number (+ l-workspace-number 1))))
-          (kill-buffer l-projects-list-buffer))))))
+          (kill-buffer l-project-list-buffer))))))
 
 ;; ----------------------------------------------------------------------------
 ;; FUNCTIONS
@@ -735,7 +735,7 @@ Argument:
           (set-face-foreground 'eide-project-config-separator-face "orange red")
           (set-face-background 'eide-project-config-value-face "gray30")
           (set-face-foreground 'eide-project-config-value-face "white")
-          ;; Projects list
+          ;; Project list
           (set-face-foreground 'eide-project-project-name-face "sandy brown")
           (set-face-background 'eide-project-project-current-name-face "dark red")
           (set-face-foreground 'eide-project-project-current-name-face "sandy brown")
@@ -752,7 +752,7 @@ Argument:
         (set-face-foreground 'eide-project-config-separator-face "red")
         (set-face-background 'eide-project-config-value-face "white")
         (set-face-foreground 'eide-project-config-value-face "black")
-        ;; Projects list
+        ;; Project list
         (set-face-foreground 'eide-project-project-name-face "red")
         (set-face-background 'eide-project-project-current-name-face "yellow")
         (set-face-foreground 'eide-project-project-current-name-face "red")
@@ -800,7 +800,7 @@ Argument:
   (eide-i-project-set-current-workspace 8))
 
 (defun eide-project-create ()
-  "Create a project in root directory, and add it in projects list."
+  "Create a project in root directory, and add it in the project list."
   (interactive)
   (when (y-or-n-p (concat "Create a project in " eide-root-directory " ?"))
     ;; Create and load the new project
@@ -811,7 +811,8 @@ Argument:
     (eide-keys-configure-for-editor)))
 
 (defun eide-project-create-without-symbols ()
-  "Create a project without symbols in root directory, and add it in projects list."
+  "Create a project without symbols in root directory, and add it in the project
+list."
   (interactive)
   (when (y-or-n-p (concat "Create a project without symbols in " eide-root-directory " ?"))
     ;; Create empty project file (with only "symbols = no" to override the default value)
@@ -872,7 +873,7 @@ Argument:
     (eide-menu-update t)
     ;; Update key bindings for project
     (eide-keys-configure-for-editor)
-    ;; Remove from projects list
+    ;; Remove from the project list
     (eide-project-remove-from-list)))
 
 (defun eide-project-change-root ()
@@ -924,7 +925,7 @@ finished yet), and delete these files."
         (delete-file l-filename))))
 
 (defun eide-project-open-list ()
-  "Display projects list (full frame), and rebuild internal projects list."
+  "Display the project list (full frame), and rebuild the internal project list."
   (interactive)
   (let ((l-do-it t) (l-current-project-marker nil) (l-save-list nil))
     (when (and (not eide-project-name)
@@ -932,8 +933,8 @@ finished yet), and delete these files."
                (not (y-or-n-p "The list of open files will be lost if you select a project. Do you want to continue?")))
       (setq l-do-it nil))
     (when l-do-it
-      ;; The internal projects list will also be rebuilt
-      (setq eide-project-current-projects-list nil)
+      ;; The internal project list will also be rebuilt
+      (setq eide-project-current-project-list nil)
       (setq eide-project-comparison-project-point nil)
       (eide-windows-hide-ide-windows)
       (eide-windows-save-and-unbuild-layout)
@@ -943,7 +944,7 @@ finished yet), and delete these files."
       (if (get-buffer eide-project-projects-buffer-name)
           (switch-to-buffer eide-project-projects-buffer-name)
         (progn
-          (find-file eide-project-projects-file)
+          (find-file eide-project-list-file)
           (rename-buffer eide-project-projects-buffer-name)
           ;; Don't show trailing whitespace in this buffer
           ;; (there is a space at the end of every project name, because of properties)
@@ -985,7 +986,7 @@ finished yet), and delete these files."
                 (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
             (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
             (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
-            (push l-project-dir eide-project-current-projects-list)
+            (push l-project-dir eide-project-current-project-list)
             (forward-line 3))))
       (if l-save-list
           ;; Save the buffer (upgrade from version 2.1.0)
@@ -997,14 +998,14 @@ finished yet), and delete these files."
       (ad-activate 'switch-to-buffer))))
 
 (defun eide-project-add-in-list ()
-  "Add current project to the projects list of current workspace."
+  "Add the current project to the project list of the current workspace."
   (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
         (progn
           (set-buffer eide-project-projects-buffer-name)
           (setq buffer-read-only nil))
-      (set-buffer (find-file-noselect eide-project-projects-file)))
+      (set-buffer (find-file-noselect eide-project-list-file)))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" eide-root-directory "$") nil t)
         (progn
@@ -1031,41 +1032,41 @@ finished yet), and delete these files."
         (insert "\n")
         (save-buffer)))
     (kill-this-buffer))
-  (push eide-root-directory eide-project-current-projects-list))
+  (push eide-root-directory eide-project-current-project-list))
 
 (defun eide-project-remove-from-list ()
-  "Remove current project from the projects list of current workspace."
+  "Remove the current project from the project list of the current workspace."
   (interactive)
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
         (progn
           (set-buffer eide-project-projects-buffer-name)
           (setq buffer-read-only nil))
-      (set-buffer (find-file-noselect eide-project-projects-file)))
+      (set-buffer (find-file-noselect eide-project-list-file)))
     (goto-char (point-min))
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
       (forward-line -1)
       (delete-region (point) (progn (forward-line 2) (point)))
       (save-buffer))
     (kill-this-buffer))
-  (setq eide-project-current-projects-list (remove eide-root-directory eide-project-current-projects-list))
+  (setq eide-project-current-project-list (remove eide-root-directory eide-project-current-project-list))
   (when (string-equal eide-root-directory eide-compare-other-project-directory)
     ;; Clear the project selected for comparison
     (setq eide-compare-other-project-name nil)
     (setq eide-compare-other-project-directory nil)))
 
 (defun eide-project-update-name ()
-  "Update current project name in frame title and in the projects list of
-current workspace."
-  ;; Update frame title
+  "Update the name of the current project in the frame title and in the project
+list of the current workspace."
+  ;; Update the frame title
   (eide-i-project-update-frame-title)
-  ;; Update projects list
+  ;; Update the project list
   (save-current-buffer
     (if (get-buffer eide-project-projects-buffer-name)
         (progn
           (set-buffer eide-project-projects-buffer-name)
           (setq buffer-read-only nil))
-      (set-buffer (find-file-noselect eide-project-projects-file)))
+      (set-buffer (find-file-noselect eide-project-list-file)))
     (goto-char (point-min))
     (when (re-search-forward (concat "^" eide-root-directory "$") nil t)
       (forward-line -1)
@@ -1081,7 +1082,7 @@ current workspace."
     (let ((buffer-read-only nil))
       (forward-line)
       (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))))
-        (setq eide-project-current-projects-list (remove l-project-dir eide-project-current-projects-list))
+        (setq eide-project-current-project-list (remove l-project-dir eide-project-current-project-list))
         (when (string-equal l-project-dir eide-compare-other-project-directory)
           ;; Clear the project selected for comparison
           (setq eide-compare-other-project-name nil)

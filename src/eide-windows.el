@@ -862,7 +862,7 @@ and display it. Current buffer is kept if correct."
   (if (or (string-equal (buffer-name) "*Help*")
           (string-match "^\*Custom.*" (buffer-name))
           (string-equal (buffer-name) eide-project-projects-buffer-name))
-      ;; Close "help", customization, or projects list
+      ;; Close "help", customization, or project list
       ;; NB: In customization, exit button does not work...
       (kill-this-buffer)
     (if (equal (current-buffer) eide-project-config-buffer)
@@ -1072,17 +1072,17 @@ on previous state)."
   '(menu-item "Change root directory"
               eide-project-change-root))
 (define-key-after eide-menu-keymap [eide-project-open-list]
-  '(menu-item (concat "Display projects list (workspace " (number-to-string eide-project-current-workspace) ")")
+  '(menu-item (concat "Display project list (workspace " (number-to-string eide-project-current-workspace) ")")
               eide-project-open-list
-              :enable (not (equal (nth 7 (file-attributes eide-project-projects-file)) 0))))
+              :enable (not (equal (nth 7 (file-attributes eide-project-list-file)) 0))))
 (define-key-after eide-menu-keymap [eide-project-remove-from-list]
-  '(menu-item "Remove this project from current workspace"
+  '(menu-item "Remove this project from the current workspace"
               eide-project-remove-from-list
-              :visible (and eide-project-name (member eide-root-directory eide-project-current-projects-list))))
+              :visible (and eide-project-name (member eide-root-directory eide-project-current-project-list))))
 (define-key-after eide-menu-keymap [eide-project-add-in-list]
-  '(menu-item "Add this project in current workspace"
+  '(menu-item "Add this project in the current workspace"
               eide-project-add-in-list
-              :visible (and eide-project-name (not (member eide-root-directory eide-project-current-projects-list)))))
+              :visible (and eide-project-name (not (member eide-root-directory eide-project-current-project-list)))))
 
 (define-key-after eide-menu-keymap [sep-project-selection] '(menu-item "--" nil))
 
