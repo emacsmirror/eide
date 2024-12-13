@@ -68,7 +68,7 @@
 (defvar eide-project-is-gdb-session-running-flag nil)
 (defvar eide-project-is-gdb-session-visible-flag nil)
 
-(defvar eide-project-list-file "~/.emacs.d/eide/workspace1/projects-list")
+(defvar eide-project-list-file "~/.emacs.d/eide/workspace-1-project-list.txt")
 (defvar eide-project-projects-buffer-name "*Emacs-IDE projects*")
 
 (defvar eide-project-comparison-project-point nil)
@@ -311,15 +311,22 @@ Arguments:
   "Create directories and files for workspaces, if missing."
   (let ((l-workspace-number 1))
     (while (<= l-workspace-number eide-custom-number-of-workspaces)
-      (let ((l-workspace-dir nil) (l-project-list-file nil))
-        (setq l-workspace-dir (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number)))
-        (setq l-project-list-file (concat l-workspace-dir "/projects-list"))
-        (unless (file-directory-p l-workspace-dir)
-          (make-directory l-workspace-dir))
+      (let ((l-project-list-file nil))
+        (setq l-project-list-file (concat "~/.emacs.d/eide/workspace-" (number-to-string l-workspace-number) "-project-list.txt"))
         (unless (file-exists-p l-project-list-file)
-          (with-current-buffer (find-file-noselect l-project-list-file)
-            (save-buffer)
-            (kill-this-buffer))))
+          ;; The project list file doesn't exist for this workspace
+          (let ((l-old-project-list-dir nil) (l-old-project-list-file nil))
+            (setq l-old-project-list-dir (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number)))
+            (setq l-old-project-list-file (concat l-old-project-list-dir "/projects-list"))
+            (if (file-exists-p l-old-project-list-file)
+                ;; The old project list file exists: Upgrade from version 2.3.1
+                (progn
+                  (rename-file l-old-project-list-file l-project-list-file)
+                  (delete-directory l-old-project-list-dir t))
+              ;; Otherwise create an empty project list file
+              (with-current-buffer (find-file-noselect l-project-list-file)
+                (save-buffer)
+                (kill-this-buffer))))))
       (setq l-workspace-number (+ l-workspace-number 1))))
   (eide-i-project-update-internal-project-list))
 
@@ -371,7 +378,7 @@ Argument:
       (when (<= p-workspace-number eide-custom-number-of-workspaces)
         (setq eide-project-current-workspace p-workspace-number)
         ;; Change the project list file
-        (setq eide-project-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string p-workspace-number) "/projects-list"))
+        (setq eide-project-list-file (concat "~/.emacs.d/eide/workspace-" (number-to-string p-workspace-number) "-project-list.txt"))
         ;; If a project is loaded, close it before switching to the new workspace
         (when eide-project-name
           ;; Restore initial root directory
@@ -668,7 +675,7 @@ Argument:
     (let ((l-workspace-number 1))
       (while (<= l-workspace-number eide-custom-number-of-workspaces)
         ;; For every workspace, check if the project is present
-        (let ((l-project-list-file (concat "~/.emacs.d/eide/workspace" (number-to-string l-workspace-number) "/projects-list"))
+        (let ((l-project-list-file (concat "~/.emacs.d/eide/workspace-" (number-to-string l-workspace-number) "-project-list.txt"))
               (l-project-list-buffer nil))
           (setq l-project-list-buffer (find-file-noselect l-project-list-file))
           (with-current-buffer l-project-list-buffer

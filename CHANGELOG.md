@@ -9,6 +9,9 @@
   mouse-wheel-scroll-amount to 3, otherwise the scrolling is too slow.
 * When displaying the project list, detect all nonexistent directories, and
   suggest removing them from the list.
+* Store the project lists in ~/.emacs.d/eide/workspace-N-project-list.txt
+  files instead of ~/.emacs.d/eide/workspaceN/projects-list. The lists are
+  moved automatically at startup, if upgrading from the previous version.
 
 ### Fixed
 
