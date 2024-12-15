@@ -1,9 +1,9 @@
 ;;; eide.el --- Emacs-IDE: Main file
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2024 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Version: 2.3.1
+;; Version: 2.3.2
 ;; URL: https://software.hjuvi.fr.eu.org/eide/
 
 ;; This file is not part of GNU Emacs.
@@ -59,7 +59,7 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-version "2.3.1")
+(defvar eide-version "2.3.2")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)

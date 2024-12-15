@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-VERSION=2.3.1
+VERSION=2.3.2
 
 # Create the package (.tar file)
 rm -rf eide-$VERSION eide-$VERSION.tar

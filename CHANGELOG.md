@@ -1,6 +1,6 @@
 # Changelog for Emacs-IDE (eide)
 
-## Unreleased
+## Version 2.3.2 (2024-12-15)
 
 ### Changed
 
