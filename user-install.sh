@@ -2,7 +2,7 @@
 
 # Emacs-IDE package installation for the user
 #
-# Copyright © 2014-2024 Cédric Marie
+# Copyright © 2014-2025 Cédric Marie
 #
 # This file is part of Emacs-IDE.
 #
@@ -19,13 +19,28 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-VERSION=2.3.2
+# Get information from eide.el
+LINE=$(grep -m 1 "Version:" src/eide.el)
+VERSION=$(expr match "$LINE" ";; Version: \(.*\)")
+LINE=$(grep -m 1 "eide.el ---" src/eide.el)
+SHORT_DESC=$(expr match "$LINE" ";;; eide.el --- \(.*\)")
+LINE=$(grep -m 1 "Package-Requires:" src/eide.el)
+DEPENDENCIES=$(expr match "$LINE" ";; Package-Requires: \(.*\)")
+LINE=$(grep -m 1 "Homepage:" src/eide.el)
+HOMEPAGE=$(expr match "$LINE" ";; Homepage: \(.*\)")
 
 # Create the package (.tar file)
 rm -rf eide-$VERSION eide-$VERSION.tar
+
 printf "\n\033[1mCopy source files to package directory\033[0m\n"
 mkdir eide-$VERSION
 cp -v src/*.el src/themes/*.el eide-$VERSION
+
+printf "\n\033[1mCreate eide-pkg.el in package directory\033[0m\n"
+echo "(define-package \"eide\" \"$VERSION\" \"$SHORT_DESC\"" > eide-$VERSION/eide-pkg.el
+echo "  '$DEPENDENCIES" >> eide-$VERSION/eide-pkg.el
+echo "  :homepage \"$HOMEPAGE\")" >> eide-$VERSION/eide-pkg.el
+
 printf "\n\033[1mCreate package archive\033[0m\n"
 tar -cvf eide-$VERSION.tar eide-$VERSION
 rm -rf eide-$VERSION
