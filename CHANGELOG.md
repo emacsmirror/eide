@@ -1,5 +1,12 @@
 # Changelog for Emacs-IDE (eide)
 
+## Unreleased
+
+### Fixed
+
+* Remove eide-pkg.el and define the metadata in eide.el. The pkg file
+  is supposed to be generated and distributed in the package .tar file.
+
 ## Version 2.3.2 (2024-12-15)
 
 ### Changed

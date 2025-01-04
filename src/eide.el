@@ -1,10 +1,12 @@
-;;; eide.el --- Emacs-IDE: Main file
+;;; eide.el --- IDE features
 
-;; Copyright © 2008-2024 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.3.2
-;; URL: https://software.hjuvi.fr.eu.org/eide/
+;; Homepage: https://software.hjuvi.fr.eu.org/eide/
+;; SPDX-License-Identifier: GPL-3.0-or-later
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -33,8 +35,6 @@
 
 ;; It is suitable for almost all languages.
 ;; The browsing features are provided by Ctags and Cscope.
-
-;; Homepage: https://software.hjuvi.fr.eu.org/eide/
 
 ;;; Code:
 
