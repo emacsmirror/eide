@@ -3,6 +3,7 @@
 ;; Copyright © 2008-2025 Cédric Marie
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
+;; Maintainer: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Version: 2.3.2
 ;; Homepage: https://software.hjuvi.fr.eu.org/eide/
 ;; SPDX-License-Identifier: GPL-3.0-or-later
