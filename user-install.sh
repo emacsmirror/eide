@@ -19,6 +19,12 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
+# Check current directory
+if [ ! -e user-install.sh ]; then
+    printf "\033[1;31mThis script must be executed from the root directory\033[0m\n"
+    exit 1
+fi
+
 # Get information from eide.el
 LINE=$(grep -m 1 "Version:" src/eide.el)
 VERSION=$(expr match "$LINE" ";; Version: \(.*\)")
@@ -29,19 +35,37 @@ DEPENDENCIES=$(expr match "$LINE" ";; Package-Requires: \(.*\)")
 LINE=$(grep -m 1 "Homepage:" src/eide.el)
 HOMEPAGE=$(expr match "$LINE" ";; Homepage: \(.*\)")
 
-# Create the package (.tar file)
-rm -rf eide-$VERSION eide-$VERSION.tar
+# Remove the directory of the current version (it might be present if the
+# creation of the package has failed)
+printf "\033[1mRemove eide-$VERSION directory if still present\033[0m\n"
+rm -vrf eide-$VERSION
 
-printf "\n\033[1mCopy source files to package directory\033[0m\n"
-mkdir eide-$VERSION
+# Remove local package if already built
+# (and possibly old versions if built before version upgrade)
+printf "\n\033[1mRemove local package(s) (eide-*.tar) if already built\033[0m\n"
+PKG_FILES=$(ls --color=never eide-*.tar 2> /dev/null)
+if [ ! -z "$PKG_FILES" ]; then
+    rm -vf $PKG_FILES
+fi
+
+# Remove user installed package
+# (and possibly old versions if installed before version upgrade)
+printf "\n\033[1mRemove ~/.emacs.d/elpa/eide-* if already installed\033[0m\n"
+rm -vrf ~/.emacs.d/elpa/eide-*
+
+# Create the package (.tar file)
+printf "\n\033[1mCreate package directory (eide-$VERSION)\033[0m\n"
+mkdir -v eide-$VERSION
+printf "\n\033[1mCopy source files to package directory (eide-$VERSION)\033[0m\n"
 cp -v src/*.el src/themes/*.el eide-$VERSION
 
-printf "\n\033[1mCreate eide-pkg.el in package directory\033[0m\n"
+printf "\n\033[1mCreate eide-pkg.el in package directory (eide-$VERSION)\033[0m\n"
 echo "(define-package \"eide\" \"$VERSION\" \"$SHORT_DESC\"" > eide-$VERSION/eide-pkg.el
 echo "  '$DEPENDENCIES" >> eide-$VERSION/eide-pkg.el
 echo "  :homepage \"$HOMEPAGE\")" >> eide-$VERSION/eide-pkg.el
+cat eide-$VERSION/eide-pkg.el
 
-printf "\n\033[1mCreate package archive\033[0m\n"
+printf "\n\033[1mCreate package eide-$VERSION.tar\033[0m\n"
 tar -cvf eide-$VERSION.tar eide-$VERSION
 rm -rf eide-$VERSION
 

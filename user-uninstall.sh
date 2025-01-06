@@ -2,7 +2,7 @@
 
 # Emacs-IDE package uninstallation for the user
 #
-# Copyright © 2022-2024 Cédric Marie
+# Copyright © 2022-2025 Cédric Marie
 #
 # This file is part of Emacs-IDE.
 #
@@ -19,13 +19,22 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-VERSION=2.3.2
+# Check current directory
+if [ ! -e user-uninstall.sh ]; then
+    printf "\033[1;31mThis script must be executed from the root directory\033[0m\n"
+    exit 1
+fi
 
-printf "\033[1mRemove eide-$VERSION.tar\033[0m\n"
-rm -vf eide-$VERSION.tar
+# Remove local package file (and possibly old versions)
+printf "\033[1mRemove local package(s)\033[0m\n"
+PKG_FILES=$(ls --color=never eide-*.tar 2> /dev/null)
+if [ ! -z "$PKG_FILES" ]; then
+    rm -vf $PKG_FILES
+fi
 
-printf "\n\033[1mRemove ~/.emacs.d/elpa/eide-$VERSION\033[0m\n"
-rm -vrf ~/.emacs.d/elpa/eide-$VERSION
+# Remove user installed package (and possibly old versions)
+printf "\n\033[1mRemove ~/.emacs.d/elpa/eide-*\033[0m\n"
+rm -vrf ~/.emacs.d/elpa/eide-*
 
 if grep -q \(eide-start\) ~/.emacs; then
     printf "\nYou must remove (eide-start) from your ~/.emacs\n"
