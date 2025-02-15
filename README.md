@@ -360,7 +360,7 @@ File popup menu actions:
 * Delete trailing spaces
 If "Show version control status" option is set:
 * svn diff / git diff
-* svn revert / git checkout
+* svn revert / git restore
 
 File name colour:
 

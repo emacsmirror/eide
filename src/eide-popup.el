@@ -1,6 +1,6 @@
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -165,7 +165,7 @@ Argument:
           (if (equal l-vc-backend 'Git)
               (progn
                 (eide-i-popup-menu-add-action "git diff" (concat "(eide-vc-git-diff-files-in-directory \"" l-directory-name "\" \"" l-vc-modified-files-list "\")") l-buffer-vc-modified-flag)
-                (eide-i-popup-menu-add-action "git checkout (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-revert \"" l-directory-name "\" \"checkout all modified files\")") l-buffer-vc-modified-flag))))
+                (eide-i-popup-menu-add-action "git restore (all modified files)" (concat "(eide-edit-action-on-directory 'eide-vc-revert \"" l-directory-name "\" \"restore all modified files\")") l-buffer-vc-modified-flag))))
         (eide-i-popup-menu-close-action-list "VC")))
 
     (eide-i-popup-menu-open l-directory-name-in-title)))
@@ -235,7 +235,7 @@ Argument:
             (if (equal l-buffer-vc-backend 'Git)
                 (progn
                   (eide-i-popup-menu-add-action "git diff" (concat "(eide-edit-action-on-file 'eide-vc-git-diff \"" l-buffer "\")") t)
-                  (eide-i-popup-menu-add-action "git checkout" (concat "(eide-edit-action-on-file 'eide-vc-revert \"" l-buffer "\" \"checkout this file\")") t)))))
+                  (eide-i-popup-menu-add-action "git restore" (concat "(eide-edit-action-on-file 'eide-vc-revert \"" l-buffer "\" \"restore this file\")") t)))))
         (if (equal l-buffer-vc-backend 'SVN)
             (eide-i-popup-menu-add-action "svn blame" (concat "(eide-edit-action-on-file 'eide-vc-blame \"" l-buffer "\")") t)
           (if (equal l-buffer-vc-backend 'Git)

@@ -1,5 +1,13 @@
 # Changelog for Emacs-IDE (eide)
 
+## Unreleased
+
+### Changed
+
+* Replace "git checkout" with "git restore" in the popup actions. Only the text
+  is modified, the action itself is still executed by vc-revert-file. The
+  restore command was introduced in git 2.23.
+
 ## Version 2.3.3 (2025-01-06)
 
 ### Fixed

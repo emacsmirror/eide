@@ -1,6 +1,6 @@
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
-;; Copyright © 2010-2023 Cédric Marie
+;; Copyright © 2010-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -181,7 +181,7 @@ Arguments:
       (vc-annotate buffer-file-name (vc-working-revision buffer-file-name)))))
 
 (defun eide-vc-revert ()
-  "Execute VC revert/checkout on current buffer."
+  "Execute VC revert/restore on current buffer."
   (when (and eide-vc-show-status-flag eide-menu-local-vc-modified-status-flag)
     (save-excursion
       (vc-revert-file buffer-file-name))))
