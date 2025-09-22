@@ -380,22 +380,25 @@ Argument:
         ;; Change the project list file
         (setq eide-project-list-file (concat "~/.emacs.d/eide/workspace-" (number-to-string p-workspace-number) "-project-list.txt"))
         ;; If a project is loaded, close it before switching to the new workspace
-        (when eide-project-name
-          ;; Restore initial root directory
-          (setq eide-project-name nil)
-          (setq eide-project-config-buffer nil)
-          (setq eide-root-directory eide-root-directory-at-startup)
-          ;; Clear the project selected for comparison
-          (setq eide-compare-other-project-name nil)
-          (setq eide-compare-other-project-directory nil)
-          (unless eide-no-desktop-option
-            ;; Clear desktop (even if a project is defined)
-            (eide-windows-hide-ide-windows)
-            (desktop-save-mode -1)
-            ;; Close all buffers
-            (desktop-clear)
-            (eide-menu-update t)
-            (eide-windows-show-ide-windows)))
+        (if eide-project-name
+            (progn
+              ;; Restore initial root directory
+              (setq eide-project-name nil)
+              (setq eide-project-config-buffer nil)
+              (setq eide-root-directory eide-root-directory-at-startup)
+              ;; Clear the project selected for comparison
+              (setq eide-compare-other-project-name nil)
+              (setq eide-compare-other-project-directory nil)
+              (unless eide-no-desktop-option
+                ;; Clear desktop (even if a project is defined)
+                (eide-windows-hide-ide-windows)
+                (desktop-save-mode -1)
+                ;; Close all buffers
+                (desktop-clear)
+                (eide-menu-update t)
+                (eide-windows-show-ide-windows)))
+          ;; Update the workspace number in the menu
+          (eide-menu-update t))
         (eide-i-project-update-internal-project-list)
         ;; Update default directory if current buffer is not visiting a file
         (unless buffer-file-name

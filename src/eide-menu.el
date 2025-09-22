@@ -1,6 +1,6 @@
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -68,6 +68,7 @@
 (make-face 'eide-menu-default-face)
 (make-face 'eide-menu-project-header-face)
 (make-face 'eide-menu-project-name-face)
+(make-face 'eide-menu-project-workspace-face)
 (make-face 'eide-menu-directory-face)
 (make-face 'eide-menu-directory-out-of-project-face)
 (make-face 'eide-menu-file-rw-face)
@@ -82,6 +83,7 @@
 
 (make-face-bold 'eide-menu-project-header-face)
 (make-face-bold 'eide-menu-project-name-face)
+(make-face-bold 'eide-menu-project-workspace-face)
 
 (make-face-bold 'eide-menu-file-rw-face)
 (make-face-bold 'eide-menu-file-ro-face)
@@ -441,6 +443,8 @@ Argument:
 
     (eide-i-menu-insert-text "\n")
     (eide-i-menu-insert-text eide-root-directory)
+    (eide-i-menu-insert-text "\n")
+    (put-text-property (point) (progn (insert (concat "(Workspace " (number-to-string eide-project-current-workspace) ")")) (point)) 'face 'eide-menu-project-workspace-face)
     (eide-i-menu-insert-text "\n\n")
 
     (if p-force-update-status-flag
@@ -635,6 +639,7 @@ current buffer."
         ;; Project
         (set-face-foreground 'eide-menu-project-header-face "deep sky blue")
         (set-face-foreground 'eide-menu-project-name-face "orange")
+        (set-face-foreground 'eide-menu-project-workspace-face "sea green")
         ;; Directories
         (set-face-background 'eide-menu-directory-face "#300030")
         (set-face-foreground 'eide-menu-directory-face "thistle")
@@ -657,6 +662,7 @@ current buffer."
       ;; Project
       (set-face-foreground 'eide-menu-project-header-face "blue")
       (set-face-foreground 'eide-menu-project-name-face "red")
+      (set-face-foreground 'eide-menu-project-workspace-face "dark green")
       ;; Directories
       (set-face-background 'eide-menu-directory-face "lavender blush")
       (set-face-foreground 'eide-menu-directory-face "dark violet")
@@ -693,6 +699,7 @@ current buffer."
       (set-face-foreground 'eide-menu-default-face eide-menu-foreground-color)
       (set-face-background 'eide-menu-project-header-face l-menu-background-color)
       (set-face-background 'eide-menu-project-name-face l-menu-background-color)
+      (set-face-background 'eide-menu-project-workspace-face l-menu-background-color)
       (set-face-background 'eide-menu-file-rw-face l-menu-background-color)
       (set-face-background 'eide-menu-file-ro-face l-menu-background-color)
       (set-face-background 'eide-menu-file-nofile-face l-menu-background-color)

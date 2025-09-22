@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+* Show the workspace number in the menu.
+
 ### Changed
 
 * Replace "git checkout" with "git restore" in the popup actions. Only the text
