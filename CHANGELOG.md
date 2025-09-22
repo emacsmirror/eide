@@ -7,6 +7,8 @@
 * Replace "git checkout" with "git restore" in the popup actions. Only the text
   is modified, the action itself is still executed by vc-revert-file. The
   restore command was introduced in git 2.23.
+* Don't check non-existent directories when displaying the project list, but
+  add a specific command in the popup menu to do it on purpose instead.
 
 ## Version 2.3.3 (2025-01-06)
 

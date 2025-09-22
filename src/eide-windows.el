@@ -1,6 +1,6 @@
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright © 2008-2024 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -1075,6 +1075,9 @@ on previous state)."
   '(menu-item (concat "Display project list (workspace " (number-to-string eide-project-current-workspace) ")")
               eide-project-open-list
               :enable (not (equal (nth 7 (file-attributes eide-project-list-file)) 0))))
+
+(define-key-after eide-menu-keymap [sep-project-selection] '(menu-item "--" nil))
+
 (define-key-after eide-menu-keymap [eide-project-remove-from-list]
   '(menu-item "Remove this project from the current workspace"
               eide-project-remove-from-list
@@ -1083,8 +1086,12 @@ on previous state)."
   '(menu-item "Add this project in the current workspace"
               eide-project-add-in-list
               :visible (and eide-project-name (not (member eide-root-directory eide-project-current-project-list)))))
+(define-key-after eide-menu-keymap [eide-project-clean-list]
+  '(menu-item "Remove non-existent directories in the current workspace"
+              eide-project-clean-list
+              :enable (not (equal (nth 7 (file-attributes eide-project-list-file)) 0))))
 
-(define-key-after eide-menu-keymap [sep-project-selection] '(menu-item "--" nil))
+(define-key-after eide-menu-keymap [sep-project-edit-workspace] '(menu-item "--" nil))
 
 (define-key-after eide-menu-keymap [eide-project-switch-to-workspace-1]
   '(menu-item "Switch to workspace 1"

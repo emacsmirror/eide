@@ -1,6 +1,6 @@
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright © 2008-2024 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -527,6 +527,84 @@ Arguments:
       (forward-line 2))
     (kill-this-buffer)))
 
+(defun eide-i-project-display-list (p-clean)
+  "Display the project list (full frame), and rebuild the internal project list.
+Argument:
+- p-clean: remove non-existent directories.
+Return value:
+- t if the list has been modified, nil otherwise."
+  (let ((l-do-it t) (l-current-project-marker nil) (l-save-list nil))
+    (when (and (not eide-project-name)
+               eide-menu-files-list
+               (not (y-or-n-p "The list of open files will be lost if you select a project. Do you want to continue?")))
+      (setq l-do-it nil))
+    (when l-do-it
+      ;; The internal project list will also be rebuilt
+      (setq eide-project-current-project-list nil)
+      (setq eide-project-comparison-project-point nil)
+      (eide-windows-hide-ide-windows)
+      (eide-windows-save-and-unbuild-layout)
+      (eide-i-project-set-colors-for-config)
+      (eide-keys-configure-for-special-buffer)
+      (ad-deactivate 'switch-to-buffer)
+      (if (get-buffer eide-project-projects-buffer-name)
+          (switch-to-buffer eide-project-projects-buffer-name)
+        (progn
+          (find-file eide-project-list-file)
+          (rename-buffer eide-project-projects-buffer-name)
+          ;; Don't show trailing whitespace in this buffer
+          ;; (there is a space at the end of every project name, because of properties)
+          (setq show-trailing-whitespace nil)))
+
+      (goto-char (point-min))
+      (forward-line)
+      (while (not (eobp))
+        (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))) (l-discard-project nil))
+          (forward-line -1)
+          (when (and p-clean (not (file-directory-p l-project-dir)))
+            ;; The root directory of the project doesn't exist anymore
+            ;; Ask the user if it must be removed from the list
+            (when (y-or-n-p (concat "Directory " l-project-dir " doesn't exist. Do you want to remove it from the list?"))
+              (delete-region (point) (progn (forward-line 2) (point)))
+              (setq l-save-list t)
+              (setq l-discard-project t)
+              (forward-line 1)))
+          (when (not l-discard-project)
+            ;; Upgrade from version 2.1.0
+            (let ((l-line-end-pos (line-end-position)))
+              (when (not (= (char-before l-line-end-pos) 32))
+                (save-excursion
+                  (end-of-line)
+                  (insert " ")
+                  (setq l-save-list t))))
+            (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
+                (progn
+                  ;; Current project (can't be selected)
+                  (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
+                  (setq l-current-project-marker (point-marker)))
+              (if (and eide-compare-other-project-name
+                       (string-equal l-project-dir eide-compare-other-project-directory))
+                  ;; Project selected for comparison
+                  (progn
+                    (setq eide-project-comparison-project-point (point))
+                    (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
+                ;; Other projects
+                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
+            (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
+            (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
+            (push l-project-dir eide-project-current-project-list)
+            (forward-line 3))))
+      (if l-save-list
+          ;; Save the buffer (upgrade from version 2.1.0)
+          (save-buffer)
+        ;; Clear modified status (text properties don't need to be saved)
+        (set-buffer-modified-p nil))
+      (setq buffer-read-only t)
+      (goto-char (if l-current-project-marker (marker-position l-current-project-marker) (point-min)))
+      (ad-activate 'switch-to-buffer)
+      ;; Return t if the list has been modified, nil otherwise
+      l-save-list)))
+
 (defun eide-i-project-open-selected-project ()
   "Open project on current line."
   (interactive)
@@ -934,75 +1012,18 @@ finished yet), and delete these files."
 (defun eide-project-open-list ()
   "Display the project list (full frame), and rebuild the internal project list."
   (interactive)
-  (let ((l-do-it t) (l-current-project-marker nil) (l-save-list nil))
-    (when (and (not eide-project-name)
-               eide-menu-files-list
-               (not (y-or-n-p "The list of open files will be lost if you select a project. Do you want to continue?")))
-      (setq l-do-it nil))
-    (when l-do-it
-      ;; The internal project list will also be rebuilt
-      (setq eide-project-current-project-list nil)
-      (setq eide-project-comparison-project-point nil)
-      (eide-windows-hide-ide-windows)
-      (eide-windows-save-and-unbuild-layout)
-      (eide-i-project-set-colors-for-config)
-      (eide-keys-configure-for-special-buffer)
-      (ad-deactivate 'switch-to-buffer)
-      (if (get-buffer eide-project-projects-buffer-name)
-          (switch-to-buffer eide-project-projects-buffer-name)
-        (progn
-          (find-file eide-project-list-file)
-          (rename-buffer eide-project-projects-buffer-name)
-          ;; Don't show trailing whitespace in this buffer
-          ;; (there is a space at the end of every project name, because of properties)
-          (setq show-trailing-whitespace nil)))
+  (eide-i-project-display-list nil))
 
-      (goto-char (point-min))
-      (forward-line)
-      (while (not (eobp))
-        (let ((l-project-dir (buffer-substring-no-properties (point) (line-end-position))) (l-discard-project nil))
-          (forward-line -1)
-          (when (not (file-directory-p l-project-dir))
-            ;; The root directory of the project doesn't exist anymore
-            ;; Ask the user if it must be removed from the list
-            (when (y-or-n-p (concat "Directory " l-project-dir " doesn't exist. Do you want to remove it from the list?"))
-              (delete-region (point) (progn (forward-line 2) (point)))
-              (setq l-save-list t)
-              (setq l-discard-project t)
-              (forward-line 1)))
-          (when (not l-discard-project)
-            ;; Upgrade from version 2.1.0
-            (let ((l-line-end-pos (line-end-position)))
-              (when (not (= (char-before l-line-end-pos) 32))
-                (save-excursion
-                  (end-of-line)
-                  (insert " ")
-                  (setq l-save-list t))))
-            (if (and eide-project-name (string-equal l-project-dir eide-root-directory))
-                (progn
-                  ;; Current project (can't be selected)
-                  (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-current-name-face)
-                  (setq l-current-project-marker (point-marker)))
-              (if (and eide-compare-other-project-name
-                       (string-equal l-project-dir eide-compare-other-project-directory))
-                  ;; Project selected for comparison
-                  (progn
-                    (setq eide-project-comparison-project-point (point))
-                    (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-comparison-name-face))
-                ;; Other projects
-                (put-text-property (point) (1- (line-end-position)) 'face 'eide-project-project-name-face)))
-            (put-text-property (point) (1- (line-end-position)) 'keymap project-name-map)
-            (put-text-property (point) (1- (line-end-position)) 'mouse-face 'highlight)
-            (push l-project-dir eide-project-current-project-list)
-            (forward-line 3))))
-      (if l-save-list
-          ;; Save the buffer (upgrade from version 2.1.0)
-          (save-buffer)
-        ;; Clear modified status (text properties don't need to be saved)
-        (set-buffer-modified-p nil))
-      (setq buffer-read-only t)
-      (goto-char (if l-current-project-marker (marker-position l-current-project-marker) (point-min)))
-      (ad-activate 'switch-to-buffer))))
+(defun eide-project-clean-list ()
+  "Display the project list (full frame), and for each non-existent directory, ask
+the user if he wants to remove the project from the list. Then rebuild the
+internal project list, and switch back to the editor mode."
+  (interactive)
+  (when (y-or-n-p "Do you really want to clean the current workspace?")
+    (if (eide-i-project-display-list t)
+        (eide-popup-message "Cleaning finished: The project list has been updated")
+      (eide-popup-message "Cleaning finished: Nothing to do"))
+    (eide-windows-switch-to-editor-mode)))
 
 (defun eide-project-add-in-list ()
   "Add the current project to the project list of the current workspace."
