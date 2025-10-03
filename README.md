@@ -1,21 +1,38 @@
 # Emacs-IDE (eide)
 
-Emacs-IDE (eide) is a package for [Emacs] that provides IDE features
-(Integrated Development Environment).
+Emacs-IDE (eide) is a package for [Emacs] that makes IDE features available out
+of the box.
 
-Although most of these features are already available in Emacs, the purpose of
-this package is to integrate them into a user-friendly interface, with
-dedicated windows (source files, menu and ouput), convenient keyboard shortcuts
-and project management.
+Most of these features are already available within Emacs, but the purpose of
+this package is to automate their usage and integrate them into a user-friendly
+interface.
 
 It is suitable for almost all languages. The browsing features are provided by
 [Ctags] and [Cscope].
 
-* **Version**: 2.3.3
-* **Homepage**: <https://software.hjuvi.fr.eu.org/eide/>
-* **License**: [GPL-3.0-or-later]
-* **Programming language**: [Emacs Lisp]
-* **Dependencies**: [Emacs] (>= 26.1), [Ctags], [Cscope]
+The specific features brought by this package are:
+
+* Window layout:
+  - On the right side: a menu listing open files
+  - At the bottom: search results, man pages and compilation output
+* Project management:
+  - Databases for tags and cscope are created automatically
+  - For each project, you can customize:
+    - the coding style
+    - compilation commands
+    - tags/cscope/grep filters to exclude files or directories
+* F1-F12 keyboard shortcuts:
+  - Browsing with tags
+  - Searching with cscope and grep
+  - Compilation
+
+## Information
+
+* Version: 2.3.3
+* Homepage: <https://software.hjuvi.fr.eu.org/eide/>
+* License: [GPL-3.0-or-later]
+* Programming language: [Emacs Lisp]
+* Dependencies: [Emacs] (>= 26.1), [Ctags], [Cscope]
 
 [Emacs]: https://www.gnu.org/software/emacs/
 [Ctags]: https://ctags.sourceforge.net/
@@ -457,4 +474,4 @@ on the right.
 ## Support
 
 To report a bug, or suggest an improvement, please send an email to the address
-mentioned at the beginning of this file.
+mentioned in the license section of this file.
