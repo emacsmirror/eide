@@ -28,7 +28,7 @@ The specific features brought by this package are:
 
 ## Information
 
-* Version: 2.3.3
+* Version: 2.3.4
 * Homepage: <https://software.hjuvi.fr.eu.org/eide/>
 * License: [GPL-3.0-or-later]
 * Programming language: [Emacs Lisp]

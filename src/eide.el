@@ -4,7 +4,7 @@
 
 ;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
 ;; Maintainer: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Version: 2.3.3
+;; Version: 2.3.4
 ;; Homepage: https://software.hjuvi.fr.eu.org/eide/
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Package-Requires: ((emacs "26.1"))
@@ -59,7 +59,7 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-version "2.3.3")
+(defvar eide-version "2.3.4")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)
