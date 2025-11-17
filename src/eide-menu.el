@@ -94,32 +94,6 @@
 (make-face-italic 'eide-menu-empty-list-face)
 
 ;; ----------------------------------------------------------------------------
-;; CUSTOMIZATION VARIABLES
-;; ----------------------------------------------------------------------------
-
-(defcustom eide-custom-menu-insert-blank-line-between-directories nil
-  "Insert a blank line between directories in menu."
-  :tag "Insert a blank line between directories in menu"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set 'eide-i-menu-update
-  :initialize 'custom-initialize-default
-  :group 'eide-menu)
-
-;; ----------------------------------------------------------------------------
-;; CUSTOMIZATION FUNCTIONS
-;; ----------------------------------------------------------------------------
-
-(defun eide-i-menu-update (param value)
-  "Update menu.
-Arguments:
-- param: customization parameter.
-- value: customization value."
-  (set-default param value)
-  (when eide-config-ready
-    (eide-menu-update t)))
-
-;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
@@ -306,10 +280,7 @@ Argument:
     ;; Parse buffer list for buffers from this directory to display
     (dolist (l-buffer eide-menu-files-list)
       (when (string-equal p-directory-name (file-name-directory (buffer-file-name (get-buffer l-buffer))))
-        (eide-i-menu-insert-file l-buffer)))
-    ;; Insert an empty line between two directories
-    (when eide-custom-menu-insert-blank-line-between-directories
-      (insert "\n"))))
+        (eide-i-menu-insert-file l-buffer)))))
 
 (defun eide-i-menu-insert-all-files ()
   "Insert all files - grouped by directory - in \"menu\" buffer."
@@ -829,10 +800,7 @@ Argument:
                           (equal l-property 'eide-menu-directory-out-of-project-face))
                   ;; It was also the only one: we must delete directory line
                   (let ((buffer-read-only nil))
-                    (delete-region (point)
-                                   (progn
-                                     (forward-line (if eide-custom-menu-insert-blank-line-between-directories 2 1))
-                                     (point)))))))))))))
+                    (delete-region (point) (progn (forward-line) (point)))))))))))))
 
 (defun eide-menu-directory-close (p-directory-name)
   "Close all files in selected directory.

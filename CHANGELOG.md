@@ -8,6 +8,8 @@
   versions of Emacs don't provide the expected effect anymore (the background
   color is limited to the text and doesn't fill the whole lines of the menu
   buffer).
+* Remove eide-custom-menu-insert-blank-line-between-directories option, because
+  the separation between directories is already clearly visible.
 
 ## Version 2.3.4 (2025-10-17)
 
