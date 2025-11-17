@@ -54,10 +54,8 @@
 (defvar eide-menu-browsing-mode-flag nil)
 (defvar eide-i-menu-restore-ide-windows-after-browsing-mode-flag nil)
 
-(defvar eide-menu-background-color nil)
 (defvar eide-menu-foreground-color nil)
 (defvar eide-menu-file-highlight-background-color nil)
-(defvar eide-menu-use-specific-background-color-flag nil)
 
 (defvar eide-menu-update-enabled-flag nil)
 
@@ -99,14 +97,6 @@
 ;; CUSTOMIZATION VARIABLES
 ;; ----------------------------------------------------------------------------
 
-(defcustom eide-custom-menu-use-specific-background-color t
-  "Use a specific background color (depending on color theme) in menu."
-  :tag "Use a specific background color in menu"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Yes" t))
-  :set '(lambda (param value) (set-default param value) (eide-menu-update-background-color))
-  :initialize 'custom-initialize-default
-  :group 'eide-menu)
 (defcustom eide-custom-menu-insert-blank-line-between-directories nil
   "Insert a blank line between directories in menu."
   :tag "Insert a blank line between directories in menu"
@@ -133,14 +123,6 @@ Arguments:
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-i-menu-insert-text (p-string)
-  "Insert text in \"menu\" buffer (with specific background if necessary).
-Argument:
-- p-string: string to insert."
-  (if eide-menu-use-specific-background-color-flag
-      (put-text-property (point) (progn (insert p-string) (point)) 'face 'eide-menu-default-face)
-    (insert p-string)))
-
 (defun eide-i-menu-insert-imenu-elements-list (p-elements-list p-unfolded-symbols-folders-list p-highlighted-symbols-list p-prefix)
   "Insert imenu elements list in \"menu\" buffer (recursive function).
 Arguments:
@@ -154,32 +136,32 @@ Arguments:
           ;; l-element is a function
           (progn
             ;; Make it clickable from the beginning of line, for keyboard shortcut
-            (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap function-name-map)
-            (put-text-property l-begin-point (progn (eide-i-menu-insert-text "-->") (point)) 'keymap function-name-highlight-map)
+            (put-text-property (point) (progn (insert p-prefix) (point)) 'keymap function-name-map)
+            (put-text-property l-begin-point (progn (insert "-->") (point)) 'keymap function-name-highlight-map)
             (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-            (eide-i-menu-insert-text " ")
+            (insert " ")
             (put-text-property (setq l-begin-point (point)) (progn (insert (car l-element)) (point)) 'keymap function-name-map)
             (if (member (car l-element) p-highlighted-symbols-list)
                 (put-text-property l-begin-point (point) 'face 'eide-menu-function-with-highlight-face)
               (put-text-property l-begin-point (point) 'face 'eide-menu-function-face))
             (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-            (eide-i-menu-insert-text " \n"))
+            (insert " \n"))
         ;; l-element is a folder
         (progn
           ;; Make it clickable from the beginning of line, for keyboard shortcut
-          (put-text-property (point) (progn (eide-i-menu-insert-text p-prefix) (point)) 'keymap unfold-symbols-folder-map)
+          (put-text-property (point) (progn (insert p-prefix) (point)) 'keymap unfold-symbols-folder-map)
           (if (member (car l-element) p-unfolded-symbols-folders-list)
               (progn
-                (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
+                (put-text-property l-begin-point (progn (insert (concat "(-) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
                 (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-                (eide-i-menu-insert-text " \n")
+                (insert " \n")
                 (eide-i-menu-insert-imenu-elements-list (cdr l-element) p-unfolded-symbols-folders-list p-highlighted-symbols-list (concat p-prefix " | ")))
             (progn
-              (put-text-property l-begin-point (progn (eide-i-menu-insert-text (concat "(+) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
+              (put-text-property l-begin-point (progn (insert (concat "(+) " (car l-element))) (point)) 'keymap unfold-symbols-folder-map)
               (put-text-property l-begin-point (point) 'mouse-face 'highlight)
               ;; Add a space after function name, because otherwise, property
               ;; applies on whole line ("\n")
-              (eide-i-menu-insert-text " \n"))))))))
+              (insert " \n"))))))))
 
 (defun eide-i-menu-insert-file (p-buffer-name &optional p-update-flag p-update-symbols-flag)
   "Insert or update a file in \"menu\" buffer.
@@ -238,10 +220,10 @@ Arguments:
       ;; Insert "(-) " or "(+) " depending on unfolded status
       (let ((l-begin-point (point)))
         (if l-functions-unfolded-flag
-            (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(-)") (point)) 'keymap unfold-functions-map)
-          (put-text-property l-begin-point (progn (eide-i-menu-insert-text "(+)") (point)) 'keymap unfold-functions-map))
+            (put-text-property l-begin-point (progn (insert "(-)") (point)) 'keymap unfold-functions-map)
+          (put-text-property l-begin-point (progn (insert "(+)") (point)) 'keymap unfold-functions-map))
         (put-text-property l-begin-point (point) 'mouse-face 'highlight)
-        (eide-i-menu-insert-text " ")))
+        (insert " ")))
 
     (let ((l-begin-point (point)))
       (put-text-property l-begin-point (progn (insert p-buffer-name) (point)) 'keymap file-name-map)
@@ -274,12 +256,12 @@ Arguments:
 
     ;; Add a space after filename, because otherwise, with some versions of
     ;; Emacs, property applies on whole line ("\n")
-    (eide-i-menu-insert-text " ")
+    (insert " ")
 
     (when l-buffer-vc-modified-flag
-      (eide-i-menu-insert-text "(M) "))
+      (insert "(M) "))
     (when l-buffer-modified-flag
-      (eide-i-menu-insert-text "*"))
+      (insert "*"))
 
     (when l-is-current
       (save-excursion
@@ -288,7 +270,7 @@ Arguments:
         (setq eide-menu-current-buffer-marker (point-marker))))
 
     (when (or (not p-update-flag) p-update-symbols-flag)
-      (eide-i-menu-insert-text "\n"))
+      (insert "\n"))
 
     (when (and (or (not p-update-flag) p-update-symbols-flag) l-functions-unfolded-flag)
       ;; Insert functions
@@ -296,7 +278,7 @@ Arguments:
           (eide-i-menu-insert-imenu-elements-list l-imenu-elements-list l-unfolded-symbols-folders-list l-highlighted-symbols-list "  ")
         (progn
           (put-text-property (point) (progn (insert "      (no function)") (point)) 'face 'eide-menu-empty-list-face)
-          (eide-i-menu-insert-text "\n"))))))
+          (insert "\n"))))))
 
 (defun eide-i-menu-insert-directory (p-directory-name)
   "Insert all files from a directory in \"menu\" buffer.
@@ -327,7 +309,7 @@ Argument:
         (eide-i-menu-insert-file l-buffer)))
     ;; Insert an empty line between two directories
     (when eide-custom-menu-insert-blank-line-between-directories
-      (eide-i-menu-insert-text "\n"))))
+      (insert "\n"))))
 
 (defun eide-i-menu-insert-all-files ()
   "Insert all files - grouped by directory - in \"menu\" buffer."
@@ -441,11 +423,11 @@ Argument:
         (eide-i-menu-insert-project-name)
       (put-text-property (point) (progn (insert "Root directory:") (point)) 'face 'eide-menu-project-header-face))
 
-    (eide-i-menu-insert-text "\n")
-    (eide-i-menu-insert-text eide-root-directory)
-    (eide-i-menu-insert-text "\n")
+    (insert "\n")
+    (insert eide-root-directory)
+    (insert "\n")
     (put-text-property (point) (progn (insert (concat "(Workspace " (number-to-string eide-project-current-workspace) ")")) (point)) 'face 'eide-menu-project-workspace-face)
-    (eide-i-menu-insert-text "\n\n")
+    (insert "\n\n")
 
     (if p-force-update-status-flag
         ;; Update status of all files
@@ -471,14 +453,6 @@ Argument:
     ;; Insert all files
     (when eide-menu-files-list
       (eide-i-menu-insert-all-files))
-
-    (when eide-menu-use-specific-background-color-flag
-      ;; Add 80 blank lines, so that "menu" window seems to have specific background
-      (let ((l-loop-count 0))
-        (save-excursion
-          (while (< l-loop-count 80)
-            (eide-i-menu-insert-text "\n")
-            (setq l-loop-count (+ l-loop-count 1))))))
 
     ;; Move cursor to current buffer
     (when eide-menu-current-buffer-marker
@@ -634,7 +608,6 @@ current buffer."
   (if (equal eide-display-color-theme 'dark)
       ;; "Dark" color theme
       (progn
-        (setq eide-menu-background-color "black")
         (setq eide-menu-foreground-color "gray95")
         ;; Project
         (set-face-foreground 'eide-menu-project-header-face "deep sky blue")
@@ -657,7 +630,6 @@ current buffer."
         (set-face-foreground 'eide-menu-function-with-highlight-face "deep sky blue"))
     ;; "Light" color theme
     (progn
-      (setq eide-menu-background-color "white")
       (setq eide-menu-foreground-color "black")
       ;; Project
       (set-face-foreground 'eide-menu-project-header-face "blue")
@@ -678,53 +650,24 @@ current buffer."
       (set-face-foreground 'eide-menu-function-face "blue")
       (set-face-background 'eide-menu-function-with-highlight-face "aquamarine")
       (set-face-foreground 'eide-menu-function-with-highlight-face "blue")))
-  (eide-menu-update-background-color))
 
-(defun eide-menu-update-background-color ()
-  "Update menu background color."
-  (when eide-config-ready
-    (let ((l-menu-background-color nil))
-      (let ((l-background-color nil))
-        (setq l-background-color (face-background 'default))
-        (if (or (not eide-custom-menu-use-specific-background-color)
-                (equal eide-menu-background-color l-background-color))
-            (progn
-              (setq eide-menu-use-specific-background-color-flag nil)
-              (setq l-menu-background-color l-background-color))
-          (progn
-            (setq eide-menu-use-specific-background-color-flag t)
-            (setq l-menu-background-color eide-menu-background-color))))
+  (set-face-foreground 'eide-menu-default-face eide-menu-foreground-color)
 
-      (set-face-background 'eide-menu-default-face l-menu-background-color)
-      (set-face-foreground 'eide-menu-default-face eide-menu-foreground-color)
-      (set-face-background 'eide-menu-project-header-face l-menu-background-color)
-      (set-face-background 'eide-menu-project-name-face l-menu-background-color)
-      (set-face-background 'eide-menu-project-workspace-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-rw-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-ro-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-nofile-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-ref-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-new-face l-menu-background-color)
-      (set-face-background 'eide-menu-file-vc-modified-face l-menu-background-color)
+  (copy-face 'eide-menu-file-rw-face 'eide-menu-current-file-rw-face)
+  (copy-face 'eide-menu-file-ro-face 'eide-menu-current-file-ro-face)
+  (copy-face 'eide-menu-file-nofile-face 'eide-menu-current-file-nofile-face)
+  (copy-face 'eide-menu-file-ref-face 'eide-menu-current-file-ref-face)
+  (copy-face 'eide-menu-file-new-face 'eide-menu-current-file-new-face)
+  (copy-face 'eide-menu-file-vc-modified-face 'eide-menu-current-file-vc-modified-face)
+  (set-face-background 'eide-menu-current-file-rw-face eide-menu-file-highlight-background-color)
+  (set-face-background 'eide-menu-current-file-ro-face eide-menu-file-highlight-background-color)
+  (set-face-background 'eide-menu-current-file-nofile-face eide-menu-file-highlight-background-color)
+  (set-face-background 'eide-menu-current-file-ref-face eide-menu-file-highlight-background-color)
+  (set-face-background 'eide-menu-current-file-new-face eide-menu-file-highlight-background-color)
+  (set-face-background 'eide-menu-current-file-vc-modified-face eide-menu-file-highlight-background-color)
 
-      ;; Current file
-      (copy-face 'eide-menu-file-rw-face 'eide-menu-current-file-rw-face)
-      (copy-face 'eide-menu-file-ro-face 'eide-menu-current-file-ro-face)
-      (copy-face 'eide-menu-file-nofile-face 'eide-menu-current-file-nofile-face)
-      (copy-face 'eide-menu-file-ref-face 'eide-menu-current-file-ref-face)
-      (copy-face 'eide-menu-file-new-face 'eide-menu-current-file-new-face)
-      (copy-face 'eide-menu-file-vc-modified-face 'eide-menu-current-file-vc-modified-face)
-      (set-face-background 'eide-menu-current-file-rw-face eide-menu-file-highlight-background-color)
-      (set-face-background 'eide-menu-current-file-ro-face eide-menu-file-highlight-background-color)
-      (set-face-background 'eide-menu-current-file-nofile-face eide-menu-file-highlight-background-color)
-      (set-face-background 'eide-menu-current-file-ref-face eide-menu-file-highlight-background-color)
-      (set-face-background 'eide-menu-current-file-new-face eide-menu-file-highlight-background-color)
-      (set-face-background 'eide-menu-current-file-vc-modified-face eide-menu-file-highlight-background-color)
-
-      (set-face-background 'eide-menu-function-face l-menu-background-color)
-      (set-face-background 'eide-menu-empty-list-face l-menu-background-color)
-      (set-face-foreground 'eide-menu-empty-list-face eide-menu-foreground-color))
-    (eide-menu-update t)))
+  (set-face-foreground 'eide-menu-empty-list-face eide-menu-foreground-color)
+  (eide-menu-update t))
 
 (defun eide-menu-update (p-force-rebuild-flag &optional p-force-update-status-flag)
   "Update \"menu\" buffer (may be postponed if the \"menu\" buffer is not

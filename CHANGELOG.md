@@ -1,5 +1,14 @@
 # Changelog for Emacs-IDE (eide)
 
+## Unreleased
+
+### Removed
+
+* Remove eide-custom-menu-use-specific-background-color option, because recent
+  versions of Emacs don't provide the expected effect anymore (the background
+  color is limited to the text and doesn't fill the whole lines of the menu
+  buffer).
+
 ## Version 2.3.4 (2025-10-17)
 
 ### Added
