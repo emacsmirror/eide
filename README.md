@@ -29,7 +29,7 @@ The specific features brought by this package are:
 ## Information
 
 * Version: 2.3.4
-* Homepage: <https://software.hjuvi.fr.eu.org/eide/>
+* Homepage: <https://forge.tedomum.net/hjuvi/eide>
 * License: [GPL-3.0-or-later]
 * Programming language: [Emacs Lisp]
 * Dependencies: [Emacs] (>= 26.1), [Ctags], [Cscope]
@@ -42,7 +42,7 @@ The specific features brought by this package are:
 
 ## License
 
-Copyright © 2008-2025 Cédric Marie <cedric@hjuvi.fr.eu.org>
+Copyright © 2008-2025 Cédric Marie <hjuvi@tedomum.fr>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

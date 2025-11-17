@@ -1,7 +1,7 @@
 # Credits for Emacs-IDE (eide)
 
 * **Author and maintainer**:
-  Cédric Marie <cedric@hjuvi.fr.eu.org>
+  Cédric Marie <hjuvi@tedomum.fr>
 
 * **Contributors**:
   - Cédric Chépied (initial git support and local installation)

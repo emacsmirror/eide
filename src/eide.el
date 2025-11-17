@@ -2,10 +2,10 @@
 
 ;; Copyright © 2008-2025 Cédric Marie
 
-;; Author: Cédric Marie <cedric@hjuvi.fr.eu.org>
-;; Maintainer: Cédric Marie <cedric@hjuvi.fr.eu.org>
+;; Author: Cédric Marie <hjuvi@tedomum.fr>
+;; Maintainer: Cédric Marie <hjuvi@tedomum.fr>
 ;; Version: 2.3.4
-;; Homepage: https://software.hjuvi.fr.eu.org/eide/
+;; Homepage: https://forge.tedomum.net/hjuvi/eide
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -81,7 +81,7 @@
 
 (defun eide-about-open ()
   "Display a popup with the version of the package."
-  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://software.hjuvi.fr.eu.org/eide/")))
+  (eide-popup-message (concat "Emacs-IDE (eide) version " eide-version "\nHomepage: https://forge.tedomum.net/hjuvi/eide")))
 
 (defun eide-shell-open ()
   "Open a shell."
