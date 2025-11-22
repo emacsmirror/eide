@@ -155,7 +155,7 @@ Arguments:
 ;; INTERNAL FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(defun eide-i-search-tags-sentinel (p-process p-event)
+(defun eide-i-search-tags-sentinel (_p-process p-event)
   "Sentinel for \"create tags\" process.
 Arguments:
 - p-process: process.
@@ -165,7 +165,7 @@ Arguments:
     (setq eide-search-tags-creation-in-progress-flag nil)
     (message "Creating tags... done")))
 
-(defun eide-i-search-cscope-sentinel (p-process p-event)
+(defun eide-i-search-cscope-sentinel (_p-process p-event)
   "Sentinel for \"create cscope\" process.
 Arguments:
 - p-process: process.

@@ -127,7 +127,7 @@ mouse-wheel-scroll-amount (3 ...))."
 ;; a buffer should be displayed, so there is no point in forwarding
 ;; alist.
 
-(defun eide-i-windows-save-output-window-height (p-buffer p-alist)
+(defun eide-i-windows-save-output-window-height (_p-buffer _p-alist)
   "display-buffer function that saves \"output\" window height (before it is
 resized by completions) and deliberately fails to display the completion buffer
 so that it is managed by next display-buffer functions.
@@ -143,7 +143,7 @@ Arguments:
   ;; Make it fail so that another display-buffer function will be used
   nil)
 
-(defun eide-i-windows-display-compilation-buffer-function (p-buffer p-alist)
+(defun eide-i-windows-display-compilation-buffer-function (p-buffer _p-alist)
   "Action function for display-buffer, for compilation buffer (to display in
 output window).
 Arguments:
@@ -157,7 +157,7 @@ Arguments:
   ;; Return buffer window ("output" window)
   eide-windows-output-window)
 
-(defun eide-i-windows-display-shell-buffer-function (p-buffer p-alist)
+(defun eide-i-windows-display-shell-buffer-function (p-buffer _p-alist)
   "Action function for display-buffer, for shell buffer (to display in output
 window).
 Arguments:
@@ -171,7 +171,7 @@ Arguments:
   ;; Return buffer window ("output" window)
   eide-windows-output-window)
 
-(defun eide-i-windows-display-man-buffer-function (p-buffer p-alist)
+(defun eide-i-windows-display-man-buffer-function (p-buffer _p-alist)
   "Action function for display-buffer, for man page buffer (to display in output
 window).
 Arguments:
@@ -186,7 +186,7 @@ Arguments:
   ;; Return buffer window ("output" window)
   eide-windows-output-window)
 
-(defun eide-i-windows-display-menu-buffer-function (p-buffer p-alist)
+(defun eide-i-windows-display-menu-buffer-function (p-buffer _p-alist)
   "Action function for display-buffer, for menu buffer (to display in menu window).
 Arguments:
 - p-buffer: buffer.
@@ -197,7 +197,7 @@ Arguments:
   ;; Return buffer window ("menu" window)
   eide-windows-menu-window)
 
-(defun eide-i-windows-display-buffer-in-output-window-function (p-buffer p-alist)
+(defun eide-i-windows-display-buffer-in-output-window-function (p-buffer _p-alist)
   "Action function for display-buffer, for buffers to display in output window.
 Arguments:
 - p-buffer: buffer.
@@ -215,7 +215,7 @@ Arguments:
   ;; Return buffer window ("output" window)
   eide-windows-output-window)
 
-(defun eide-i-windows-display-buffer-in-source-window-function (p-buffer p-alist)
+(defun eide-i-windows-display-buffer-in-source-window-function (p-buffer _p-alist)
   "Action function for display-buffer, for buffers to display in source window.
 Arguments:
 - p-buffer: buffer.
@@ -267,7 +267,7 @@ Argument:
               eide-windows-source-window))))
     nil))
 
-(defadvice select-window (after eide-select-window-advice-after (p-window &optional p-norecord))
+(defadvice select-window (after eide-select-window-advice-after (p-window &optional _p-norecord))
   "Override select-window function (advice), to know which window is the active
 \"source\" window.
 Arguments (same as select-window function):
