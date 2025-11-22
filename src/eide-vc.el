@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-vc.el --- Emacs-IDE: Version control (svn and git)
 
 ;; Copyright © 2010-2025 Cédric Marie

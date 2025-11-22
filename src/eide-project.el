@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-project.el --- Emacs-IDE: Project management
 
 ;; Copyright © 2008-2025 Cédric Marie

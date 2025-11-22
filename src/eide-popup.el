@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-popup.el --- Emacs-IDE: Display popups (message or menu)
 
 ;; Copyright © 2008-2025 Cédric Marie

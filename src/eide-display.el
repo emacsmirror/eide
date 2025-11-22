@@ -1,6 +1,7 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-display.el --- Emacs-IDE: Display (color themes)
 
-;; Copyright © 2013-2024 Cédric Marie
+;; Copyright © 2013-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free

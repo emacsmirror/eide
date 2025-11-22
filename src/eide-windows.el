@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
 ;; Copyright © 2008-2025 Cédric Marie

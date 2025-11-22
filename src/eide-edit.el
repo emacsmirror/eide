@@ -1,6 +1,7 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-edit.el --- Emacs-IDE: Clean and edit files (REF/NEW)
 
-;; Copyright © 2008-2023 Cédric Marie
+;; Copyright © 2008-2025 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free

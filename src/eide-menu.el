@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
 ;; Copyright © 2008-2025 Cédric Marie

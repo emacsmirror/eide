@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide-config.el --- Emacs-IDE: Customization
 
 ;; Copyright © 2008-2025 Cédric Marie

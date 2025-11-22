@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; eide.el --- IDE features made available out of the box
 
 ;; Copyright © 2008-2025 Cédric Marie
