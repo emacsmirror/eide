@@ -1197,7 +1197,7 @@ list of the current workspace."
     (let ((l-available-style-name-list nil))
       ;; Build the list of available C styles
       (dolist (l-style c-style-alist)
-        (add-to-list 'l-available-style-name-list (car l-style)))
+        (push (car l-style) l-available-style-name-list))
       ;; Display the list
       (insert "# Possible C styles are:\n")
       (insert "#")
