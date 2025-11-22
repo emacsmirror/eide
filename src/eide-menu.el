@@ -387,7 +387,7 @@ of buffer name."
   "Rebuild \"menu\" buffer.
 Argument:
 - p-force-update-status-flag: t = update files status, nil = do not update."
-  (let ((buffer-read-only nil) (l-position-marker nil))
+  (let ((buffer-read-only nil))
     (erase-buffer)
     (setq eide-menu-current-buffer-marker nil)
 
