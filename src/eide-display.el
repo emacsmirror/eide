@@ -62,7 +62,7 @@
 (light if none is enabled)."
   :tag "Color theme for Emacs-IDE specific faces (menu, help, and list of projects)"
   :type '(choice (const :tag "auto" nil) (const dark) (const light))
-  :set '(lambda (param value) (set-default param value) (eide-display-apply-color-theme))
+  :set (lambda (param value) (set-default param value) (eide-display-apply-color-theme))
   :initialize 'custom-initialize-default
   :group 'eide-display)
 (defcustom eide-custom-start-maximized t
@@ -81,7 +81,7 @@
   :tag "Disable beeping / screen flashing"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
 (defcustom eide-custom-disable-bars t
@@ -89,7 +89,7 @@
   :tag "Disable the menu-bar and the tool-bar"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
 (defcustom eide-custom-add-cursor-position-info t
@@ -99,7 +99,7 @@ column-number-mode t, which-function-mode t) and highlight matching parentheses
   :tag "Add information about the cursor position"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
 (defcustom eide-custom-show-trailing-whitespace t
@@ -107,7 +107,7 @@ column-number-mode t, which-function-mode t) and highlight matching parentheses
   :tag "Show trailing whitespace"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-display)
 

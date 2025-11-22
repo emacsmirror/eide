@@ -34,7 +34,7 @@
   :tag "Disable backup files"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
 (defcustom eide-custom-disable-large-file-warning t
@@ -42,7 +42,7 @@
   :tag "Disable large file warning"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Disable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
 (defcustom eide-custom-indent-with-spaces t
@@ -50,7 +50,7 @@
   :tag "Indent with spaces"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-edit)
 

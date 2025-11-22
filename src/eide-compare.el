@@ -82,7 +82,7 @@
   :tag "Compare buffers side-by-side"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Side-by-side" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-compare)
 

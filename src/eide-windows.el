@@ -102,7 +102,7 @@ mouse-wheel-scroll-amount (3 ...))."
   :tag "Configure smooth scrolling"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-windows)
 (defcustom eide-custom-compilation-scroll-output t
@@ -110,7 +110,7 @@ mouse-wheel-scroll-amount (3 ...))."
   :tag "Scrolling of compilation output"
   :type '(choice (const :tag "Don't override" nil)
                  (const :tag "Enable" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-windows)
 

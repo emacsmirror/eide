@@ -45,7 +45,7 @@ group."
   :tag "Override Emacs settings"
   :type '(choice (const :tag "No" nil)
                  (const :tag "Yes" t))
-  :set '(lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
+  :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide)
 
