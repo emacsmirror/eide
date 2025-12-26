@@ -95,14 +95,14 @@
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-ediff)
-  (ad-deactivate 'select-window))
+  (advice-remove 'select-window #'select-window--advice-after))
 
 (defun eide-i-compare-ediff-mode-stop ()
   "Stop ediff mode."
   (eide-keys-configure-for-editor)
   (eide-windows-restore-layout)
   (eide-windows-show-ide-windows)
-  (ad-activate 'select-window))
+  (advice-add 'select-window :after #'select-window--advice-after))
 
 (defun eide-i-compare-ediff-quit-hook ()
   "Hook for exiting ediff: Close temporary buffer, and restore display."

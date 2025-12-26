@@ -267,7 +267,7 @@ Argument:
               eide-windows-source-window))))
     nil))
 
-(defadvice select-window (after eide-select-window-advice-after (p-window &optional _p-norecord))
+(defun select-window--advice-after (p-window &optional _p-norecord)
   "Override select-window function (advice), to know which window is the active
 \"source\" window.
 Arguments (same as select-window function):
@@ -281,21 +281,17 @@ ones."
               (window-minibuffer-p p-window)
               ;; Exclude any temporary buffer ("*...")
               (string-match "^\*.*" (buffer-name (window-buffer p-window))))
-    (ad-deactivate 'select-window)
+    (advice-remove 'select-window #'select-window--advice-after)
     (setq eide-windows-source-window p-window)
     (eide-menu-update nil)
-    (ad-activate 'select-window)))
+    (advice-add 'select-window :after #'select-window--advice-after)))
 
-(defadvice switch-to-buffer (around eide-switch-to-buffer-advice-around (p-buffer &optional p-norecord p-force-same-window))
+(defun switch-to-buffer--advice-around (orig-fun p-buffer &rest p-args)
   "Override switch-to-buffer function (advice), to display buffer in appropriate
 window.
 Returns the buffer.
 Arguments (same as switch-to-buffer function):
-- p-buffer: buffer.
-- p-norecord (optional): don't add the buffer to the list of recently selected
-ones.
-- p-force-same-window (optional): force to display the buffer in the selected
-window."
+- p-buffer: buffer."
   (let ((l-buffer-name) (l-browsing-mode-flag nil) (l-window))
     (if (bufferp p-buffer)
         ;; Get buffer name from buffer
@@ -317,7 +313,7 @@ window."
           (progn
             (unless eide-menu-browsing-mode-flag
               (eide-menu-browsing-mode-start))
-            ad-do-it
+            (apply orig-fun p-buffer p-args)
             p-buffer)
         (progn
           (if (eide-windows-is-file-special-p l-buffer-name)
@@ -333,7 +329,7 @@ window."
                 (eide-menu-browsing-mode-stop))
               (when (equal l-window eide-windows-output-window)
                 (setq eide-windows-output-window-buffer l-buffer-name))
-              ad-do-it
+              (apply orig-fun p-buffer p-args)
               (set-buffer l-buffer-name)
               (if eide-project-is-gdb-session-visible-flag
                   (eide-menu-update nil)
@@ -373,7 +369,7 @@ window."
       (setq eide-search-cscope-update-database-request-pending-flag t))
     (select-window l-window)))
 
-(defadvice revert-buffer (after eide-revert-buffer-advice-after (&optional p-ignore-auto p-noconfirm p-preserve-modes))
+(defun revert-buffer--advice-after (&optional _p-ignore-auto _p-noconfirm _p-preserve-modes)
   "Override revert-buffer function (advice), to update cscope database.
 Arguments (same as revert-buffer function):
 - p-ignore-auto (optional): ignore auto-save file.
@@ -383,54 +379,54 @@ Arguments (same as revert-buffer function):
     ;; Current buffer has been updated: we must update cscope database
     (setq eide-search-cscope-update-database-request-pending-flag t)))
 
-(defadvice previous-buffer (around eide-previous-buffer-advice-around)
+(defun previous-buffer--advice-around (orig-fun)
   "Override previous-buffer function (advice), to select appropriate buffer
 according to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
-    (ad-deactivate 'switch-to-buffer)
+    (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
     ;; Temporarily disable window configuration change hook, otherwise it would
     ;; try to show IDE windows when an IDE buffer is displayed
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
-      ad-do-it
+      (apply orig-fun)
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
-    (ad-activate 'switch-to-buffer)
+    (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (if (equal l-window eide-windows-output-window)
         (setq eide-windows-output-window-buffer (buffer-name))
       (eide-menu-update nil))))
 
-(defadvice next-buffer (around eide-next-buffer-advice-around)
+(defun next-buffer--advice-around (orig-fun)
   "Override next-buffer function (advice), to select appropriate buffer according
 to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
-    (ad-deactivate 'switch-to-buffer)
+    (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
     ;; Temporarily disable window configuration change hook, otherwise it would
     ;; try to show IDE windows when an IDE buffer is displayed
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
-      ad-do-it
+      (apply orig-fun)
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
-    (ad-activate 'switch-to-buffer)
+    (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (if (equal l-window eide-windows-output-window)
         (setq eide-windows-output-window-buffer (buffer-name))
       (eide-menu-update nil))))
 
-(defadvice gdb-setup-windows (before eide-gdb-setup-windows-advice-before)
+(defun gdb-setup-windows--advice-before ()
   "Override gdb-setup-windows function (advice), to unbuild windows layout before
 gdb builds its own."
   (eide-project-debug-mode-start))
 
-(defadvice gdb-restore-windows (before eide-gdb-setup-windows-advice-before)
+(defun gdb-restore-windows--advice-before ()
   "Override gdb-restore-windows function (advice), to unbuild windows layout
 before gdb builds its own."
   (eide-project-debug-mode-start))
@@ -452,13 +448,13 @@ before gdb builds its own."
   (setq eide-windows-menu-window-width (/ (frame-width) 3))
   (when window-system
     (eide-windows-show-ide-windows))
-  (ad-activate 'select-window)
-  (ad-activate 'switch-to-buffer)
-  (ad-activate 'revert-buffer)
-  (ad-activate 'previous-buffer)
-  (ad-activate 'next-buffer)
-  (ad-activate 'gdb-setup-windows)
-  (ad-activate 'gdb-restore-windows)
+  (advice-add 'select-window :after #'select-window--advice-after)
+  (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
+  (advice-add 'revert-buffer :after #'revert-buffer--advice-after)
+  (advice-add 'previous-buffer :around #'previous-buffer--advice-around)
+  (advice-add 'next-buffer :around #'next-buffer--advice-around)
+  (advice-add 'gdb-setup-windows :before #'gdb-setup-windows--advice-before)
+  (advice-add 'gdb-restore-windows :before #'gdb-restore-windows--advice-before)
   (setq display-buffer-alist eide-windows-display-buffer-alist)
   (eide-windows-skip-unwanted-buffers-in-source-window)
   ;; Create menu content (force to build and to retrieve files status)
@@ -584,7 +580,7 @@ windows)."
   "Show \"menu\" and \"ouput\" windows."
   (unless (and eide-windows-ide-windows-visible-flag
                (equal (get-buffer-window eide-menu-buffer-name) eide-windows-menu-window))
-    (ad-deactivate 'select-window)
+    (advice-remove 'select-window #'select-window--advice-after)
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     ;; If completion buffer is displayed, let's close its current window,
     ;; because it should not be displayed above "output" window.
@@ -623,7 +619,7 @@ windows)."
           (setq eide-windows-output-window (split-window (frame-root-window) (- eide-windows-output-window-height) 'below)))))
 
     ;; Temporarily disable switch-to-buffer advice
-    (ad-deactivate 'switch-to-buffer)
+    (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
 
     ;; "Menu" window
     (select-window eide-windows-menu-window)
@@ -648,7 +644,7 @@ windows)."
     (set-window-parameter eide-windows-output-window 'delete-other-windows 'ignore)
 
     ;; Enable switch-to-buffer advice again
-    (ad-activate 'switch-to-buffer)
+    (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
 
     (select-window eide-windows-source-window)
     (setq eide-windows-ide-windows-visible-flag t)
@@ -658,14 +654,14 @@ windows)."
 
     ;; eide-windows-skip-unwanted-buffers-in-source-window updates the menu if necessary
     (eide-windows-skip-unwanted-buffers-in-source-window)
-    (ad-activate 'select-window)))
+    (advice-add 'select-window :after #'select-window--advice-after)))
 
 (defun eide-windows-hide-ide-windows ()
   "Hide \"menu\" and \"output\" windows."
   (when (or eide-windows-ide-windows-visible-flag
             (get-buffer-window eide-menu-buffer-name)
             (get-buffer-window eide-windows-output-window-buffer))
-    (ad-deactivate 'select-window)
+    (advice-remove 'select-window #'select-window--advice-after)
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     ;; If completion buffer is displayed, let's close its current window.
     ;; It is not necessary, but the idea is to be consistent with the behaviour
@@ -694,7 +690,7 @@ windows)."
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
 
     (eide-windows-skip-unwanted-buffers-in-source-window)
-    (ad-activate 'select-window)))
+    (advice-add 'select-window :after #'select-window--advice-after)))
 
 (defun eide-windows-show-hide-ide-windows ()
   "Show/hide \"menu\" and \"ouput\" windows."
@@ -762,7 +758,7 @@ and display it. Current buffer is kept if correct."
   (let ((l-should-we-continue t) (l-current-buffer-name (buffer-name)) (l-first-found-buffer-name nil) (l-iteration 0))
     ;; Temporarily disable switch-to-buffer advice: buffers must be displayed
     ;; in "source" window, until a correct one is found
-    (ad-deactivate 'switch-to-buffer)
+    (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
     ;; Temporarily disable window configuration change hook, otherwise it would
     ;; try to show IDE windows when an IDE buffer is displayed
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
@@ -787,7 +783,7 @@ and display it. Current buffer is kept if correct."
           (unless (equal (eide-i-windows-get-window-for-buffer (buffer-name)) eide-windows-source-window)
             (switch-to-buffer "*scratch*")))
         (setq l-iteration (1+ l-iteration))))
-    (ad-activate 'switch-to-buffer)
+    (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     ;; Update menu (switch-to-buffer advice was disabled)
     (eide-menu-update nil)))
@@ -853,7 +849,7 @@ and display it. Current buffer is kept if correct."
   "Switch to editor mode and build the layout."
   (interactive)
   (when (string-match "^\*Custom.*" (buffer-name))
-    (ad-activate 'switch-to-buffer)
+    (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
     (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (when eide-windows-themes-edited-flag
       ;; Update color theme for specific faces (in case
@@ -935,9 +931,9 @@ Argument:
 - p-file: file."
   ;; find-file advice would change eide-current-buffer
   ;; and menu buffer would be updated with temp files
-  (ad-deactivate 'switch-to-buffer)
+  (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
   (find-file p-file)
-  (ad-activate 'switch-to-buffer))
+  (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around))
 
 (defun eide-windows-toggle-frame-fullscreen-mode ()
   "Toggle frame fullscreen mode between fullboth and nil or maximized (depending

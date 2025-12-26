@@ -124,7 +124,7 @@ group."
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
-  (ad-deactivate 'switch-to-buffer)
+  (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
   (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
   (customize-group 'eide))
 
@@ -134,7 +134,7 @@ group."
   (eide-windows-hide-ide-windows)
   (eide-windows-save-and-unbuild-layout)
   (eide-keys-configure-for-special-buffer)
-  (ad-deactivate 'switch-to-buffer)
+  (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
   (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
   (setq eide-windows-themes-edited-flag t)
   ;; customize-themes doesn't seem to be working properly

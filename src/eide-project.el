@@ -456,7 +456,7 @@ Arguments:
   (unless eide-no-desktop-option
     (unless p-startup-flag
       ;; No need to update menu for every restored buffer
-      (ad-deactivate 'switch-to-buffer)
+      (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
       ;; No need to check windows layout for every restored buffer
       (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook))
     (if (and desktop-save-mode desktop-dirname)
@@ -484,7 +484,7 @@ Arguments:
               (desktop-clear)
               (desktop-read eide-root-directory))))))
     (unless p-startup-flag
-      (ad-activate 'switch-to-buffer)
+      (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
       (add-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)))
 
   ;; Use tags-table-list instead of tags-file-name because when switching to
@@ -550,7 +550,7 @@ Return value:
       (eide-windows-save-and-unbuild-layout)
       (eide-i-project-set-colors-for-config)
       (eide-keys-configure-for-special-buffer)
-      (ad-deactivate 'switch-to-buffer)
+      (advice-remove 'switch-to-buffer #'switch-to-buffer--advice-around)
       (if (get-buffer eide-project-projects-buffer-name)
           (switch-to-buffer eide-project-projects-buffer-name)
         (progn
@@ -605,7 +605,7 @@ Return value:
         (set-buffer-modified-p nil))
       (setq buffer-read-only t)
       (goto-char (if l-current-project-marker (marker-position l-current-project-marker) (point-min)))
-      (ad-activate 'switch-to-buffer)
+      (advice-add 'switch-to-buffer :around #'switch-to-buffer--advice-around)
       ;; Return t if the list has been modified, nil otherwise
       l-save-list)))
 
