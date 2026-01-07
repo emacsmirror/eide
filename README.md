@@ -42,7 +42,7 @@ The specific features brought by this package are:
 
 ## License
 
-Copyright © 2008-2025 Cédric Marie <hjuvi@tedomum.fr>
+Copyright © 2008-2026 Cédric Marie <hjuvi@tedomum.fr>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

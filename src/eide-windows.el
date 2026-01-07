@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-windows.el --- Emacs-IDE: Windows management
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -379,7 +379,7 @@ Arguments (same as revert-buffer function):
     ;; Current buffer has been updated: we must update cscope database
     (setq eide-search-cscope-update-database-request-pending-flag t)))
 
-(defun previous-buffer--advice-around (orig-fun)
+(defun previous-buffer--advice-around (orig-fun &rest p-args)
   "Override previous-buffer function (advice), to select appropriate buffer
 according to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
@@ -390,7 +390,7 @@ according to selected window."
     ;; try to show IDE windows when an IDE buffer is displayed
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
-      (apply orig-fun)
+      (apply orig-fun p-args)
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
@@ -400,7 +400,7 @@ according to selected window."
         (setq eide-windows-output-window-buffer (buffer-name))
       (eide-menu-update nil))))
 
-(defun next-buffer--advice-around (orig-fun)
+(defun next-buffer--advice-around (orig-fun &rest p-args)
   "Override next-buffer function (advice), to select appropriate buffer according
 to selected window."
   (let ((l-window (selected-window)) (l-starting-from-buffer-name (buffer-name)) (l-do-it-flag t))
@@ -411,7 +411,7 @@ to selected window."
     ;; try to show IDE windows when an IDE buffer is displayed
     (remove-hook 'window-configuration-change-hook 'eide-windows-configuration-change-hook)
     (while l-do-it-flag
-      (apply orig-fun)
+      (apply orig-fun p-args)
       (when (or (equal l-window (eide-i-windows-get-window-for-buffer (buffer-name)))
                 (string-equal (buffer-name) l-starting-from-buffer-name))
         (setq l-do-it-flag nil)))
