@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-config.el --- Emacs-IDE: Customization
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -65,6 +65,10 @@ group."
   :tag "Version control"
   :group 'eide)
 
+(defgroup eide-compare nil "File comparison."
+  :tag "File comparison"
+  :group 'eide)
+
 (defgroup eide-project nil "Projects management and default commands that are set in project configuration when a project is created."
   :tag "Projects"
   :group 'eide)
@@ -116,7 +120,8 @@ group."
   (eide-project-apply-customization)
   (eide-display-apply-color-theme)
   (eide-i-config-apply-emacs-settings)
-  (eide-vc-apply-customization))
+  (eide-vc-apply-customization)
+  (eide-compare-apply-customization))
 
 (defun eide-config-customize ()
   "Display customization of Emacs-IDE options (full frame)."

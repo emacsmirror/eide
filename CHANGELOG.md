@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+* Add an option to customize an external diff command to compare REF/NEW files
+  and files from another project (usually another version of the same source
+  code) with the current one. By default, the internal method (ediff) is still
+  used.
+
 ### Removed
 
 * Remove eide-custom-menu-use-specific-background-color option, because recent

@@ -367,12 +367,23 @@ File name colour:
 * green when the modified file is used.
 * red when the original file is used.
 
+#### Comparing with another project
+
+In the project list of the current workspace, you can select another project
+for comparison (right click on the project name).
+
+This other project is usually supposed to be another version of the same source
+code, so that you can compare files that have the same path in both source code
+trees.
+
+File popup menu action:
+
+* Compare with the selected project (if any).
+
 #### Other actions on files
 
 File popup menu actions:
 
-* Set read/write: Set read/write permission on the file.
-* Set read only: Set read only permission on the file.
 * Untabify and indent: "Clean" the file (turn tabs into spaces and indent).
 * Delete trailing spaces
 If "Show version control status" option is set:

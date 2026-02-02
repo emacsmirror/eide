@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-compare.el --- Emacs-IDE: Comparison of files with ediff
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -36,6 +36,7 @@
 (defvar eide-compare-current-point nil)
 (defvar eide-compare-other-buffer-name nil)
 
+(defvar eide-compare-external-diff-command nil)
 (defvar eide-compare-user-ediff-split-window-function nil)
 
 ;; Ediff
@@ -73,6 +74,14 @@
 (set-face-background 'ediff-fine-diff-face-B "plum")
 (set-face-foreground 'ediff-fine-diff-face-B "black")
 
+(defcustom eide-custom-external-diff-command ""
+  "External diff command. Use Emacs internal (ediff) if empty."
+  :tag "External diff command"
+  :type 'string
+  :set 'eide-i-compare-custom-set-external-diff-command
+  :initialize 'custom-initialize-default
+  :group 'eide-compare)
+
 (defgroup eide-override-compare nil "Compare settings."
   :tag "Compare"
   :group 'eide-emacs-settings)
@@ -85,6 +94,21 @@
   :set (lambda (param value) (set-default param value) (eide-i-config-apply-emacs-settings))
   :initialize 'custom-initialize-default
   :group 'eide-override-compare)
+
+;; ----------------------------------------------------------------------------
+;; CUSTOMIZATION FUNCTIONS
+;; ----------------------------------------------------------------------------
+
+(defun eide-i-compare-custom-set-external-diff-command (param value)
+  "Set external diff command.
+Arguments:
+- param: customization parameter.
+- value: customization value."
+  (set-default param value)
+  (when eide-config-ready
+    (if (string-equal value "")
+        (setq eide-compare-external-diff-command nil)
+      (setq eide-compare-external-diff-command value))))
 
 ;; ----------------------------------------------------------------------------
 ;; INTERNAL FUNCTIONS
@@ -177,6 +201,10 @@ Arguments:
       (setq ediff-split-window-function 'split-window-horizontally)
     (setq ediff-split-window-function eide-compare-user-ediff-split-window-function)))
 
+(defun eide-compare-apply-customization ()
+  "Apply compare customization."
+  (eide-i-compare-custom-set-external-diff-command 'eide-custom-external-diff-command eide-custom-external-diff-command))
+
 (defun eide-compare-select-another-project (p-project-name p-project-directory)
   "Select another project for comparison. Unselect it if both arguments are nil.
 Arguments:
@@ -190,23 +218,37 @@ Arguments:
 Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".ref") "* (REF) " nil t))
+  (let ((l-buffer-name nil) (l-ref-buffer-name nil))
+    (setq l-buffer-name (buffer-file-name (get-buffer eide-compare-buffer-name)))
+    (setq l-ref-buffer-name (concat l-buffer-name ".ref"))
+    (if eide-compare-external-diff-command
+        (start-process-shell-command "ext-diff" nil (concat eide-compare-external-diff-command " " l-ref-buffer-name " " l-buffer-name))
+      (eide-i-compare-ediff-buffer-and-file l-ref-buffer-name "* (REF) " nil t))))
 
 (defun eide-compare-with-new-file (p-buffer-name)
   "Compare selected file (\".ref\" version) with \".new\" version.
 Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
-  (eide-i-compare-ediff-buffer-and-file (concat (buffer-file-name (get-buffer eide-compare-buffer-name)) ".new") "* (NEW) " t t))
+  (let ((l-buffer-name nil) (l-new-buffer-name nil))
+    (setq l-buffer-name (buffer-file-name (get-buffer eide-compare-buffer-name)))
+    (setq l-new-buffer-name (concat l-buffer-name ".new"))
+    (if eide-compare-external-diff-command
+        (start-process-shell-command "ext-diff" nil (concat eide-compare-external-diff-command " " l-buffer-name " " l-new-buffer-name))
+      (eide-i-compare-ediff-buffer-and-file l-new-buffer-name "* (NEW) " t t))))
 
 (defun eide-compare-with-other-project (p-buffer-name)
   "Compare selected file with version in another project.
 Argument:
 - p-buffer-name: name of buffer to compare."
   (setq eide-compare-buffer-name p-buffer-name)
-  (let ((l-other-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory)))))
+  (let ((l-this-file nil) (l-other-file nil))
+    (setq l-this-file (buffer-file-name (get-buffer eide-compare-buffer-name)))
+    (setq l-other-file (concat eide-compare-other-project-directory (substring l-this-file (length eide-root-directory))))
     (if (file-exists-p l-other-file)
-        (eide-i-compare-ediff-buffer-and-file (concat eide-compare-other-project-directory (substring (buffer-file-name (get-buffer eide-compare-buffer-name)) (length eide-root-directory))) (concat "* (" eide-compare-other-project-name ") ") nil nil)
+        (if eide-compare-external-diff-command
+            (start-process-shell-command "ext-diff" nil (concat eide-compare-external-diff-command " " l-other-file " " l-this-file))
+          (eide-i-compare-ediff-buffer-and-file l-other-file (concat "* (" eide-compare-other-project-name ") ") nil nil))
       (eide-popup-message "This file doesn't exist in the other project."))))
 
 (defun eide-compare-quit ()
