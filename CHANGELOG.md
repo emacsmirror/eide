@@ -18,6 +18,11 @@
 * Remove eide-custom-menu-insert-blank-line-between-directories option, because
   the separation between directories is already clearly visible.
 
+### Fixed
+
+* Add all possible file extensions for C++ files (in addition to .cpp and .hh)
+  when building cscope list of files: .cc, .cxx, .c++, .hpp, .hxx and .h++.
+
 ## Version 2.3.4 (2025-10-17)
 
 ### Added

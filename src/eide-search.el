@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-search.el --- Emacs-IDE: Search in files (code browsing)
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -57,7 +57,7 @@
 
 ;; Base of the shell command for creating cscope.files (includes C/C++ files)
 ;; -type f: excludes links
-(defvar eide-search-create-cscope-command-base "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\" -o -name \"*.cpp\" -o -name \"*.hh\" ")
+(defvar eide-search-create-cscope-command-base "rm -f cscope.files cscope.out ; find . -type f \\( -name \"*.[ch]\" -o -name \"*.cc\" -o -name \"*.cpp\" -o -name \"*.cxx\" -o -name \"*.c++\" -o -name \"*.hh\" -o -name \"*.hpp\" -o -name \"*.hxx\" -o -name \"*.h++\" ")
 ;; The full command (will be based on eide-custom-cscope-extra-file-extension-list)
 (defvar eide-search-create-cscope-command nil)
 ;; cscope.out will be generated on next search
@@ -91,7 +91,7 @@
 
 (defcustom eide-custom-cscope-extra-file-extension-list ".java .py .rs .go"
   "Space separated list of extra supported file extensions for Cscope (in
-addition to .c, .h, .cpp, and .hh)."
+addition to .c, .h, .cc, .cpp, .cxx, .c++, .hh, .hpp, .hxx and .h++)."
   :tag "List of Cscope extra supported file extensions"
   :type 'string
   :set 'eide-i-search-custom-set-cscope-extra-file-extension-list
