@@ -22,6 +22,8 @@
 
 * Add all possible file extensions for C++ files (in addition to .cpp and .hh)
   when building cscope list of files: .cc, .cxx, .c++, .hpp, .hxx and .h++.
+* Add support for paths containing spaces in cscope list of files, by adding
+  quotes around file names.
 
 ## Version 2.3.4 (2025-10-17)
 

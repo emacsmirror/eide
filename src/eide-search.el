@@ -333,7 +333,7 @@ Argument:
           (unless (string-equal eide-project-cscope-exclude-dirs "")
             (setq l-create-cscope-exclude-dirs-options (mapconcat (function (lambda(x) (concat "! -path \"*/" x "/*\""))) (split-string eide-project-cscope-exclude-dirs) " "))))
         ;; Execute the command (standard command + ! -name and ! -path options if any)
-        (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command l-create-cscope-exclude-files-options " " l-create-cscope-exclude-dirs-options " > cscope.files"))))
+        (let ((l-process (start-process-shell-command "create-cscope" nil (concat "cd " eide-root-directory " ; " eide-search-create-cscope-command l-create-cscope-exclude-files-options " " l-create-cscope-exclude-dirs-options " -fprintf cscope.files '\"%P\"\n'"))))
           ;; Sentinel is called only when Emacs is idle: it should be safe to register it after subprocess creation
           (set-process-sentinel l-process 'eide-i-search-cscope-sentinel))))))
 ;; (cscope-index-files nil))
