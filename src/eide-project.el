@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-project.el --- Emacs-IDE: Project management
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -327,7 +327,7 @@ Arguments:
               ;; Otherwise create an empty project list file
               (with-current-buffer (find-file-noselect l-project-list-file)
                 (save-buffer)
-                (kill-this-buffer))))))
+                (kill-current-buffer))))))
       (setq l-workspace-number (+ l-workspace-number 1))))
   (eide-i-project-update-internal-project-list))
 
@@ -529,7 +529,7 @@ Arguments:
     (while (not (eobp))
       (push (buffer-substring-no-properties (point) (line-end-position)) eide-project-current-project-list)
       (forward-line 2))
-    (kill-this-buffer)))
+    (kill-current-buffer)))
 
 (defun eide-i-project-display-list (p-clean)
   "Display the project list (full frame), and rebuild the internal project list.
@@ -620,7 +620,7 @@ Return value:
         (if (file-directory-p l-project-dir)
             (progn
               ;; Close the project list (so that it can be modified by another Emacs session)
-              (kill-this-buffer)
+              (kill-current-buffer)
               ;; Restore editor configuration
               ;; NB: Keys are restored later, because we need to know if a project
               ;; is defined or not.
@@ -1063,7 +1063,7 @@ internal project list, and switch back to the editor mode."
         (insert eide-root-directory)
         (insert "\n")
         (save-buffer)))
-    (kill-this-buffer))
+    (kill-current-buffer))
   (push eide-root-directory eide-project-current-project-list))
 
 (defun eide-project-remove-from-list ()
@@ -1080,7 +1080,7 @@ internal project list, and switch back to the editor mode."
       (forward-line -1)
       (delete-region (point) (progn (forward-line 2) (point)))
       (save-buffer))
-    (kill-this-buffer))
+    (kill-current-buffer))
   (setq eide-project-current-project-list (remove eide-root-directory eide-project-current-project-list))
   (when (string-equal eide-root-directory eide-compare-other-project-directory)
     ;; Clear the project selected for comparison
@@ -1105,7 +1105,7 @@ list of the current workspace."
       (delete-region (point) (1- (line-end-position)))
       (put-text-property (point) (progn (insert eide-project-name) (point)) 'face 'eide-project-project-current-name-face)
       (save-buffer))
-    (kill-this-buffer)))
+    (kill-current-buffer)))
 
 (defun eide-project-remove-selected-project ()
   "Remove the project on current line from current workspace."

@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide-menu.el --- Emacs-IDE: Menu buffer
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -1006,7 +1006,7 @@ Arguments:
   (interactive)
   (when eide-menu-update-enabled-flag
     (eide-windows-select-source-window nil)
-    (kill-this-buffer)
+    (kill-current-buffer)
     (eide-windows-skip-unwanted-buffers-in-source-window)))
 
 (defun eide-menu-dired-open ()

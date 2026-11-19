@@ -861,7 +861,7 @@ and display it. Current buffer is kept if correct."
           (string-equal (buffer-name) eide-project-projects-buffer-name))
       ;; Close "help", customization, or project list
       ;; NB: In customization, exit button does not work...
-      (kill-this-buffer)
+      (kill-current-buffer)
     (if (equal (current-buffer) eide-project-config-buffer)
         ;; Display another buffer (other than ".emacs-ide-project.cfg")
         (progn
