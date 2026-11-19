@@ -1,14 +1,14 @@
 ;;; -*- lexical-binding: t; -*-
 ;;; eide.el --- IDE features made available out of the box
 
-;; Copyright © 2008-2025 Cédric Marie
+;; Copyright © 2008-2026 Cédric Marie
 
 ;; Author: Cédric Marie <hjuvi@tedomum.fr>
 ;; Maintainer: Cédric Marie <hjuvi@tedomum.fr>
 ;; Version: 2.3.4
 ;; Homepage: https://forge.tedomum.net/hjuvi/eide
 ;; SPDX-License-Identifier: GPL-3.0-or-later
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "28.2"))
 
 ;; This file is not part of GNU Emacs.
 

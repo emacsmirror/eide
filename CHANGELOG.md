@@ -9,6 +9,10 @@
   code) with the current one. By default, the internal method (ediff) is still
   used.
 
+### Changed
+
+* Require Emacs 28.2 (released in 2022) instead of 26.1.
+
 ### Removed
 
 * Remove eide-custom-menu-use-specific-background-color option, because recent
