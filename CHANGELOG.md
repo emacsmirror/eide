@@ -1,6 +1,6 @@
 # Changelog for Emacs-IDE (eide)
 
-## Unreleased
+## Version 2.3.5 (2026-11-21)
 
 ### Added
 

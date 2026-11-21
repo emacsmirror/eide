@@ -5,7 +5,7 @@
 
 ;; Author: Cédric Marie <hjuvi@tedomum.fr>
 ;; Maintainer: Cédric Marie <hjuvi@tedomum.fr>
-;; Version: 2.3.4
+;; Version: 2.3.5
 ;; Homepage: https://forge.tedomum.net/hjuvi/eide
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Package-Requires: ((emacs "28.2"))
@@ -60,7 +60,7 @@
 (require 'eide-vc)
 (require 'eide-windows)
 
-(defvar eide-version "2.3.4")
+(defvar eide-version "2.3.5")
 
 ;; Create a C style based on bsd, with:
 ;; - 4 spaces (instead of 8)

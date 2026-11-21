@@ -28,7 +28,7 @@ The specific features brought by this package are:
 
 ## Information
 
-* Version: 2.3.4
+* Version: 2.3.5
 * Homepage: <https://forge.tedomum.net/hjuvi/eide>
 * License: [GPL-3.0-or-later]
 * Programming language: [Emacs Lisp]
